@@ -1,151 +1,54 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}{{ galerie.nom|capfirst }} — {{ titre_site }}{% endblock %}
+{% block title %}{{ galerie.nom }} — Hors les Murs{% endblock %}
+{% block description %}{{ galerie.description }}{% endblock %}
+
+{% block nav_class %}solid{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/gallery.css' %}" />
+{% endblock %}
 
 {% block content %}
-<!-- HERO GALERIE -->
-<section class="hero" id="hero" style="min-height: 60vh;">
-  <div class="hero-image-side">
-    <div class="hero-image-placeholder"></div>
-  </div>
-  <div class="hero-text-side">
-    <nav class="breadcrumb" style="margin-bottom: 1.5rem;">
-      <a href="{% url 'accueil:index' %}" style="color: var(--fg3); text-decoration: none; font-size: 0.85rem;">← Retour aux galeries</a>
-    </nav>
-    <p class="hero-eyebrow reveal">Galerie</p>
-    <h1 class="hero-title reveal reveal-delay-1" style="font-size: clamp(2.5rem, 6vw, 5rem);">
-      {{ galerie.nom|capfirst }}
-    </h1>
-    <p class="hero-desc reveal reveal-delay-2">
-      {{ galerie.description }}
-    </p>
-    <div class="hero-actions reveal reveal-delay-3">
-      <div style="display: flex; align-items: center; gap: 1rem; color: var(--fg3); font-size: 0.85rem;">
-        <span>{{ galerie.nb_photos }} photo{{ galerie.nb_photos|pluralize }}</span>
-      </div>
-    </div>
-  </div>
-</section>
 
-<!-- PHOTOS GALERIE -->
-<section id="photos" style="padding: clamp(3rem, 6vw, 5rem) clamp(1.25rem, 5vw, 3rem);">
-  <div class="photos-grid" style="
-    display: grid; 
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-    gap: 1px; 
-    background: var(--border);
-    margin-bottom: 3rem;
-  ">
+<header class="page-header">
+  <div class="breadcrumb reveal">
+    <a href="{% url 'accueil:index' %}">Accueil</a>
+    <span>→</span>
+    <a href="{% url 'accueil:index' %}#galeries">Galeries</a>
+    <span>→</span>
+    <span class="current">{{ galerie.nom|upper }}</span>
+  </div>
+  <div class="page-title-row">
+    <h1 class="page-title reveal reveal-d1">{{ galerie.nom|upper }}</h1>
+    <span class="page-meta reveal reveal-d2">
+      {{ galerie.nb_photos }} photos
+    </span>
+  </div>
+  {% if galerie.description %}
+    <p class="page-desc reveal reveal-d3">{{ galerie.description }}</p>
+  {% endif %}
+</header>
+
+<section class="photos-section">
+  <p class="section-eyebrow reveal">Photos</p>
+  <div class="photos-grid">
     {% for i in "123456789012345678901234"|make_list %}
       {% if forloop.counter <= galerie.nb_photos %}
-        <div class="photo-placeholder reveal" style="
-          aspect-ratio: 4/3;
-          background: repeating-linear-gradient(
-            {% cycle '45deg' '-45deg' '135deg' %}{% cycle ',' ',' ',' %} 
-            var(--bg3) 0px, 
-            var(--bg3) 1px, 
-            var(--bg2) 1px, 
-            var(--bg2) 12px
-          );
-          position: relative;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          transition: transform 0.3s;
-        " onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
-          <span style="
-            font-family: monospace; 
-            font-size: 0.7rem; 
-            color: var(--fg3); 
-            letter-spacing: 0.08em; 
-            text-transform: uppercase;
-          ">photo {{ forloop.counter }}</span>
+        <div class="photo-item reveal">
+          <div class="photo-placeholder">
+            <span>📷</span>
+            <div class="photo-overlay">
+              <span class="photo-title">Photo {{ forloop.counter }}</span>
+            </div>
+          </div>
         </div>
+      {% empty %}
+        <p class="empty-message">Aucune photo disponible pour le moment.</p>
       {% endif %}
     {% endfor %}
-  </div>
-  
-  <!-- Pagination fictive -->
-  <div style="display: flex; justify-content: center; gap: 1rem; align-items: center;">
-    <button class="btn-ghost" style="opacity: 0.5; cursor: not-allowed;">← Précédent</button>
-    <span style="color: var(--fg3); font-size: 0.85rem;">Page 1 sur 1</span>
-    <button class="btn-ghost" style="opacity: 0.5; cursor: not-allowed;">Suivant →</button>
   </div>
 </section>
 
-<!-- AUTRES GALERIES -->
-<section style="
-  padding: clamp(3rem, 6vw, 5rem) clamp(1.25rem, 5vw, 3rem); 
-  border-top: 1px solid var(--border);
-  background: var(--bg2);
-">
-  <div style="text-align: center; margin-bottom: 2rem;">
-    <h2 style="
-      font-family: var(--font-display); 
-      font-size: clamp(1.5rem, 3vw, 2.2rem); 
-      letter-spacing: 0.04em; 
-      margin-bottom: 0.5rem;
-    ">Autres galeries</h2>
-    <p style="color: var(--fg2); font-size: 0.9rem;">Découvrez nos autres collections</p>
-  </div>
-  
-  <div class="gallery-grid-mini" style="
-    display: grid; 
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
-    gap: 1.5rem; 
-    max-width: 800px; 
-    margin: 0 auto;
-  ">
-    {% for autre_galerie in galeries %}
-      {% if autre_galerie.slug != galerie.slug %}
-        <a href="{% url 'accueil:galerie_detail' autre_galerie.slug %}" class="mini-card" style="
-          display: block; 
-          text-decoration: none; 
-          background: var(--bg); 
-          border-radius: 8px; 
-          overflow: hidden; 
-          transition: transform 0.3s;
-        " onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='translateY(0)'">
-          <div style="
-            aspect-ratio: 4/3; 
-            background: repeating-linear-gradient(
-              -45deg, 
-              var(--bg3) 0px, 
-              var(--bg3) 1px, 
-              var(--surface) 1px, 
-              var(--surface) 12px
-            );
-            display: flex; 
-            align-items: flex-end; 
-            justify-content: flex-end; 
-            padding: 0.75rem;
-          ">
-            <span style="
-              font-family: monospace; 
-              font-size: 0.6rem; 
-              color: var(--fg3); 
-              letter-spacing: 0.07em; 
-              text-transform: uppercase;
-            ">{{ autre_galerie.label }}</span>
-          </div>
-          <div style="padding: 1rem;">
-            <h3 style="
-              font-family: var(--font-display); 
-              font-size: 1.1rem; 
-              color: var(--fg); 
-              margin-bottom: 0.25rem;
-            ">{{ autre_galerie.nom|capfirst }}</h3>
-            <p style="
-              font-size: 0.75rem; 
-              color: var(--fg3); 
-              text-transform: uppercase; 
-              letter-spacing: 0.08em;
-            ">{{ autre_galerie.nb_photos }} photo{{ autre_galerie.nb_photos|pluralize }}</p>
-          </div>
-        </a>
-      {% endif %}
-    {% endfor %}
-  </div>
-</section>
 {% endblock %}

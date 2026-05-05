@@ -32,11 +32,29 @@ def collection_detail(request: HttpRequest, galerie_slug: str, collection_slug: 
     )
 
     photos = collection.get_photos_publiques()
+    
+    # Collections précédente et suivante dans la même galerie
+    collections_galerie = galerie.collections.filter(est_publique=True).order_by('ordre_affichage', 'cree_le')
+    collection_list = list(collections_galerie)
+    
+    prev_collection = None
+    next_collection = None
+    
+    try:
+        current_index = collection_list.index(collection)
+        if current_index > 0:
+            prev_collection = collection_list[current_index - 1]
+        if current_index < len(collection_list) - 1:
+            next_collection = collection_list[current_index + 1]
+    except ValueError:
+        pass
 
     context = {
         'galerie': galerie,
         'collection': collection,
         'photos': photos,
+        'prev_collection': prev_collection,
+        'next_collection': next_collection,
     }
 
     return render(request, 'galeries/collection_detail.html', context)

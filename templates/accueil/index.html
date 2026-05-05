@@ -1,56 +1,112 @@
 {% extends "base.html" %}
+{% load static %}
+
+{% block title %}Hors les Murs — Studio Photographique{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}" />
+{% endblock %}
 
 {% block content %}
-<!-- HERO -->
+
 <section class="hero" id="hero">
   <div class="hero-image-side">
-    <div class="hero-image-placeholder"></div>
+    {% if hero_image %}
+      <img src="{{ hero_image.url }}" alt="" class="hero-image" />
+    {% else %}
+      <div class="hero-image-placeholder"></div>
+    {% endif %}
   </div>
   <div class="hero-text-side">
     <p class="hero-eyebrow reveal">{{ sous_titre }}</p>
-    <p class="hero-desc reveal reveal-delay-1">
+    <h1 class="hero-title reveal reveal-d1">
+      HORS
+      <span class="line2">LES MURS</span>
+    </h1>
+    <p class="hero-desc reveal reveal-d2">
       {{ description }}
     </p>
-    <div class="hero-actions reveal reveal-delay-3">
-      <button class="btn-primary" onclick="document.getElementById('galeries').scrollIntoView({behavior:'smooth'})">Voir les galeries</button>
-      <button class="btn-ghost" onclick="openModal()">Accès privé</button>
+    <div class="hero-actions reveal reveal-d3">
+      <a class="btn-primary" href="#galeries">Voir les galeries</a>
+      <a class="btn-ghost" href="#" data-open-private>Accès privé</a>
     </div>
   </div>
 </section>
 
-<!-- GALLERIES -->
 <section id="galeries">
   <div class="section-header reveal">
     <h2 class="section-title">Galeries</h2>
-    <span class="section-count">{{ total_collections }} collection{{ total_collections|pluralize }}</span>
+    <span class="section-count">{{ galeries|length }} galeries</span>
   </div>
   <div class="gallery-grid">
     {% for galerie in galeries %}
-      <a class="gallery-card reveal{% cycle '' ' reveal-delay-1' ' reveal-delay-2' %}" href="{% url 'galeries:galerie_detail' galerie_slug=galerie.slug %}" tabindex="0">
-        <div class="gallery-card-image">
-          <span class="gallery-card-image-label">{{ galerie.label }}</span>
+    <a class="gallery-card reveal {% cycle '' 'reveal-d1' 'reveal-d2' %}"
+       href="{% url 'galeries:galerie_detail' galerie_slug=galerie.slug %}">
+      <div class="gallery-card-image-wrap">
+        {% if galerie.image_couverture %}
+          <img src="{{ galerie.image_couverture.url }}" alt="{{ galerie.nom }}" class="gallery-card-image" />
+        {% else %}
+          <div class="gallery-card-image-placeholder"></div>
+        {% endif %}
+      </div>
+      <div class="gallery-card-body">
+        <div>
+          <div class="gallery-card-title">{{ galerie.nom|upper }}</div>
+          <div class="gallery-card-meta">{{ galerie.collections.count }} collections · {{ galerie.get_total_photos }} photos</div>
         </div>
-        <div class="gallery-card-overlay"></div>
-        <div class="gallery-card-body">
-          <div>
-            <div class="gallery-card-title">{{ galerie.nom|capfirst }}</div>
-            <div class="gallery-card-meta">{{ galerie.nb_photos }} photo{{ galerie.nb_photos|pluralize }}</div>
-          </div>
-          <span class="gallery-card-arrow">↗</span>
-        </div>
-      </a>
+        <span class="gallery-card-arrow">↗</span>
+      </div>
+    </a>
     {% endfor %}
   </div>
 </section>
 
-<!-- PRIVATE ACCESS STRIP -->
 <section id="acces-prive">
   <div class="private-text reveal">
     <h2>Galeries privées</h2>
     <p>Vous avez reçu un code d'accès ? Consultez vos photos personnelles en toute confidentialité.</p>
   </div>
-  <button class="btn-primary reveal reveal-delay-1" onclick="openModal()">Entrer mon code</button>
+  <a class="btn-primary reveal reveal-d1" href="#" data-open-private>Entrer mon code</a>
 </section>
+
+<!-- Modal accès privé -->
+<div class="modal-backdrop" id="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal">
+    <button class="modal-close" onclick="closePrivateModal()" aria-label="Fermer">✕</button>
+    <div id="modal-form-content">
+      <p class="modal-eyebrow">Accès restreint</p>
+      <h2 class="modal-title" id="modal-title">Galerie privée</h2>
+      <p class="modal-subtitle">Saisissez le code qui vous a été communiqué pour accéder à vos photos.</p>
+      <form id="private-form" data-endpoint="{% url 'accueil:index' %}">
+        {% csrf_token %}
+        <div class="form-field">
+          <label class="form-label" for="email-input">Votre email</label>
+          <input class="form-input" id="email-input" name="email" type="email"
+                 placeholder="nom@exemple.com" autocomplete="email" required />
+          <p class="form-error" id="email-error">Veuillez saisir un email valide.</p>
+        </div>
+        <div class="form-field">
+          <label class="form-label" for="code-input">Code d'accès</label>
+          <input class="form-input" id="code-input" name="code" type="text"
+                 placeholder="ex: HLM-2024-XXX" autocomplete="off" maxlength="20"
+                 style="letter-spacing:0.15em; text-transform:uppercase;" required />
+          <p class="form-error" id="code-error">Ce code est invalide. Vérifiez votre message.</p>
+        </div>
+        <button type="submit" class="btn-primary btn-full">Accéder à la galerie</button>
+      </form>
+    </div>
+    <div class="form-success" id="modal-success" style="display:none;">
+      <span class="form-success-icon">✦</span>
+      <h3>Accès accordé</h3>
+      <p>Votre galerie privée est en cours de chargement…</p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/modal.js' %}"></script>
 {% endblock %}
 
 {% block modals %}

@@ -1,205 +1,111 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}{{ collection.nom }} — {{ galerie.nom }} — {{ block.super }}{% endblock %}
+{% block title %}{{ collection.nom }} — Hors les Murs{% endblock %}
+{% block description %}{{ collection.nom }} — {{ collection.date_evenement|date:"F Y" }}{% endblock %}
+
+{% block nav_class %}solid{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/collection.css' %}" />
+{% endblock %}
 
 {% block content %}
-<div class="collection-header">
-  <div class="container">
-    <nav class="breadcrumb">
-      <a href="/">Accueil</a>
-      <span>/</span>
-      <a href="{{ galerie.get_absolute_url }}">{{ galerie.nom }}</a>
-      <span>/</span>
-      <span>{{ collection.nom }}</span>
-    </nav>
-    
-    <h1 class="collection-title">{{ collection.nom }}</h1>
-    <p class="collection-meta">
-      <span class="collection-galerie">{{ galerie.nom }}</span>
-      {% if collection.date_evenement %}
-        • <time>{{ collection.date_evenement|date:"F Y" }}</time>
-      {% endif %}
-      {% if collection.lieu %}
-        • <span>{{ collection.lieu }}</span>
-      {% endif %}
-    </p>
-    
-    {% if collection.description %}
-      <p class="collection-description">{{ collection.description }}</p>
-    {% endif %}
-  </div>
-</div>
 
-<main class="collection-content">
-  <div class="container">
-    <div class="photos-grid">
-      {% for photo in photos %}
-        <div class="photo-item">
-          <a href="{{ photo.get_absolute_url }}" class="photo-link">
-            {% with version=photo.get_version_par_defaut %}
-              {% if version and version.fichier_web %}
-                <img src="{{ version.fichier_web.url }}" alt="{{ photo.titre|default:'Photo' }}" loading="lazy">
-              {% else %}
-                <div class="photo-placeholder">
-                  <span>📷</span>
-                </div>
-              {% endif %}
-            {% endwith %}
-            {% if photo.titre %}
-              <div class="photo-overlay">
-                <span class="photo-title">{{ photo.titre }}</span>
-              </div>
-            {% endif %}
-          </a>
-        </div>
-      {% empty %}
-        <p class="empty-message">Aucune photo disponible dans cette collection.</p>
-      {% endfor %}
+<header class="page-header">
+  <div class="breadcrumb reveal">
+    <a href="{% url 'accueil:index' %}">Accueil</a>
+    <span>→</span>
+    <a href="{% url 'galeries:galerie_detail' galerie_slug=galerie.slug %}">{{ galerie.nom|upper }}</a>
+    <span>→</span>
+    <span class="current">{{ collection.nom }}</span>
+  </div>
+  <div class="page-title-row">
+    <h1 class="page-title reveal reveal-d1">{{ collection.nom }}</h1>
+    <div class="page-meta-stack reveal reveal-d2">
+      {% if collection.date_evenement %}
+        <span class="page-date">{{ collection.date_evenement|date:"F Y"|capfirst }}</span>
+      {% endif %}
+      <span class="page-photos">{{ photos|length }} photos</span>
+      {% if collection.lieu %}
+        <span class="page-location">{{ collection.lieu }}</span>
+      {% endif %}
     </div>
   </div>
-</main>
+  {% if collection.description %}
+    <p class="page-desc reveal reveal-d3">{{ collection.description }}</p>
+  {% endif %}
+</header>
 
-<style>
-.collection-header {
-  background: var(--color-bg-secondary);
-  padding: 2rem 0;
-  border-bottom: 1px solid var(--color-border);
-}
+<section class="photo-section">
+  <div class="photo-grid">
+    {% for photo in photos %}
+    <div class="photo"
+         data-src="{% with version=photo.get_version_par_defaut %}{% if version and version.fichier_web %}{{ version.fichier_web.url }}{% endif %}{% endwith %}"
+         data-w="{{ photo.largeur_originale }}"
+         data-h="{{ photo.hauteur_originale }}"
+         data-alt="{{ photo.titre|default:'' }}"
+         data-slug="{{ collection.slug }}"
+         data-angle="{{ forloop.counter|add:0 }}">
+      {% with version=photo.get_version_par_defaut %}
+        {% if version and version.fichier_web %}
+          <img src="{{ version.fichier_web.url }}" alt="{{ photo.titre|default:collection.nom }}"
+               loading="lazy" width="{{ photo.largeur_originale }}" height="{{ photo.hauteur_originale }}" />
+        {% else %}
+          <div class="photo-placeholder"
+               style="aspect-ratio: {{ photo.largeur_originale }}/{{ photo.hauteur_originale }};
+                      --photo-angle: {{ forloop.counter|add:0 }}deg;"></div>
+        {% endif %}
+      {% endwith %}
+      <span class="photo-num">{{ forloop.counter|stringformat:"02d" }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</section>
 
-.breadcrumb {
-  font-size: 0.9rem;
-  color: var(--color-text-secondary);
-  margin-bottom: 1rem;
-}
+<nav class="collection-nav" aria-label="Navigation collections">
+  {% if prev_collection %}
+    <a class="collection-nav-link prev" href="{{ prev_collection.get_absolute_url }}">
+      <span class="collection-nav-arrow">←</span>
+      <span>{{ prev_collection.nom }}</span>
+    </a>
+  {% else %}
+    <span class="collection-nav-link prev disabled">
+      <span class="collection-nav-arrow">←</span>
+      <span>Collection précédente</span>
+    </span>
+  {% endif %}
 
-.breadcrumb a {
-  color: var(--color-text-secondary);
-  text-decoration: none;
-}
+  {% if next_collection %}
+    <a class="collection-nav-link next" href="{{ next_collection.get_absolute_url }}">
+      <span class="collection-nav-arrow">→</span>
+      <span>{{ next_collection.nom }}</span>
+    </a>
+  {% else %}
+    <span class="collection-nav-link next disabled">
+      <span class="collection-nav-arrow">→</span>
+      <span>Collection suivante</span>
+    </span>
+  {% endif %}
+</nav>
 
-.breadcrumb a[href*="galerie"] {
-  color: var(--color-primary);
-  font-weight: 500;
-}
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true"
+     data-collection-slug="{{ collection.slug }}"
+     data-collection-title="{{ collection.nom }}"
+     data-collection-date="{% if collection.date_evenement %}{{ collection.date_evenement|date:'F Y'|capfirst }}{% endif %}">
+  <button class="lb-close" id="lb-close" aria-label="Fermer">✕</button>
+  <button class="lb-arrow lb-prev" id="lb-prev" aria-label="Photo précédente">←</button>
+  <div class="lb-image" id="lb-image">
+    <span class="lb-image-label" id="lb-image-label"></span>
+  </div>
+  <button class="lb-arrow lb-next" id="lb-next" aria-label="Photo suivante">→</button>
+  <div class="lb-counter" id="lb-counter">01 / 01</div>
+  <div class="lb-caption" id="lb-caption"></div>
+</div>
 
-.breadcrumb a:hover {
-  color: var(--color-text);
-}
+{% endblock %}
 
-.collection-title {
-  font-family: "Bebas Neue", sans-serif;
-  font-size: 2.5rem;
-  font-weight: 400;
-  letter-spacing: 0.05em;
-  margin: 0 0 0.5rem 0;
-  color: var(--color-text);
-}
-
-.collection-meta {
-  color: var(--color-text-secondary);
-  margin: 0 0 1rem 0;
-}
-
-.collection-galerie {
-  font-weight: 500;
-  color: var(--color-primary);
-}
-
-.collection-description {
-  font-size: 1.1rem;
-  color: var(--color-text-secondary);
-  max-width: 600px;
-  line-height: 1.6;
-}
-
-.collection-content {
-  padding: 3rem 0;
-}
-
-.photos-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-.photo-item {
-  position: relative;
-  aspect-ratio: 4/3;
-  border-radius: 6px;
-  overflow: hidden;
-  background: var(--color-bg-secondary);
-}
-
-.photo-link {
-  display: block;
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-
-.photo-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.photo-item:hover img {
-  transform: scale(1.05);
-}
-
-.photo-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-secondary);
-  font-size: 2rem;
-}
-
-.photo-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
-  padding: 2rem 1rem 1rem;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.photo-item:hover .photo-overlay {
-  opacity: 1;
-}
-
-.photo-title {
-  color: white;
-  font-weight: 500;
-  font-size: 0.9rem;
-}
-
-.empty-message {
-  text-align: center;
-  color: var(--color-text-secondary);
-  font-style: italic;
-  padding: 3rem;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-@media (max-width: 768px) {
-  .collection-title {
-    font-size: 2rem;
-  }
-  
-  .photos-grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  }
-}
-</style>
+{% block extra_js %}
+<script src="{% static 'js/lightbox.js' %}"></script>
 {% endblock %}
