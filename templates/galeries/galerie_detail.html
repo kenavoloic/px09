@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}{{ galerie.nom }} — {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="galerie-header">
+  <div class="container">
+    <nav class="breadcrumb">
+      <a href="/">Accueil</a>
+      <span>/</span>
+      <span>{{ galerie.nom }}</span>
+    </nav>
+    
+    <h1 class="galerie-title">{{ galerie.nom }}</h1>
+    {% if galerie.description %}
+      <p class="galerie-description">{{ galerie.description }}</p>
+    {% endif %}
+  </div>
+</div>
+
+<main class="galerie-content">
+  <div class="container">
+    {% if galerie.a_des_collections %}
+      <!-- Mode collections -->
+      <div class="gallery-grid">
+        {% for collection in collections %}
+          <a class="gallery-card reveal{% cycle '' ' reveal-delay-1' ' reveal-delay-2' %}" href="{{ collection.get_absolute_url }}" tabindex="0">
+            <div class="gallery-card-image">
+              <span class="gallery-card-image-label">{{ collection.nom|lower }}</span>
+            </div>
+            <div class="gallery-card-overlay"></div>
+            <div class="gallery-card-body">
+              <div>
+                <div class="gallery-card-title">{{ collection.nom|capfirst }}</div>
+                <div class="gallery-card-meta">{{ collection.photos.count }} photo{{ collection.photos.count|pluralize }}</div>
+              </div>
+              <span class="gallery-card-arrow">↗</span>
+            </div>
+          </a>
+        {% empty %}
+          <p class="empty-message">Aucune collection disponible pour le moment.</p>
+        {% endfor %}
+      </div>
+    {% else %}
+      <!-- Mode photos directes -->
+      <div class="photos-grid">
+        {% for photo in photos %}
+          <div class="photo-item">
+            <a href="{{ photo.get_absolute_url }}" class="photo-link">
+              {% with version=photo.get_version_par_defaut %}
+                {% if version and version.fichier_web %}
+                  <img src="{{ version.fichier_web.url }}" alt="{{ photo.titre|default:'Photo' }}" loading="lazy">
+                {% else %}
+                  <div class="photo-placeholder">
+                    <span>📷</span>
+                  </div>
+                {% endif %}
+              {% endwith %}
+              {% if photo.titre %}
+                <div class="photo-overlay">
+                  <span class="photo-title">{{ photo.titre }}</span>
+                </div>
+              {% endif %}
+            </a>
+          </div>
+        {% empty %}
+          <p class="empty-message">Aucune photo disponible pour le moment.</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</main>
+
+<style>
+.galerie-header {
+  background: var(--color-bg-secondary);
+  padding: 2rem 0;
+  border-bottom: 1px solid var(--color-border);
+  position: relative;
+  z-index: 1;
+}
+
+.breadcrumb {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 1rem;
+}
+
+.breadcrumb a {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  color: var(--color-text);
+}
+
+.galerie-title {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 3rem;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  margin: 0 0 1rem 0;
+  color: var(--color-text);
+}
+
+.galerie-description {
+  font-size: 1.1rem;
+  color: var(--color-text-secondary);
+  max-width: 600px;
+}
+
+.galerie-content {
+  padding: 3rem 0;
+}
+
+
+.photos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.photo-item {
+  position: relative;
+  aspect-ratio: 4/3;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--color-bg-secondary);
+}
+
+.photo-link {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.photo-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.photo-item:hover img {
+  transform: scale(1.05);
+}
+
+.photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  font-size: 2rem;
+}
+
+.photo-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  padding: 2rem 1rem 1rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.photo-item:hover .photo-overlay {
+  opacity: 1;
+}
+
+.photo-title {
+  color: white;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.empty-message {
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-style: italic;
+  padding: 3rem;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (max-width: 768px) {
+  .galerie-title {
+    font-size: 2rem;
+  }
+  
+  .photos-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
+</style>
+{% endblock %}

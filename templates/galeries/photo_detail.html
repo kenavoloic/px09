@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+
+{% block title %}{{ photo.titre|default:"Photo"|truncatewords:5 }} — {{ galerie.nom }} — {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="photo-header">
+  <div class="container">
+    <nav class="breadcrumb">
+      <a href="/">Accueil</a>
+      <span>/</span>
+      <a href="{{ galerie.get_absolute_url }}">{{ galerie.nom }}</a>
+      {% if collection %}
+        <span>/</span>
+        <a href="{{ collection.get_absolute_url }}">{{ collection.nom }}</a>
+      {% endif %}
+      <span>/</span>
+      <span>{{ photo.titre|default:"Photo" }}</span>
+    </nav>
+  </div>
+</div>
+
+<main class="photo-content">
+  <div class="container">
+    <div class="photo-viewer">
+      {% if version_defaut and version_defaut.fichier_web %}
+        <div class="photo-main">
+          <img src="{{ version_defaut.fichier_web.url }}" alt="{{ photo.titre|default:'Photo' }}" class="main-image">
+        </div>
+      {% else %}
+        <div class="photo-placeholder">
+          <span>📷</span>
+          <p>Aucune version disponible</p>
+        </div>
+      {% endif %}
+      
+      <div class="photo-info">
+        {% if photo.titre %}
+          <h1 class="photo-title">{{ photo.titre }}</h1>
+        {% endif %}
+        
+        <div class="photo-meta">
+          <span class="photo-galerie">{{ galerie.nom }}</span>
+          {% if collection %}
+            • <span class="photo-collection">{{ collection.nom }}</span>
+          {% endif %}
+        </div>
+        
+        {% if photo.description %}
+          <p class="photo-description">{{ photo.description }}</p>
+        {% endif %}
+        
+        <!-- Métadonnées techniques -->
+        {% if photo.date_prise or photo.appareil or photo.objectif or photo.ouverture or photo.vitesse or photo.iso %}
+          <div class="photo-exif">
+            <h3>Données techniques</h3>
+            <dl>
+              {% if photo.date_prise %}
+                <dt>Date de prise</dt>
+                <dd>{{ photo.date_prise|date:"d F Y à H:i" }}</dd>
+              {% endif %}
+              {% if photo.appareil %}
+                <dt>Appareil</dt>
+                <dd>{{ photo.appareil }}</dd>
+              {% endif %}
+              {% if photo.objectif %}
+                <dt>Objectif</dt>
+                <dd>{{ photo.objectif }}</dd>
+              {% endif %}
+              {% if photo.ouverture %}
+                <dt>Ouverture</dt>
+                <dd>f/{{ photo.ouverture }}</dd>
+              {% endif %}
+              {% if photo.vitesse %}
+                <dt>Vitesse</dt>
+                <dd>{{ photo.vitesse }}</dd>
+              {% endif %}
+              {% if photo.iso %}
+                <dt>ISO</dt>
+                <dd>{{ photo.iso }}</dd>
+              {% endif %}
+              {% if photo.largeur_originale and photo.hauteur_originale %}
+                <dt>Dimensions</dt>
+                <dd>{{ photo.largeur_originale }} × {{ photo.hauteur_originale }} pixels</dd>
+              {% endif %}
+            </dl>
+          </div>
+        {% endif %}
+        
+        <!-- Autres versions disponibles -->
+        {% if versions.count > 1 %}
+          <div class="photo-versions">
+            <h3>Autres versions</h3>
+            <div class="versions-grid">
+              {% for version in versions %}
+                {% if version != version_defaut and version.fichier_web %}
+                  <div class="version-item">
+                    <img src="{{ version.fichier_web.url }}" alt="{{ version.get_traitement_display }}" loading="lazy">
+                    <span class="version-label">{{ version.get_traitement_display }}</span>
+                  </div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</main>
+
+<style>
+.photo-header {
+  background: var(--color-bg-secondary);
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.breadcrumb {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+}
+
+.breadcrumb a {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  color: var(--color-text);
+}
+
+.photo-content {
+  padding: 2rem 0;
+}
+
+.photo-viewer {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 3rem;
+  align-items: start;
+}
+
+.photo-main {
+  background: var(--color-bg-secondary);
+  border-radius: 8px;
+  overflow: hidden;
+  padding: 1rem;
+}
+
+.main-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 4px;
+}
+
+.photo-placeholder {
+  background: var(--color-bg-secondary);
+  border-radius: 8px;
+  padding: 4rem 2rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+}
+
+.photo-placeholder span {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.photo-title {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 2rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  margin: 0 0 1rem 0;
+  color: var(--color-text);
+}
+
+.photo-meta {
+  color: var(--color-text-secondary);
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.photo-galerie {
+  font-weight: 500;
+  color: var(--color-primary);
+}
+
+.photo-description {
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin-bottom: 2rem;
+}
+
+.photo-exif {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: var(--color-bg-secondary);
+  border-radius: 6px;
+}
+
+.photo-exif h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: var(--color-text);
+}
+
+.photo-exif dl {
+  margin: 0;
+}
+
+.photo-exif dt {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0.75rem 0 0.25rem 0;
+}
+
+.photo-exif dd {
+  margin: 0;
+  color: var(--color-text);
+}
+
+.photo-versions {
+  margin-top: 2rem;
+}
+
+.photo-versions h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: var(--color-text);
+}
+
+.versions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+}
+
+.version-item {
+  text-align: center;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.version-item:hover {
+  background: var(--color-bg-secondary);
+}
+
+.version-item img {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.version-label {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (max-width: 1024px) {
+  .photo-viewer {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .photo-title {
+    font-size: 1.5rem;
+  }
+  
+  .photo-exif {
+    padding: 1rem;
+  }
+}
+</style>
+{% endblock %}

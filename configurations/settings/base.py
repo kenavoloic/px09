@@ -31,7 +31,11 @@ DJANGO_APPS: list[str] = [
 
 THIRD_PARTY_APPS: list[str] = []
 
-LOCAL_APPS: list[str] = []
+LOCAL_APPS: list[str] = [
+    "accueil",
+    "utilisateurs",
+    "galeries",
+]
 
 INSTALLED_APPS: list[str] = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -116,3 +120,12 @@ DEFAULT_AUTO_FIELD: str = "django.db.models.BigAutoField"
 SECURE_BROWSER_XSS_FILTER: bool = True
 SECURE_CONTENT_TYPE_NOSNIFF: bool = True
 X_FRAME_OPTIONS: str = "DENY"
+
+# Redirection après déconnexion admin
+LOGOUT_REDIRECT_URL: str = "/"
+
+# Sécurité admin
+ADMIN_URL: str = os.environ.get("ADMIN_URL", "admin")  # Configurable via .env
+
+# Modèle utilisateur personnalisé
+AUTH_USER_MODEL = "utilisateurs.Utilisateur"

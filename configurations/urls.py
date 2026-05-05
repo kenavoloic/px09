@@ -7,7 +7,9 @@ from django.contrib import admin
 from django.urls import include, path
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path(f"{settings.ADMIN_URL}/", admin.site.urls),
+    path("", include("accueil.urls")),
+    path("", include("galeries.urls")),
 ]
 
 if settings.DEBUG:
