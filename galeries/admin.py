@@ -1,3 +1,4 @@
+from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin
 from django.contrib import admin
 from django.db import models
 from django.http import HttpRequest
@@ -23,16 +24,16 @@ class PhotoInline(admin.TabularInline):
         return super().get_queryset(request).select_related('galerie', 'collection')
 
 
-class CollectionInline(admin.TabularInline):
+class CollectionInline(SortableInlineAdminMixin, admin.TabularInline):
     model = Collection
     extra = 0
-    fields = ['nom', 'slug', 'ordre_affichage', 'est_publique', 'date_evenement']
+    fields = ['nom', 'slug', 'est_publique', 'date_evenement']
     readonly_fields = []
 
 
 @admin.register(Galerie)
-class GalerieAdmin(admin.ModelAdmin):
-    list_display = ['nom', 'slug', 'est_publique', 'ordre_affichage', 'total_collections', 'total_photos', 'modifie_le']
+class GalerieAdmin(SortableAdminMixin, admin.ModelAdmin):
+    list_display = ['nom', 'slug', 'est_publique', 'total_collections', 'total_photos', 'modifie_le']
     list_filter = ['est_publique', 'cree_le']
     search_fields = ['nom', 'description']
     prepopulated_fields = {'slug': ('nom',)}
@@ -66,8 +67,8 @@ class GalerieAdmin(admin.ModelAdmin):
 
 
 @admin.register(Collection)
-class CollectionAdmin(admin.ModelAdmin):
-    list_display = ['nom', 'galerie', 'ordre_affichage', 'est_publique', 'total_photos', 'date_evenement']
+class CollectionAdmin(SortableAdminMixin, admin.ModelAdmin):
+    list_display = ['nom', 'galerie', 'est_publique', 'total_photos', 'date_evenement']
     list_filter = ['galerie', 'est_publique', 'date_evenement']
     search_fields = ['nom', 'galerie__nom', 'lieu']
     prepopulated_fields = {'slug': ('nom',)}

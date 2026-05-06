@@ -29,7 +29,9 @@ DJANGO_APPS: list[str] = [
     "django.contrib.staticfiles",
 ]
 
-THIRD_PARTY_APPS: list[str] = []
+THIRD_PARTY_APPS: list[str] = [
+    "adminsortable2",
+]
 
 LOCAL_APPS: list[str] = [
     "accueil",

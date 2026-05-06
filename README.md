@@ -226,3 +226,70 @@ uv run ruff format .   # Formatage
 ```
 
 La sélection dev/prod se fait automatiquement via la variable `DJANGO_ENVIRONMENT` dans les fichiers .env.
+
+## 🎨 Interface utilisateur
+
+Le projet utilise un système d'interface moderne v2 avec :
+- **CSS modulaire** : Variables CSS et architecture componentisée
+- **Animations reveal** : Animations d'apparition échelonnées
+- **Système de thème** : Dark/light mode avec persistance localStorage
+- **Responsive design** : Grilles adaptatives et mobile-first
+- **Lightbox** : Galerie photos avec navigation au clavier
+
+### Architecture CSS
+```
+static/css/
+├── base.css        # Variables, typographie, composants de base
+├── home.css        # Page d'accueil
+├── gallery.css     # Pages galeries
+├── collection.css  # Pages collections avec lightbox
+└── photo.css       # Pages photos détaillées
+```
+
+## ⚙️ Administration Django
+
+### Gestion de l'ordre avec django-admin-sortable2
+
+Le projet utilise `django-admin-sortable2` pour l'ordonnancement par drag & drop :
+
+#### 🎯 **Avantages**
+- **Interface intuitive** : Drag & drop directement sur les éléments
+- **Multi-niveaux** : Galeries, collections et photos
+- **Vignettes** : Ordonnancement visuel des photos via thumbnails
+- **Cohérence UX** : Même interface pour tous les niveaux
+
+#### 🛡️ **Considérations de sécurité**
+
+**Architecture sécurisée :**
+- **JavaScript côté client uniquement** (SortableJS)
+- **Validation serveur obligatoire** : Toutes les modifications vérifiées en Python
+- **Protection Django native** : CSRF tokens, permissions admin, authentification
+
+**Risques potentiels JavaScript côté client :**
+- XSS, manipulation DOM, vulnérabilités dépendances tierces
+- MITM, contournement CSP
+
+**Mitigations intégrées :**
+- Session admin requise + permissions Django
+- Validation serveur systématique même si JS manipulé
+- CSRF protection automatique
+- Surface d'attaque limitée à l'admin Django
+
+#### 📋 **Installation recommandée**
+```bash
+# Installation django-admin-sortable2
+uv add django-admin-sortable2
+
+# Plus librairie vignettes au choix :
+uv add django-admin-thumbnails  # Simple
+uv add sorl-thumbnail           # Avancée
+```
+
+#### 💡 **Décision architecturale**
+
+Pour un portfolio photographique, django-admin-sortable2 offre le meilleur équilibre :
+- **UX optimale** pour l'ordonnancement visual
+- **Sécurité acceptable** avec les protections Django
+- **Architecture unifiée** sur tous les niveaux (galeries→collections→photos)
+
+Alternative sans JS disponible si niveau sécurité critique requis.

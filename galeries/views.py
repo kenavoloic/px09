@@ -32,14 +32,14 @@ def collection_detail(request: HttpRequest, galerie_slug: str, collection_slug: 
     )
 
     photos = collection.get_photos_publiques()
-    
+
     # Collections précédente et suivante dans la même galerie
     collections_galerie = galerie.collections.filter(est_publique=True).order_by('ordre_affichage', 'cree_le')
     collection_list = list(collections_galerie)
-    
+
     prev_collection = None
     next_collection = None
-    
+
     try:
         current_index = collection_list.index(collection)
         if current_index > 0:
