@@ -131,3 +131,8 @@ ADMIN_URL: str = os.environ.get("ADMIN_URL", "admin")  # Configurable via .env
 
 # Modèle utilisateur personnalisé
 AUTH_USER_MODEL = "utilisateurs.Utilisateur"
+
+# Configuration email
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Pour development
+DEFAULT_FROM_EMAIL = 'noreply@horslemurs.fr'
+CONTACT_EMAIL = 'contact@horslemurs.fr'

@@ -1,7 +1,10 @@
+from django.contrib import messages
 from django.http import Http404, HttpRequest, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 
 from galeries.models import Galerie
+
+from .forms import ContactForm
 
 # Données des galeries centralisées
 GALERIES_DATA = [
@@ -90,3 +93,31 @@ def galerie_detail(request: HttpRequest, slug: str) -> HttpResponse:
     }
 
     return render(request, 'accueil/galerie_detail.html', context)
+
+
+def contact(request: HttpRequest) -> HttpResponse:
+    """Vue pour le formulaire de contact."""
+    if request.method == 'POST':
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            if form.send_email():
+                messages.success(
+                    request,
+                    'Votre message a bien été envoyé ! Je vous répondrai dans les plus brefs délais.'
+                )
+                return redirect('accueil:contact')
+            else:
+                messages.error(
+                    request,
+                    'Erreur lors de l\'envoi du message. Veuillez réessayer ou me contacter directement.'
+                )
+    else:
+        form = ContactForm()
+
+    context = {
+        'form': form,
+        'titre_site': 'HORS LES MURS',
+        'sous_titre': 'Studio photographique',
+    }
+
+    return render(request, 'accueil/contact.html', context)

@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Contact — Hors les Murs{% endblock %}
+{% block description %}Contactez le studio photographique Hors les Murs pour vos projets photo : devis, informations, rendez-vous.{% endblock %}
+
+{% block nav_class %}solid{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/contact.css' %}" />
+{% endblock %}
+
+{% block content %}
+
+<header class="page-header">
+  <div class="breadcrumb reveal">
+    <a href="{% url 'accueil:index' %}">Accueil</a>
+    <span>→</span>
+    <span class="current">CONTACT</span>
+  </div>
+  <div class="page-title-row">
+    <h1 class="page-title reveal reveal-d1">CONTACT</h1>
+  </div>
+  <p class="page-desc reveal reveal-d2">
+    Parlons de votre projet photographique. Je vous réponds sous 24-48h.
+  </p>
+</header>
+
+<section class="contact-section">
+  <div class="contact-content">
+    
+    <!-- Messages Django -->
+    {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+          <div class="message message-{{ message.tags }} reveal">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="contact-grid">
+      
+      <!-- Formulaire de contact -->
+      <div class="contact-form-container reveal reveal-d3">
+        <h2 class="section-title">Envoyez-moi un message</h2>
+        
+        <form method="post" class="contact-form" novalidate>
+          {% csrf_token %}
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="{{ form.nom.id_for_label }}" class="form-label">Nom *</label>
+              {{ form.nom }}
+              {% if form.nom.errors %}
+                <div class="form-errors">
+                  {% for error in form.nom.errors %}
+                    <span class="form-error">{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+            
+            <div class="form-group">
+              <label for="{{ form.email.id_for_label }}" class="form-label">Email *</label>
+              {{ form.email }}
+              {% if form.email.errors %}
+                <div class="form-errors">
+                  {% for error in form.email.errors %}
+                    <span class="form-error">{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="{{ form.sujet.id_for_label }}" class="form-label">Sujet *</label>
+            {{ form.sujet }}
+            {% if form.sujet.errors %}
+              <div class="form-errors">
+                {% for error in form.sujet.errors %}
+                  <span class="form-error">{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ form.message.id_for_label }}" class="form-label">Message *</label>
+            {{ form.message }}
+            <small class="form-help">Maximum 1000 caractères</small>
+            {% if form.message.errors %}
+              <div class="form-errors">
+                {% for error in form.message.errors %}
+                  <span class="form-error">{{ error }}</span>
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Honeypot anti-spam -->
+          {{ form.website }}
+
+          {% if form.website.errors %}
+            <div class="form-errors">
+              {% for error in form.website.errors %}
+                <span class="form-error">{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% if form.non_field_errors %}
+            <div class="form-errors">
+              {% for error in form.non_field_errors %}
+                <span class="form-error">{{ error }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <button type="submit" class="btn btn-primary">
+            Envoyer le message
+          </button>
+        </form>
+      </div>
+
+      <!-- Informations de contact -->
+      <div class="contact-info-container reveal reveal-d4">
+        <h2 class="section-title">Informations pratiques</h2>
+        
+        <div class="contact-info">
+          <div class="contact-item">
+            <h3>Délai de réponse</h3>
+            <p>Je réponds généralement sous 24 à 48h selon la complexité de votre demande.</p>
+          </div>
+
+          <div class="contact-item">
+            <h3>Types de projets</h3>
+            <ul>
+              <li>Événements sportifs</li>
+              <li>Architecture & urbain</li>
+              <li>Paysages & nature</li>
+              <li>Reportages documentaires</li>
+              <li>Projets sur mesure</li>
+            </ul>
+          </div>
+
+          <div class="contact-item">
+            <h3>Devis personnalisé</h3>
+            <p>Chaque projet est unique. N'hésitez pas à détailler vos besoins pour un devis adapté.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}
