@@ -1,10 +1,81 @@
 from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin
+from django import forms
 from django.contrib import admin
 from django.db import models
 from django.http import HttpRequest
+from django.urls import reverse
 from django.utils.html import format_html
 
+from .apps_proxy import PhotoOrderingProxy, PhotoUploadProxy  # noqa: F401
 from .models import Collection, Galerie, Photo, PhotoVersion
+
+
+class GalerieForm(forms.ModelForm):
+    photo_couverture_id = forms.ChoiceField(
+        choices=[],
+        widget=forms.RadioSelect(),
+        required=False,
+        label="Photo de couverture",
+        help_text="Sélectionnez une photo existante comme couverture"
+    )
+
+    class Meta:
+        model = Galerie
+        exclude = ['image_couverture']  # On utilise photo_couverture_id à la place
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            # Populate choices with photos from this gallery
+            photos = Photo.objects.filter(galerie=self.instance).select_related('galerie', 'collection').prefetch_related('versions')
+
+            # Create custom labels with photo info
+            choices = [('', 'Pas de photo de couverture')]
+            for photo in photos:
+                collection_info = f" ({photo.collection.nom})" if photo.collection else " (Photo directe)"
+                label = f"{photo.titre or f'Photo {photo.id}'}{collection_info}"
+                choices.append((str(photo.id), label))
+
+            self.fields['photo_couverture_id'].choices = choices
+
+            # IMPORTANT: Refresh from database to get current state
+            self.instance.refresh_from_db()
+            photo_couverture = self.instance.get_photo_couverture()
+            if photo_couverture:
+                self.fields['photo_couverture_id'].initial = str(photo_couverture.id)
+
+    def save(self, commit=True):
+        instance = super().save(commit)
+
+        # Store the selected photo ID to handle it later
+        selected_photo_id = self.cleaned_data.get('photo_couverture_id')
+
+        def update_photo_cover():
+            # Reset all photos in this gallery as non-cover
+            Photo.objects.filter(galerie=instance).update(est_couverture=False)
+
+            # Set selected photo as cover if one is selected
+            if selected_photo_id:
+                try:
+                    selected_photo = Photo.objects.get(id=selected_photo_id, galerie=instance)
+                    selected_photo.est_couverture = True
+                    selected_photo.save()
+                except Photo.DoesNotExist:
+                    pass
+
+        if commit:
+            # If committing now, update immediately
+            update_photo_cover()
+        else:
+            # If not committing yet, store the function to call later
+            instance._pending_photo_cover_update = update_photo_cover
+
+        return instance
+
+
+# Customisation du site admin
+admin.site.site_header = "Hors les Murs - Administration"
+admin.site.site_title = "Administration Portfolio"
 
 
 class PhotoVersionInline(admin.TabularInline):
@@ -14,7 +85,7 @@ class PhotoVersionInline(admin.TabularInline):
     fields = ['traitement', 'fichier_web', 'fichier_pleine_resolution', 'largeur', 'hauteur', 'est_par_defaut', 'est_publique']
 
 
-class PhotoInline(admin.TabularInline):
+class PhotoInline(SortableInlineAdminMixin, admin.TabularInline):
     model = Photo
     extra = 0
     fields = ['titre', 'ordre_affichage', 'est_publique', 'est_couverture']
@@ -33,18 +104,25 @@ class CollectionInline(SortableInlineAdminMixin, admin.TabularInline):
 
 @admin.register(Galerie)
 class GalerieAdmin(SortableAdminMixin, admin.ModelAdmin):
+    form = GalerieForm
     list_display = ['nom', 'slug', 'est_publique', 'total_collections', 'total_photos', 'modifie_le']
     list_filter = ['est_publique', 'cree_le']
     search_fields = ['nom', 'description']
     prepopulated_fields = {'slug': ('nom',)}
     inlines = [CollectionInline]
 
+    class Media:
+        css = {
+            'all': ('/static/admin/css/photo_cover_select.css',)
+        }
+        js = ('/static/admin/js/photo_cover_select.js',)
+
     fieldsets = (
         (None, {
             'fields': ('nom', 'slug', 'description')
         }),
         ('Affichage', {
-            'fields': ('image_couverture', 'ordre_affichage', 'est_publique')
+            'fields': ('photo_couverture_id', 'ordre_affichage', 'est_publique')
         }),
         ('Informations', {
             'fields': ('cree_le', 'modifie_le'),
@@ -64,6 +142,42 @@ class GalerieAdmin(SortableAdminMixin, admin.ModelAdmin):
 
     def get_queryset(self, request: HttpRequest) -> models.QuerySet[Galerie]:
         return super().get_queryset(request).prefetch_related('collections', 'photos')
+
+    def save_model(self, request, obj, form, change):
+        """Override to handle photo cover updates and add success message"""
+        super().save_model(request, obj, form, change)
+
+        # Handle pending photo cover update if exists
+        if hasattr(obj, '_pending_photo_cover_update'):
+            obj._pending_photo_cover_update()
+            delattr(obj, '_pending_photo_cover_update')
+
+        if change and hasattr(form, 'cleaned_data'):
+            selected_photo_id = form.cleaned_data.get('photo_couverture_id')
+            if selected_photo_id:
+                try:
+                    photo = Photo.objects.get(id=selected_photo_id)
+                    self.message_user(request, f"✅ Photo de couverture mise à jour : {photo.titre or f'Photo {photo.id}'}")
+                except Photo.DoesNotExist:
+                    self.message_user(request, "❌ Photo de couverture introuvable")
+            else:
+                self.message_user(request, "ℹ️ Aucune photo de couverture sélectionnée")
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['actions_rapides'] = [
+            {
+                'titre': '📷 Upload de photos',
+                'url': reverse('galeries_admin:upload_photos'),
+                'description': 'Uploader plusieurs photos à la fois'
+            },
+            {
+                'titre': '🔄 Ordre des photos',
+                'url': reverse('galeries_admin:photo_ordering'),
+                'description': 'Réorganiser l\'ordre d\'affichage'
+            }
+        ]
+        return super().changelist_view(request, extra_context=extra_context)
 
 
 @admin.register(Collection)
@@ -101,7 +215,7 @@ class CollectionAdmin(SortableAdminMixin, admin.ModelAdmin):
 
 
 @admin.register(Photo)
-class PhotoAdmin(admin.ModelAdmin):
+class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = ['titre_ou_id', 'galerie', 'collection', 'ordre_affichage', 'est_publique', 'est_couverture', 'apercu_photo']
     list_filter = ['galerie', 'collection', 'est_publique', 'est_couverture', 'cree_le']
     search_fields = ['titre', 'galerie__nom', 'collection__nom']

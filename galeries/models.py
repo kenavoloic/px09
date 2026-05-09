@@ -3,6 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from django.db import models
+from imagekit.models import ImageSpecField
+from imagekit.processors import ResizeToFill, ResizeToFit
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -58,14 +60,19 @@ class Galerie(models.Model):
 
     def get_photo_couverture(self) -> Photo | None:
         """Retourne la photo de couverture de la galerie"""
+        # D'abord chercher une photo explicitement marquée comme couverture
+        photo_couverture = self.photos.filter(est_couverture=True, est_publique=True).first()
+        if photo_couverture:
+            return photo_couverture
+            
+        # Sinon, logique par défaut selon le mode de la galerie
         if self.a_des_collections():
             # Mode collections : première photo de la première collection
             premiere_collection = self.get_collections_publiques().first()
             return premiere_collection.get_photo_couverture() if premiere_collection else None
         else:
-            # Mode direct : première photo ou photo marquée comme couverture
-            return (self.get_photos_directes_publiques().filter(est_couverture=True).first() or
-                   self.get_photos_directes_publiques().first())
+            # Mode direct : première photo
+            return self.get_photos_directes_publiques().first()
 
 
 class Collection(models.Model):
@@ -228,3 +235,25 @@ class PhotoVersion(models.Model):
 
     def get_url_telechargement(self) -> str:
         return self.fichier_pleine_resolution.url if self.fichier_pleine_resolution else self.fichier_web.url
+    
+    # Génération automatique de versions optimisées
+    thumbnail = ImageSpecField(
+        source='fichier_web',
+        processors=[ResizeToFill(300, 300)],
+        format='JPEG',
+        options={'quality': 85}
+    )
+    
+    lightbox = ImageSpecField(
+        source='fichier_web',
+        processors=[ResizeToFit(2560, 1440)],
+        format='JPEG',
+        options={'quality': 92}
+    )
+    
+    gallery_preview = ImageSpecField(
+        source='fichier_web',
+        processors=[ResizeToFit(800, 600)],
+        format='JPEG',
+        options={'quality': 88}
+    )
