@@ -1,0 +1,95 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+{{ block.super }}
+
+<div class="module" id="upload-shortcuts" style="margin-top: 30px;">
+    <h2>🚀 Actions rapides</h2>
+    <div class="module">
+        <table summary="Quick actions" width="100%">
+            <caption><a href="{% url 'galeries_admin:upload_photos' %}" class="section">📷 Upload de photos</a></caption>
+            <tr>
+                <th scope="row">
+                    <a href="{% url 'galeries_admin:upload_photos' %}">Upload en masse</a>
+                </th>
+                <td>
+                    Uploader plusieurs photos à la fois avec traitement automatique des métadonnées EXIF et optimisation.
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <a href="{% url 'galeries_admin:photo_ordering' %}">Ordre des photos</a>
+                </th>
+                <td>
+                    Réorganiser visuellement l'ordre d'affichage des photos dans les galeries et collections par drag & drop.
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<style>
+#upload-shortcuts {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+#upload-shortcuts h2 {
+    color: #417690;
+    margin-bottom: 15px;
+}
+
+#upload-shortcuts .module {
+    background: white;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+#upload-shortcuts table {
+    border: none;
+}
+
+#upload-shortcuts caption {
+    background: #417690;
+    color: white;
+    padding: 12px 15px;
+    font-weight: bold;
+    text-align: left;
+    border: none;
+}
+
+#upload-shortcuts caption a {
+    color: white;
+    text-decoration: none;
+}
+
+#upload-shortcuts th,
+#upload-shortcuts td {
+    padding: 15px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+#upload-shortcuts th {
+    background: #f8f9fa;
+    font-weight: bold;
+    width: 200px;
+}
+
+#upload-shortcuts th a {
+    color: #417690;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+#upload-shortcuts th a:hover {
+    text-decoration: underline;
+}
+
+#upload-shortcuts td {
+    color: #6c757d;
+    line-height: 1.5;
+}
+</style>
+{% endblock %}

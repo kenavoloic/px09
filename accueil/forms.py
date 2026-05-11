@@ -59,7 +59,7 @@ class ContactForm(forms.Form):
 
     def clean_website(self) -> str:
         """Vérification honeypot anti-spam"""
-        website = self.cleaned_data.get('website', '')
+        website = self.cleaned_data.get('website', '') or ''
         if website:
             raise forms.ValidationError('Spam détecté.')
         return website

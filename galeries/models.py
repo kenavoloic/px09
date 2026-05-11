@@ -65,14 +65,8 @@ class Galerie(models.Model):
         if photo_couverture:
             return photo_couverture
             
-        # Sinon, logique par défaut selon le mode de la galerie
-        if self.a_des_collections():
-            # Mode collections : première photo de la première collection
-            premiere_collection = self.get_collections_publiques().first()
-            return premiere_collection.get_photo_couverture() if premiere_collection else None
-        else:
-            # Mode direct : première photo
-            return self.get_photos_directes_publiques().first()
+        # Pas de fallback automatique - retourner None si aucune photo n'est marquée comme couverture
+        return None
 
 
 class Collection(models.Model):

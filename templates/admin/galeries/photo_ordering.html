@@ -1,0 +1,461 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Gestion de l'ordre des photos - {{ site_title|default:"Django site admin" }}{% endblock %}
+
+{% block extrahead %}
+<style>
+.photo-ordering-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    background: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.filters {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+.filter-group {
+    flex: 1;
+}
+
+.filter-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.filter-group select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.photo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.photo-item {
+    position: relative;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: grab;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.photo-item:hover {
+    border-color: #417690;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.photo-item.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+    cursor: grabbing;
+}
+
+.photo-item.drag-over {
+    border-color: #007cba;
+    background: #e7f3ff;
+}
+
+.photo-thumbnail {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    display: block;
+}
+
+.photo-info {
+    padding: 12px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.photo-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 4px;
+    line-height: 1.3;
+}
+
+.photo-order {
+    font-size: 11px;
+    color: #666;
+    font-family: monospace;
+}
+
+.photo-order-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    font-family: monospace;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+
+.empty-state h3 {
+    color: #888;
+    margin-bottom: 10px;
+}
+
+.success-message {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    display: none;
+}
+
+.error-message {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    display: none;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.save-button {
+    background: #417690;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 20px;
+    display: none;
+}
+
+.save-button:hover {
+    background: #205067;
+}
+
+.save-button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .filters {
+        flex-direction: column;
+    }
+    
+    .photo-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>📷 Gestion de l'ordre des photos</h1>
+
+<div class="photo-ordering-container">
+    <div id="messages">
+        <div class="success-message" id="success-message"></div>
+        <div class="error-message" id="error-message"></div>
+    </div>
+
+    <div class="filters">
+        <div class="filter-group">
+            <label for="galerie-select">Galerie :</label>
+            <select id="galerie-select">
+                <option value="">Sélectionner une galerie...</option>
+                {% for galerie in galeries %}
+                    <option value="{{ galerie.id }}" {% if selected_galerie and selected_galerie.id == galerie.id %}selected{% endif %}>
+                        {{ galerie.nom }} ({{ galerie.get_total_photos }} photos)
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label for="collection-select">Collection (optionnel) :</label>
+            <select id="collection-select" disabled>
+                <option value="">Photos directes de la galerie</option>
+                {% if selected_galerie %}
+                    {% for collection in collections %}
+                        <option value="{{ collection.id }}" {% if selected_collection and selected_collection.id == collection.id %}selected{% endif %}>
+                            {{ collection.nom }} ({{ collection.photos.count }} photos)
+                        </option>
+                    {% endfor %}
+                {% endif %}
+            </select>
+        </div>
+    </div>
+
+    <div id="photo-container">
+        {% if photos %}
+            <div class="photo-grid" id="photo-grid">
+                {% for photo in photos %}
+                <div class="photo-item" data-photo-id="{{ photo.id }}" draggable="true">
+                    <div class="photo-order-badge">{{ photo.ordre_affichage }}</div>
+                    {% with version=photo.get_version_par_defaut %}
+                        {% if version and version.fichier_web %}
+                            <img src="{{ version.fichier_web.url }}" alt="{{ photo.titre|default:'Photo' }}" class="photo-thumbnail" loading="lazy">
+                        {% else %}
+                            <div class="photo-thumbnail" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999;">
+                                📷
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                    <div class="photo-info">
+                        <div class="photo-title">{{ photo.titre|default:"Photo sans titre" }}</div>
+                        <div class="photo-order">Position: {{ photo.ordre_affichage }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="save-button" id="save-button">💾 Sauvegarder l'ordre</button>
+        {% elif selected_galerie %}
+            <div class="empty-state">
+                <h3>Aucune photo à organiser</h3>
+                {% if selected_collection %}
+                    <p>La collection "{{ selected_collection.nom }}" ne contient pas de photos.</p>
+                {% else %}
+                    <p>La galerie "{{ selected_galerie.nom }}" ne contient pas de photos directes.</p>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h3>Sélectionnez une galerie</h3>
+                <p>Choisissez une galerie ci-dessus pour commencer à organiser vos photos.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const galerieSelect = document.getElementById('galerie-select');
+    const collectionSelect = document.getElementById('collection-select');
+    const photoGrid = document.getElementById('photo-grid');
+    const saveButton = document.getElementById('save-button');
+    const successMessage = document.getElementById('success-message');
+    const errorMessage = document.getElementById('error-message');
+    
+    let draggedElement = null;
+    let hasChanges = false;
+
+    // Navigation entre galeries et collections
+    galerieSelect.addEventListener('change', function() {
+        const galerieId = this.value;
+        
+        if (galerieId) {
+            // Charger les collections de cette galerie
+            loadCollections(galerieId);
+            // Recharger la page avec la galerie sélectionnée
+            window.location.href = `?galerie=${galerieId}`;
+        } else {
+            collectionSelect.disabled = true;
+            collectionSelect.innerHTML = '<option value="">Photos directes de la galerie</option>';
+        }
+    });
+    
+    collectionSelect.addEventListener('change', function() {
+        const galerieId = galerieSelect.value;
+        const collectionId = this.value;
+        
+        if (galerieId) {
+            let url = `?galerie=${galerieId}`;
+            if (collectionId) {
+                url += `&collection=${collectionId}`;
+            }
+            window.location.href = url;
+        }
+    });
+
+    // Drag & Drop functionality
+    if (photoGrid) {
+        setupDragAndDrop();
+    }
+
+    function setupDragAndDrop() {
+        const photoItems = photoGrid.querySelectorAll('.photo-item');
+        
+        photoItems.forEach(item => {
+            item.addEventListener('dragstart', handleDragStart);
+            item.addEventListener('dragover', handleDragOver);
+            item.addEventListener('drop', handleDrop);
+            item.addEventListener('dragend', handleDragEnd);
+        });
+    }
+
+    function handleDragStart(e) {
+        draggedElement = this;
+        this.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', this.outerHTML);
+    }
+
+    function handleDragOver(e) {
+        if (e.preventDefault) {
+            e.preventDefault();
+        }
+        
+        this.classList.add('drag-over');
+        e.dataTransfer.dropEffect = 'move';
+        return false;
+    }
+
+    function handleDrop(e) {
+        if (e.stopPropagation) {
+            e.stopPropagation();
+        }
+        
+        if (draggedElement !== this) {
+            // Échanger les positions
+            const draggedIndex = Array.from(photoGrid.children).indexOf(draggedElement);
+            const targetIndex = Array.from(photoGrid.children).indexOf(this);
+            
+            if (draggedIndex < targetIndex) {
+                this.parentNode.insertBefore(draggedElement, this.nextSibling);
+            } else {
+                this.parentNode.insertBefore(draggedElement, this);
+            }
+            
+            updateOrderBadges();
+            hasChanges = true;
+            saveButton.style.display = 'block';
+        }
+        
+        return false;
+    }
+
+    function handleDragEnd() {
+        document.querySelectorAll('.photo-item').forEach(item => {
+            item.classList.remove('dragging', 'drag-over');
+        });
+    }
+
+    function updateOrderBadges() {
+        const items = photoGrid.querySelectorAll('.photo-item');
+        items.forEach((item, index) => {
+            const badge = item.querySelector('.photo-order-badge');
+            const orderText = item.querySelector('.photo-order');
+            badge.textContent = index + 1;
+            orderText.textContent = `Position: ${index + 1}`;
+        });
+    }
+
+    // Sauvegarder l'ordre
+    saveButton.addEventListener('click', function() {
+        if (!hasChanges) return;
+        
+        const photoIds = Array.from(photoGrid.querySelectorAll('.photo-item')).map(item => 
+            item.getAttribute('data-photo-id')
+        );
+        
+        saveButton.disabled = true;
+        saveButton.textContent = '💾 Sauvegarde...';
+        
+        fetch('{% url "galeries_admin:update_photo_order" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                photo_ids: photoIds
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showMessage(data.message, 'success');
+                hasChanges = false;
+                saveButton.style.display = 'none';
+            } else {
+                showMessage(data.error || 'Erreur lors de la sauvegarde', 'error');
+            }
+        })
+        .catch(error => {
+            showMessage('Erreur de connexion', 'error');
+        })
+        .finally(() => {
+            saveButton.disabled = false;
+            saveButton.textContent = '💾 Sauvegarder l\'ordre';
+        });
+    });
+
+    function showMessage(text, type) {
+        hideMessages();
+        
+        const messageElement = type === 'success' ? successMessage : errorMessage;
+        messageElement.textContent = text;
+        messageElement.style.display = 'block';
+        
+        setTimeout(() => {
+            messageElement.style.display = 'none';
+        }, 5000);
+    }
+
+    function hideMessages() {
+        successMessage.style.display = 'none';
+        errorMessage.style.display = 'none';
+    }
+
+    function loadCollections(galerieId) {
+        fetch(`{% url "galeries_admin:ajax_collections" %}?galerie_id=${galerieId}`)
+        .then(response => response.json())
+        .then(data => {
+            collectionSelect.innerHTML = '<option value="">Photos directes de la galerie</option>';
+            
+            if (data.collections) {
+                data.collections.forEach(collection => {
+                    const option = document.createElement('option');
+                    option.value = collection.id;
+                    option.textContent = `${collection.nom} (${collection.photo_count} photos)`;
+                    collectionSelect.appendChild(option);
+                });
+            }
+            
+            collectionSelect.disabled = false;
+        })
+        .catch(error => {
+            console.error('Erreur lors du chargement des collections:', error);
+        });
+    }
+});
+</script>
+{% endblock %}

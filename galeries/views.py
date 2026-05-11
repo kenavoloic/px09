@@ -15,9 +15,11 @@ def galerie_detail(request: HttpRequest, galerie_slug: str) -> HttpResponse:
     if galerie.a_des_collections():
         # Mode hiérarchique : afficher les collections
         context['collections'] = galerie.get_collections_publiques()
-    else:
-        # Mode direct : afficher les photos directement
-        context['photos'] = galerie.get_photos_directes_publiques()
+    
+    # Toujours inclure les photos directes s'il y en a
+    photos_directes = galerie.get_photos_directes_publiques()
+    if photos_directes.exists():
+        context['photos'] = photos_directes
 
     return render(request, 'galeries/galerie_detail.html', context)
 

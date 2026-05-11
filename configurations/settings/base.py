@@ -31,6 +31,7 @@ DJANGO_APPS: list[str] = [
 
 THIRD_PARTY_APPS: list[str] = [
     "adminsortable2",
+    "imagekit",
 ]
 
 LOCAL_APPS: list[str] = [

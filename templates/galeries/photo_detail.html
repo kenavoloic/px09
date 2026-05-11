@@ -29,7 +29,15 @@
 <div class="photo-viewer">
   <div class="photo-main reveal">
     {% if version_defaut and version_defaut.fichier_web %}
-      <img src="{{ version_defaut.fichier_web.url }}" alt="{{ photo.titre|default:'Photo' }}" class="main-image">
+      {% if collection %}
+        <a href="{{ collection.get_absolute_url }}" class="photo-back-link" title="Retour à la collection {{ collection.nom }}">
+          <img src="{{ version_defaut.fichier_web.url }}" alt="{{ photo.titre|default:'Photo' }}" class="main-image">
+        </a>
+      {% else %}
+        <a href="{{ galerie.get_absolute_url }}" class="photo-back-link" title="Retour à la galerie {{ galerie.nom }}">
+          <img src="{{ version_defaut.fichier_web.url }}" alt="{{ photo.titre|default:'Photo' }}" class="main-image">
+        </a>
+      {% endif %}
     {% else %}
       <div class="photo-placeholder">
         <span>📷</span>

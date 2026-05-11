@@ -75,11 +75,13 @@
       {% endfor %}
     </div>
   </section>
-{% else %}
-  <!-- Mode photos directes -->
+{% endif %}
+
+<!-- Photos directes (s'affichent toujours s'il y en a) -->
+{% if photos %}
   <section class="photos-section">
     <p class="section-eyebrow reveal">Photos</p>
-    <div class="photos-grid">
+    <div class="photos-grid adaptive">
       {% for photo in photos %}
         <div class="photo-item reveal">
           <a href="{{ photo.get_absolute_url }}" class="photo-link">

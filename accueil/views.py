@@ -55,16 +55,33 @@ GALERIES_DATA = [
 
 def index(request: HttpRequest) -> HttpResponse:
     """Vue pour la page d'accueil du studio photographique."""
+    
+    # Récupérer la configuration de l'accueil
+    from .models import AccueilConfig, SectionAccueil
+    config = AccueilConfig.get_config()
 
     # Récupérer les galeries depuis la base de données
     galeries = Galerie.objects.filter(est_publique=True).order_by('ordre_affichage', 'nom')
+    
+    # Récupérer les sections personnalisées
+    sections = SectionAccueil.objects.filter(est_active=True).order_by('position', 'ordre')
 
     context = {
         'galeries': galeries,
         'total_collections': galeries.count(),
-        'titre_site': 'HORS LES MURS',
-        'sous_titre': 'Studio photographique',
-        'description': 'Paysages, architecture, sport, documentaire. Des images capturées hors des sentiers battus, là où la lumière raconte.',
+        # Configuration dynamique
+        'titre_site': config.titre_site,
+        'sous_titre': config.sous_titre,
+        'description': config.description,
+        'hero_image': config.hero_image,
+        'titre_galeries': config.titre_galeries,
+        'titre_acces_prive': config.titre_acces_prive,
+        'description_acces_prive': config.description_acces_prive,
+        'modal_titre': config.modal_titre,
+        'modal_sous_titre': config.modal_sous_titre,
+        'modal_placeholder_code': config.modal_placeholder_code,
+        # Sections personnalisées
+        'sections': sections,
     }
 
     return render(request, 'accueil/index.html', context)
@@ -97,6 +114,11 @@ def galerie_detail(request: HttpRequest, slug: str) -> HttpResponse:
 
 def contact(request: HttpRequest) -> HttpResponse:
     """Vue pour le formulaire de contact."""
+    
+    # Récupérer la configuration de l'accueil
+    from .models import AccueilConfig
+    config = AccueilConfig.get_config()
+    
     if request.method == 'POST':
         form = ContactForm(request.POST)
         if form.is_valid():
@@ -116,8 +138,8 @@ def contact(request: HttpRequest) -> HttpResponse:
 
     context = {
         'form': form,
-        'titre_site': 'HORS LES MURS',
-        'sous_titre': 'Studio photographique',
+        'titre_site': config.titre_site,
+        'sous_titre': config.sous_titre,
     }
 
     return render(request, 'accueil/contact.html', context)

@@ -35,7 +35,7 @@
 
 <section id="galeries">
   <div class="section-header reveal">
-    <h2 class="section-title">Galeries</h2>
+    <h2 class="section-title">{{ titre_galeries }}</h2>
     <span class="section-count">{{ galeries|length }} galeries</span>
   </div>
   <div class="gallery-grid">
@@ -46,7 +46,19 @@
         {% if galerie.image_couverture %}
           <img src="{{ galerie.image_couverture.url }}" alt="{{ galerie.nom }}" class="gallery-card-image" />
         {% else %}
-          <div class="gallery-card-image-placeholder"></div>
+          {% with photo_couverture=galerie.get_photo_couverture %}
+            {% if photo_couverture %}
+              {% with version=photo_couverture.get_version_par_defaut %}
+                {% if version and version.fichier_web %}
+                  <img src="{{ version.fichier_web.url }}" alt="{{ galerie.nom }}" class="gallery-card-image" />
+                {% else %}
+                  <div class="gallery-card-image-placeholder"></div>
+                {% endif %}
+              {% endwith %}
+            {% else %}
+              <div class="gallery-card-image-placeholder"></div>
+            {% endif %}
+          {% endwith %}
         {% endif %}
       </div>
       <div class="gallery-card-body">
@@ -63,8 +75,8 @@
 
 <section id="acces-prive">
   <div class="private-text reveal">
-    <h2>Galeries privées</h2>
-    <p>Vous avez reçu un code d'accès ? Consultez vos photos personnelles en toute confidentialité.</p>
+    <h2>{{ titre_acces_prive }}</h2>
+    <p>{{ description_acces_prive }}</p>
   </div>
   <a class="btn-primary reveal reveal-d1" href="#" data-open-private>Entrer mon code</a>
 </section>
@@ -75,8 +87,8 @@
     <button class="modal-close" onclick="closePrivateModal()" aria-label="Fermer">✕</button>
     <div id="modal-form-content">
       <p class="modal-eyebrow">Accès restreint</p>
-      <h2 class="modal-title" id="modal-title">Galerie privée</h2>
-      <p class="modal-subtitle">Saisissez le code qui vous a été communiqué pour accéder à vos photos.</p>
+      <h2 class="modal-title" id="modal-title">{{ modal_titre }}</h2>
+      <p class="modal-subtitle">{{ modal_sous_titre }}</p>
       <form id="private-form" data-endpoint="{% url 'accueil:index' %}">
         {% csrf_token %}
         <div class="form-field">
@@ -88,7 +100,7 @@
         <div class="form-field">
           <label class="form-label" for="code-input">Code d'accès</label>
           <input class="form-input" id="code-input" name="code" type="text"
-                 placeholder="ex: HLM-2024-XXX" autocomplete="off" maxlength="20"
+                 placeholder="{{ modal_placeholder_code }}" autocomplete="off" maxlength="20"
                  style="letter-spacing:0.15em; text-transform:uppercase;" required />
           <p class="form-error" id="code-error">Ce code est invalide. Vérifiez votre message.</p>
         </div>
@@ -116,8 +128,8 @@
     <button class="modal-close" onclick="closeModal()" aria-label="Fermer">✕</button>
     <div id="modal-form-content">
       <p class="modal-eyebrow">Accès restreint</p>
-      <h2 class="modal-title" id="modal-title">Galerie privée</h2>
-      <p class="modal-subtitle">Saisissez le code qui vous a été communiqué pour accéder à vos photos.</p>
+      <h2 class="modal-title" id="modal-title">{{ modal_titre }}</h2>
+      <p class="modal-subtitle">{{ modal_sous_titre }}</p>
       <form id="private-form" onsubmit="handleSubmit(event)">
         {% csrf_token %}
         <div class="form-field">
@@ -127,7 +139,7 @@
         </div>
         <div class="form-field">
           <label class="form-label" for="code-input">Code d'accès</label>
-          <input class="form-input" id="code-input" type="text" placeholder="ex: HLM-2024-XXX" autocomplete="off" maxlength="20" style="letter-spacing:0.15em; text-transform:uppercase;" />
+          <input class="form-input" id="code-input" type="text" placeholder="{{ modal_placeholder_code }}" autocomplete="off" maxlength="20" style="letter-spacing:0.15em; text-transform:uppercase;" />
           <p class="form-error" id="code-error">Ce code est invalide. Vérifiez votre message.</p>
         </div>
         <button type="submit" class="btn-primary btn-full">Accéder à la galerie</button>

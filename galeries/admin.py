@@ -95,6 +95,74 @@ class PhotoInline(SortableInlineAdminMixin, admin.TabularInline):
         return super().get_queryset(request).select_related('galerie', 'collection')
 
 
+class CollectionForm(forms.ModelForm):
+    """Formulaire personnalisé pour Collection"""
+
+    class Meta:
+        model = Collection
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Le widget par défaut ModelChoiceField gère automatiquement les choix
+
+    def clean_galerie(self):
+        galerie_value = self.cleaned_data.get('galerie')
+
+        # Toujours convertir en instance, même si c'est déjà une instance
+        if galerie_value:
+            if isinstance(galerie_value, str) and galerie_value.isdigit():
+                try:
+                    return Galerie.objects.get(pk=int(galerie_value))
+                except Galerie.DoesNotExist as e:
+                    raise forms.ValidationError("Galerie introuvable") from e
+            elif isinstance(galerie_value, int):
+                try:
+                    return Galerie.objects.get(pk=galerie_value)
+                except Galerie.DoesNotExist as e:
+                    raise forms.ValidationError("Galerie introuvable") from e
+        return galerie_value
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+
+        # S'assurer que galerie est une instance avant la sauvegarde
+        if hasattr(instance, 'galerie') and isinstance(instance.galerie, (str, int)):
+            try:
+                instance.galerie = Galerie.objects.get(pk=int(instance.galerie))
+            except (ValueError, Galerie.DoesNotExist):
+                pass
+
+        if commit:
+            instance.save()
+        return instance
+
+
+class PhotoCollectionForm(forms.ModelForm):
+    """Formulaire pour les photos dans une collection"""
+    class Meta:
+        model = Photo
+        fields = ['titre', 'ordre_affichage', 'est_publique', 'est_couverture']
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        # La galerie sera définie par l'inline parent
+        if commit:
+            instance.save()
+        return instance
+
+
+class PhotoCollectionInline(SortableInlineAdminMixin, admin.TabularInline):
+    """Inline pour les photos dans une collection - gère automatiquement la relation galerie"""
+    model = Photo
+    form = PhotoCollectionForm
+    extra = 0
+    fields = ['titre', 'ordre_affichage', 'est_publique', 'est_couverture']
+
+    def get_queryset(self, request: HttpRequest) -> models.QuerySet[Photo]:
+        return super().get_queryset(request).select_related('galerie', 'collection')
+
+
 class CollectionInline(SortableInlineAdminMixin, admin.TabularInline):
     model = Collection
     extra = 0
@@ -182,11 +250,44 @@ class GalerieAdmin(SortableAdminMixin, admin.ModelAdmin):
 
 @admin.register(Collection)
 class CollectionAdmin(SortableAdminMixin, admin.ModelAdmin):
+    form = CollectionForm
     list_display = ['nom', 'galerie', 'est_publique', 'total_photos', 'date_evenement']
     list_filter = ['galerie', 'est_publique', 'date_evenement']
     search_fields = ['nom', 'galerie__nom', 'lieu']
     prepopulated_fields = {'slug': ('nom',)}
-    inlines = [PhotoInline]
+    inlines = [PhotoCollectionInline]
+
+    def save_model(self, request, obj, form, change):
+        """Override pour gérer les problèmes de ForeignKey avec django-admin-sortable2"""
+
+        # S'assurer que galerie est une instance avant le save de adminsortable2
+        if hasattr(obj, 'galerie') and isinstance(obj.galerie, (str, int)):
+            try:
+                obj.galerie = Galerie.objects.get(pk=int(obj.galerie))
+            except (ValueError, Galerie.DoesNotExist):
+                pass  # Laisser Django gérer l'erreur normalement
+
+        # Appel direct à ModelAdmin.save_model pour éviter le conflit avec adminsortable2
+        admin.ModelAdmin.save_model(self, request, obj, form, change)
+
+    def save_formsets(self, request, form, formsets, change):
+        """Gérer la sauvegarde des photos avec la bonne galerie"""
+        collection_instance = form.instance if change else form.save()
+
+        for formset in formsets:
+            if formset.model == Photo:
+                # Sauvegarder les photos avec la galerie de la collection
+                instances = formset.save(commit=False)
+                for instance in instances:
+                    instance.collection = collection_instance
+                    instance.galerie = collection_instance.galerie
+                    instance.save()
+                formset.save_m2m()
+            else:
+                formset.save()
+
+        if not change:
+            super().save_formsets(request, form, formsets, change)
 
     fieldsets = (
         (None, {
@@ -220,6 +321,8 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_filter = ['galerie', 'collection', 'est_publique', 'est_couverture', 'cree_le']
     search_fields = ['titre', 'galerie__nom', 'collection__nom']
     inlines = [PhotoVersionInline]
+    list_editable = ['collection', 'est_publique']
+    actions = ['attribuer_a_collection', 'retirer_de_collection', 'supprimer_photos_confirmees']
 
     fieldsets = (
         (None, {
@@ -256,6 +359,146 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
 
     def get_queryset(self, request: HttpRequest) -> models.QuerySet[Photo]:
         return super().get_queryset(request).select_related('galerie', 'collection').prefetch_related('versions')
+
+    def attribuer_a_collection(self, request: HttpRequest, queryset: models.QuerySet[Photo]) -> None:
+        """Action pour attribuer des photos à une collection"""
+        # Vérifier que toutes les photos sont de la même galerie
+        galeries = set(queryset.values_list('galerie_id', flat=True))
+        if len(galeries) > 1:
+            self.message_user(request, "❌ Toutes les photos doivent être de la même galerie", level='ERROR')
+            return
+        
+        if not galeries:
+            self.message_user(request, "❌ Aucune photo sélectionnée", level='ERROR')
+            return
+        
+        galerie_id = galeries.pop()
+        from django.template.response import TemplateResponse
+        from django import forms
+        
+        class CollectionChoiceForm(forms.Form):
+            collection = forms.ModelChoiceField(
+                queryset=Collection.objects.filter(galerie_id=galerie_id),
+                required=False,
+                empty_label="Aucune collection (photos directes)",
+                help_text="Sélectionnez une collection pour ces photos"
+            )
+        
+        if request.POST.get('confirm'):
+            form = CollectionChoiceForm(request.POST)
+            if form.is_valid():
+                collection = form.cleaned_data['collection']
+                count = queryset.update(collection=collection)
+                if collection:
+                    self.message_user(request, f"✅ {count} photo(s) attribuée(s) à la collection '{collection.nom}'")
+                else:
+                    self.message_user(request, f"✅ {count} photo(s) retirée(s) de leur collection")
+                return None
+        else:
+            form = CollectionChoiceForm()
+        
+        context = {
+            'form': form,
+            'photos': queryset,
+            'action_name': 'attribuer_a_collection',
+            'title': f'Attribuer {queryset.count()} photo(s) à une collection',
+        }
+        
+        return TemplateResponse(request, 'admin/galeries/attribuer_collection.html', context)
+    
+    attribuer_a_collection.short_description = "🗂️ Attribuer à une collection"  # type: ignore[attr-defined]
+
+    def retirer_de_collection(self, request: HttpRequest, queryset: models.QuerySet[Photo]) -> None:
+        """Action pour retirer des photos de leur collection (deviennent photos directes)"""
+        photos_dans_collections = queryset.exclude(collection__isnull=True)
+        photos_directes = queryset.filter(collection__isnull=True)
+        
+        if photos_directes.exists():
+            self.message_user(
+                request, 
+                f"ℹ️ {photos_directes.count()} photo(s) étaient déjà des photos directes", 
+                level='WARNING'
+            )
+        
+        if photos_dans_collections.exists():
+            count = photos_dans_collections.update(collection=None)
+            self.message_user(
+                request, 
+                f"✅ {count} photo(s) retirée(s) de leur collection et converties en photos directes"
+            )
+        else:
+            self.message_user(
+                request, 
+                "ℹ️ Aucune photo dans une collection à retirer", 
+                level='WARNING'
+            )
+    
+    retirer_de_collection.short_description = "↩️ Retirer des collections (photos directes)"  # type: ignore[attr-defined]
+
+    def supprimer_photos_confirmees(self, request: HttpRequest, queryset: models.QuerySet[Photo]) -> None:
+        """Action pour supprimer des photos avec confirmation"""
+        from django.template.response import TemplateResponse
+        from django import forms
+        import os
+        
+        if request.POST.get('confirm_delete'):
+            # Suppression confirmée
+            photos_supprimees = []
+            fichiers_supprimes = []
+            
+            for photo in queryset:
+                # Collecter infos avant suppression
+                photo_info = {
+                    'titre': photo.titre or f'Photo {photo.id}',
+                    'galerie': photo.galerie.nom,
+                    'collection': photo.collection.nom if photo.collection else 'Photo directe'
+                }
+                photos_supprimees.append(photo_info)
+                
+                # Supprimer les fichiers physiques des versions
+                for version in photo.versions.all():
+                    if version.fichier_web:
+                        try:
+                            if os.path.exists(version.fichier_web.path):
+                                os.remove(version.fichier_web.path)
+                                fichiers_supprimes.append(version.fichier_web.name)
+                        except Exception:
+                            pass  # Ignorer les erreurs de fichier
+                    
+                    if version.fichier_pleine_resolution:
+                        try:
+                            if os.path.exists(version.fichier_pleine_resolution.path):
+                                os.remove(version.fichier_pleine_resolution.path)
+                                fichiers_supprimes.append(version.fichier_pleine_resolution.name)
+                        except Exception:
+                            pass
+            
+            # Supprimer de la base de données
+            count, details = queryset.delete()
+            
+            # Messages de retour
+            self.message_user(
+                request, 
+                f"✅ {len(photos_supprimees)} photo(s) supprimée(s) avec succès"
+            )
+            if fichiers_supprimes:
+                self.message_user(
+                    request,
+                    f"🗑️ {len(fichiers_supprimes)} fichier(s) physique(s) supprimé(s)"
+                )
+            
+            return None
+        
+        # Afficher la page de confirmation
+        context = {
+            'photos': queryset,
+            'action_name': 'supprimer_photos_confirmees',
+            'title': f'Supprimer {queryset.count()} photo(s)',
+        }
+        
+        return TemplateResponse(request, 'admin/galeries/confirmer_suppression.html', context)
+    
+    supprimer_photos_confirmees.short_description = "🗑️ Supprimer les photos sélectionnées"  # type: ignore[attr-defined]
 
 
 @admin.register(PhotoVersion)
