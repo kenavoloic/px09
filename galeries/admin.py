@@ -1,6 +1,7 @@
 from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin
 from django import forms
 from django.contrib import admin
+from django.contrib.admin import SimpleListFilter
 from django.db import models
 from django.http import HttpRequest
 from django.urls import reverse
@@ -8,6 +9,25 @@ from django.utils.html import format_html
 
 from .apps_proxy import PhotoOrderingProxy, PhotoUploadProxy  # noqa: F401
 from .models import Collection, Galerie, Photo, PhotoVersion
+
+
+class PhotoSansCollectionFilter(SimpleListFilter):
+    """Filtre pour les photos directes (sans collection)"""
+    title = 'Organisation'
+    parameter_name = 'dans_collection'
+
+    def lookups(self, request, model_admin):
+        return (
+            ('sans_collection', 'Photos directes (sans collection)'),
+            ('avec_collection', 'Photos dans des collections'),
+        )
+
+    def queryset(self, request, queryset):
+        if self.value() == 'sans_collection':
+            return queryset.filter(collection__isnull=True)
+        elif self.value() == 'avec_collection':
+            return queryset.filter(collection__isnull=False)
+        return queryset
 
 
 class GalerieForm(forms.ModelForm):
@@ -318,11 +338,11 @@ class CollectionAdmin(SortableAdminMixin, admin.ModelAdmin):
 @admin.register(Photo)
 class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = ['titre_ou_id', 'galerie', 'collection', 'ordre_affichage', 'est_publique', 'est_couverture', 'apercu_photo']
-    list_filter = ['galerie', 'collection', 'est_publique', 'est_couverture', 'cree_le']
+    list_filter = ['galerie', 'collection', PhotoSansCollectionFilter, 'est_publique', 'est_couverture', 'cree_le']
     search_fields = ['titre', 'galerie__nom', 'collection__nom']
     inlines = [PhotoVersionInline]
     list_editable = ['collection', 'est_publique']
-    actions = ['attribuer_a_collection', 'retirer_de_collection', 'supprimer_photos_confirmees']
+    actions = ['attribuer_a_collection', 'retirer_de_collection', 'dupliquer_vers_racine', 'retirer_de_racine', 'supprimer_photos_confirmees']
 
     fieldsets = (
         (None, {
@@ -434,6 +454,139 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
             )
     
     retirer_de_collection.short_description = "↩️ Retirer des collections (photos directes)"  # type: ignore[attr-defined]
+
+    def dupliquer_vers_racine(self, request: HttpRequest, queryset: models.QuerySet[Photo]) -> None:
+        """Action pour dupliquer des photos de collection vers la racine de galerie"""
+        from django.contrib import messages
+        from django.core.files.base import ContentFile
+        
+        photos_dans_collections = queryset.exclude(collection__isnull=True)
+        photos_directes = queryset.filter(collection__isnull=True)
+        
+        if photos_directes.exists():
+            messages.warning(
+                request, 
+                f"❌ {photos_directes.count()} photo(s) ignorée(s) : déjà à la racine", 
+            )
+        
+        if not photos_dans_collections.exists():
+            messages.warning(
+                request, 
+                "ℹ️ Aucune photo dans une collection à dupliquer vers la racine", 
+            )
+            return
+        
+        duplicatas_crees = 0
+        for photo in photos_dans_collections:
+            # Créer une copie de la photo pour la racine
+            nouvelle_photo = Photo(
+                galerie=photo.galerie,
+                collection=None,  # À la racine
+                titre=f"{photo.titre} (racine)" if photo.titre else f"Photo {photo.id} (racine)",
+                description=photo.description,
+                date_prise=photo.date_prise,
+                appareil=photo.appareil,
+                objectif=photo.objectif,
+                ouverture=photo.ouverture,
+                vitesse=photo.vitesse,
+                iso=photo.iso,
+                largeur_originale=photo.largeur_originale,
+                hauteur_originale=photo.hauteur_originale,
+                ordre_affichage=photo.galerie.get_total_photos() + 1,
+                est_publique=photo.est_publique
+            )
+            nouvelle_photo.save()
+            
+            # Dupliquer les versions
+            for version in photo.versions.all():
+                nouvelle_version = PhotoVersion(
+                    photo=nouvelle_photo,
+                    traitement=version.traitement,
+                    largeur=version.largeur,
+                    hauteur=version.hauteur,
+                    est_par_defaut=version.est_par_defaut,
+                    est_publique=version.est_publique
+                )
+                
+                # Copier les fichiers
+                if version.fichier_web:
+                    with version.fichier_web.open('rb') as f:
+                        content = ContentFile(f.read())
+                        nouvelle_version.fichier_web.save(
+                            f"racine_{version.fichier_web.name}",
+                            content,
+                            save=False
+                        )
+                
+                if version.fichier_pleine_resolution:
+                    with version.fichier_pleine_resolution.open('rb') as f:
+                        content = ContentFile(f.read())
+                        nouvelle_version.fichier_pleine_resolution.save(
+                            f"racine_{version.fichier_pleine_resolution.name}",
+                            content,
+                            save=False
+                        )
+                
+                nouvelle_version.save()
+            
+            duplicatas_crees += 1
+        
+        messages.success(
+            request,
+            f"✅ {duplicatas_crees} photo(s) dupliquée(s) vers la racine de galerie"
+        )
+    
+    dupliquer_vers_racine.short_description = "📋 Dupliquer vers la racine de galerie"  # type: ignore[attr-defined]
+    
+    def retirer_de_racine(self, request: HttpRequest, queryset: models.QuerySet[Photo]) -> None:
+        """Action pour supprimer les photos directes (racine) en gardant celles en collection"""
+        from django.contrib import messages
+        import os
+        
+        photos_directes = queryset.filter(collection__isnull=True)
+        photos_dans_collections = queryset.exclude(collection__isnull=True)
+        
+        if photos_dans_collections.exists():
+            messages.warning(
+                request, 
+                f"❌ {photos_dans_collections.count()} photo(s) ignorée(s) : dans des collections", 
+            )
+        
+        if not photos_directes.exists():
+            messages.warning(
+                request, 
+                "ℹ️ Aucune photo directe (racine) à supprimer", 
+            )
+            return
+        
+        photos_supprimees = 0
+        for photo in photos_directes:
+            # Supprimer les fichiers physiques
+            for version in photo.versions.all():
+                if version.fichier_web:
+                    try:
+                        if os.path.exists(version.fichier_web.path):
+                            os.remove(version.fichier_web.path)
+                    except Exception:
+                        pass
+                
+                if version.fichier_pleine_resolution:
+                    try:
+                        if os.path.exists(version.fichier_pleine_resolution.path):
+                            os.remove(version.fichier_pleine_resolution.path)
+                    except Exception:
+                        pass
+            
+            # Supprimer la photo de la DB
+            photo.delete()
+            photos_supprimees += 1
+        
+        messages.success(
+            request,
+            f"✅ {photos_supprimees} photo(s) supprimée(s) de la racine de galerie"
+        )
+    
+    retirer_de_racine.short_description = "🗑️ Supprimer de la racine (garder collections)"  # type: ignore[attr-defined]
 
     def supprimer_photos_confirmees(self, request: HttpRequest, queryset: models.QuerySet[Photo]) -> None:
         """Action pour supprimer des photos avec confirmation"""

@@ -46,6 +46,7 @@ MIDDLEWARE: list[str] = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -102,10 +103,22 @@ AUTH_PASSWORD_VALIDATORS: list[dict[str, str]] = [
 ]
 
 # Internationalization
-LANGUAGE_CODE: str = "en-us"
-TIME_ZONE: str = "UTC"
+LANGUAGE_CODE: str = "fr-fr"
+TIME_ZONE: str = "Europe/Paris"
 USE_I18N: bool = True
+USE_L10N: bool = True
 USE_TZ: bool = True
+
+# Languages
+LANGUAGES = [
+    ('fr', 'Français'),
+    ('en', 'English'),
+]
+
+# Locale paths for custom translations
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL: str = "/static/"
