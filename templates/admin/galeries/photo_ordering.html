@@ -232,7 +232,7 @@
                     <div class="photo-order-badge">{{ photo.ordre_affichage }}</div>
                     {% with version=photo.get_version_par_defaut %}
                         {% if version and version.fichier_web %}
-                            <img src="{{ version.fichier_web.url }}" alt="{{ photo.titre|default:'Photo' }}" class="photo-thumbnail" loading="lazy">
+                            <img src="{{ version.fichier_web.url }}" alt="{{ photo.get_titre_affichage }}" class="photo-thumbnail" loading="lazy">
                         {% else %}
                             <div class="photo-thumbnail" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #999;">
                                 📷
@@ -240,7 +240,7 @@
                         {% endif %}
                     {% endwith %}
                     <div class="photo-info">
-                        <div class="photo-title">{{ photo.titre|default:"Photo sans titre" }}</div>
+                        <div class="photo-title">{{ photo.get_titre_affichage }}</div>
                         <div class="photo-order">Position: {{ photo.ordre_affichage }}</div>
                     </div>
                 </div>

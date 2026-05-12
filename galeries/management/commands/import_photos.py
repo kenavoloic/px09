@@ -215,7 +215,8 @@ class Command(BaseCommand):
         # Créer l'objet Photo
         photo = Photo(
             galerie=galerie,
-            titre=photo_path.stem.replace('_', ' '),  # Nom de fichier comme titre
+            nom_fichier=photo_path.name,  # Nom de fichier avec extension
+            titre="",  # Pas de titre par défaut, l'utilisateur peut en ajouter un
             largeur_originale=width,
             hauteur_originale=height,
             ordre_affichage=galerie.get_total_photos() + 1

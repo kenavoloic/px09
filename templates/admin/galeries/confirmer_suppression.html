@@ -184,7 +184,7 @@
         {% for photo in photos %}
             <div class="photo-item">
                 <div class="photo-details">
-                    <div class="photo-title">🗑️ {{ photo.titre|default:"Photo sans titre" }}</div>
+                    <div class="photo-title">🗑️ {{ photo.get_titre_affichage }}</div>
                     <div class="photo-meta">
                         ID: {{ photo.id }} • 
                         {% if photo.date_prise %}{{ photo.date_prise|date:"d/m/Y" }} • {% endif %}

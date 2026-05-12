@@ -124,7 +124,7 @@
             <strong>Photos sélectionnées ({{ photos|length }}) :</strong>
             {% for photo in photos %}
                 <div class="photo-item">
-                    <span class="photo-title">📸 {{ photo.titre|default:"Photo sans titre" }}</span>
+                    <span class="photo-title">📸 {{ photo.get_titre_affichage }}</span>
                     <span class="photo-meta">
                         {% if photo.collection %}
                             • Collection: {{ photo.collection.nom }}

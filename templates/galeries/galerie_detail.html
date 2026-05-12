@@ -84,17 +84,17 @@
     <div class="photos-grid adaptive">
       {% for photo in photos %}
         <div class="photo-item reveal">
-          <a href="{{ photo.get_absolute_url }}" class="photo-link">
+          <a href="{{ photo.get_absolute_url }}" class="photo-link" title="{{ photo.get_titre_survol }}">
             {% with version=photo.get_version_par_defaut %}
               {% if version and version.fichier_web %}
-                <img src="{{ version.fichier_web.url }}" alt="{{ photo.titre|default:'Photo' }}" loading="lazy">
+                <img src="{{ version.fichier_web.url }}" alt="{{ photo.get_titre_affichage }}" title="{{ photo.get_titre_survol }}" loading="lazy">
               {% else %}
                 <div class="photo-placeholder">
                   <span>📷</span>
                 </div>
               {% endif %}
             {% endwith %}
-            {% if photo.titre %}
+            {% if photo.a_titre_personnalise %}
               <div class="photo-overlay">
                 <span class="photo-title">{{ photo.titre }}</span>
               </div>

@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}{{ photo.titre|default:"Photo"|truncatewords:5 }} — {{ galerie.nom }} — Hors les Murs{% endblock %}
-{% block description %}{{ photo.description|default:photo.titre|default:"Photo" }}{% endblock %}
+{% block title %}{{ photo.get_titre_affichage|truncatewords:5 }} — {{ galerie.nom }} — Hors les Murs{% endblock %}
+{% block description %}{{ photo.description|default:photo.get_titre_affichage }}{% endblock %}
 
 {% block nav_class %}solid{% endblock %}
 
@@ -22,7 +22,7 @@
       <a href="{{ collection.get_absolute_url }}">{{ collection.nom }}</a>
     {% endif %}
     <span>→</span>
-    <span class="current">{{ photo.titre|default:"Photo" }}</span>
+    <span class="current">{{ photo.get_titre_affichage }}</span>
   </div>
 </header>
 
@@ -31,11 +31,11 @@
     {% if version_defaut and version_defaut.fichier_web %}
       {% if collection %}
         <a href="{{ collection.get_absolute_url }}" class="photo-back-link" title="Retour à la collection {{ collection.nom }}">
-          <img src="{{ version_defaut.fichier_web.url }}" alt="{{ photo.titre|default:'Photo' }}" class="main-image">
+          <img src="{{ version_defaut.fichier_web.url }}" alt="{{ photo.get_titre_affichage }}" class="main-image">
         </a>
       {% else %}
         <a href="{{ galerie.get_absolute_url }}" class="photo-back-link" title="Retour à la galerie {{ galerie.nom }}">
-          <img src="{{ version_defaut.fichier_web.url }}" alt="{{ photo.titre|default:'Photo' }}" class="main-image">
+          <img src="{{ version_defaut.fichier_web.url }}" alt="{{ photo.get_titre_affichage }}" class="main-image">
         </a>
       {% endif %}
     {% else %}
@@ -47,8 +47,10 @@
   </div>
   
   <div class="photo-info">
-    {% if photo.titre %}
+    {% if photo.a_titre_personnalise %}
       <h1 class="photo-title reveal reveal-d1">{{ photo.titre }}</h1>
+    {% else %}
+      <h1 class="photo-title reveal reveal-d1">{{ photo.get_nom_fichier_sans_extension }}</h1>
     {% endif %}
     
     <div class="photo-meta reveal reveal-d2">

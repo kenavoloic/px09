@@ -44,12 +44,13 @@
          data-src="{% with version=photo.get_version_par_defaut %}{% if version and version.fichier_web %}{{ version.fichier_web.url }}{% endif %}{% endwith %}"
          data-w="{{ photo.largeur_originale }}"
          data-h="{{ photo.hauteur_originale }}"
-         data-alt="{{ photo.titre|default:'' }}"
+         data-alt="{{ photo.get_titre_affichage }}"
          data-slug="{{ collection.slug }}"
-         data-angle="{{ forloop.counter|add:0 }}">
+         data-angle="{{ forloop.counter|add:0 }}"
+         title="{{ photo.get_titre_survol }}">
       {% with version=photo.get_version_par_defaut %}
         {% if version and version.fichier_web %}
-          <img src="{{ version.fichier_web.url }}" alt="{{ photo.titre|default:collection.nom }}"
+          <img src="{{ version.fichier_web.url }}" alt="{{ photo.get_titre_affichage }}" title="{{ photo.get_titre_survol }}"
                loading="lazy" width="{{ photo.largeur_originale }}" height="{{ photo.hauteur_originale }}" />
         {% else %}
           <div class="photo-placeholder"

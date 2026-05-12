@@ -69,7 +69,8 @@ def upload_photos_view(request: HttpRequest) -> HttpResponse:
                     # Créer l'objet Photo
                     photo = Photo(
                         galerie=galerie,
-                        titre=uploaded_file.name.replace('.jpg', '').replace('.JPG', '').replace('_', ' '),
+                        nom_fichier=uploaded_file.name,
+                        titre="",  # Pas de titre par défaut
                         largeur_originale=width,
                         hauteur_originale=height,
                         ordre_affichage=galerie.get_total_photos() + 1

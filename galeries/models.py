@@ -12,6 +12,45 @@ from django.urls import reverse
 from django.utils.text import slugify
 
 
+class ConfigurationSite(models.Model):
+    """Configuration globale du site (singleton)"""
+    
+    AFFICHAGE_TITRE_CHOICES = [
+        ('sans_titre', 'Afficher "Sans titre"'),
+        ('vide', 'Afficher une chaîne vide'),
+    ]
+    
+    affichage_titre_vide = models.CharField(
+        max_length=20,
+        choices=AFFICHAGE_TITRE_CHOICES,
+        default='sans_titre',
+        help_text="Comment afficher les photos sans titre personnalisé",
+        verbose_name="Affichage des photos sans titre"
+    )
+    
+    class Meta:
+        verbose_name = "Configuration du site"
+        verbose_name_plural = "Configuration du site"
+    
+    def __str__(self) -> str:
+        return "Configuration du site"
+    
+    @classmethod
+    def get_instance(cls) -> 'ConfigurationSite':
+        """Récupère l'instance unique de configuration"""
+        instance, created = cls.objects.get_or_create(pk=1)
+        return instance
+    
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        # Forcer l'ID à 1 pour maintenir le singleton
+        self.pk = 1
+        super().save(*args, **kwargs)
+    
+    def delete(self, *args: Any, **kwargs: Any) -> None:
+        # Empêcher la suppression du singleton
+        pass
+
+
 class Galerie(models.Model):
     """Galerie thématique principale visible sur homepage"""
 
@@ -137,7 +176,8 @@ class Photo(models.Model):
     )
 
     # Métadonnées photo
-    titre = models.CharField(max_length=200, blank=True)
+    nom_fichier = models.CharField(max_length=255, blank=True, help_text="Nom du fichier original")
+    titre = models.CharField(max_length=200, blank=True, help_text="Titre personnalisé (optionnel)")
     description = models.TextField(blank=True)
 
     # Métadonnées techniques (extraites EXIF)
@@ -166,7 +206,47 @@ class Photo(models.Model):
         verbose_name_plural = 'Photos'
 
     def __str__(self) -> str:
-        return self.titre or f"Photo {self.id}"
+        return self.get_titre_affichage() or f"Photo {self.id}"
+    
+    def a_titre_personnalise(self) -> bool:
+        """Vérifie si la photo a un vrai titre personnalisé (pas juste le nom de fichier)"""
+        if not self.titre:
+            return False
+        
+        # Comparer avec le nom de fichier sans extension
+        nom_fichier_sans_ext = self.get_nom_fichier_sans_extension()
+        # Vérifier si le titre est différent du nom de fichier (avec ou sans espaces/underscores)
+        titre_nettoye = self.titre.replace(' ', '_').replace('-', '_').lower()
+        nom_nettoye = nom_fichier_sans_ext.replace(' ', '_').replace('-', '_').lower()
+        
+        return titre_nettoye != nom_nettoye
+    
+    def get_titre_affichage(self) -> str:
+        """Retourne le titre à afficher selon la configuration du site"""
+        if self.a_titre_personnalise():
+            return self.titre
+        
+        config = ConfigurationSite.get_instance()
+        if config.affichage_titre_vide == 'sans_titre':
+            return "Sans titre"
+        else:
+            return ""
+    
+    def get_titre_survol(self) -> str:
+        """Retourne le titre pour les tooltips au survol (toujours explicite)"""
+        if self.a_titre_personnalise():
+            return self.titre
+        
+        config = ConfigurationSite.get_instance()
+        if config.affichage_titre_vide == 'sans_titre':
+            return "Sans titre"
+        else:
+            return ""  # Même comportement que get_titre_affichage pour la cohérence
+    
+    def get_nom_fichier_sans_extension(self) -> str:
+        """Retourne le nom de fichier sans l'extension"""
+        import os
+        return os.path.splitext(self.nom_fichier)[0]
 
     def get_absolute_url(self) -> str:
         return reverse('galeries:photo_detail', kwargs={'photo_id': self.id})

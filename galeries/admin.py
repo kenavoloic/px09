@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 
 from .apps_proxy import PhotoOrderingProxy, PhotoUploadProxy  # noqa: F401
-from .models import Collection, Galerie, Photo, PhotoVersion
+from .models import Collection, ConfigurationSite, Galerie, Photo, PhotoVersion
 
 
 class PhotoSansCollectionFilter(SimpleListFilter):
@@ -339,14 +339,14 @@ class CollectionAdmin(SortableAdminMixin, admin.ModelAdmin):
 class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = ['titre_ou_id', 'galerie', 'collection', 'ordre_affichage', 'est_publique', 'est_couverture', 'apercu_photo']
     list_filter = ['galerie', 'collection', PhotoSansCollectionFilter, 'est_publique', 'est_couverture', 'cree_le']
-    search_fields = ['titre', 'galerie__nom', 'collection__nom']
+    search_fields = ['titre', 'nom_fichier', 'galerie__nom', 'collection__nom']
     inlines = [PhotoVersionInline]
     list_editable = ['collection', 'est_publique']
     actions = ['attribuer_a_collection', 'retirer_de_collection', 'dupliquer_vers_racine', 'retirer_de_racine', 'supprimer_photos_confirmees']
 
     fieldsets = (
         (None, {
-            'fields': ('galerie', 'collection', 'titre', 'description')
+            'fields': ('galerie', 'collection', 'nom_fichier', 'titre', 'description')
         }),
         ('Métadonnées techniques', {
             'fields': ('date_prise', 'appareil', 'objectif', 'ouverture', 'vitesse', 'iso', 'largeur_originale', 'hauteur_originale'),
@@ -364,7 +364,10 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
     readonly_fields = ['cree_le', 'modifie_le']
 
     def titre_ou_id(self, obj: Photo) -> str:
-        return obj.titre or f"Photo {obj.id}"
+        titre = obj.get_titre_affichage()
+        if titre == "Sans titre":
+            return f"{titre} ({obj.get_nom_fichier_sans_extension()})"
+        return titre
     titre_ou_id.short_description = 'Titre'  # type: ignore[attr-defined]
 
     def apercu_photo(self, obj: Photo) -> str:
@@ -482,7 +485,8 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
             nouvelle_photo = Photo(
                 galerie=photo.galerie,
                 collection=None,  # À la racine
-                titre=f"{photo.titre} (racine)" if photo.titre else f"Photo {photo.id} (racine)",
+                nom_fichier=photo.nom_fichier,
+                titre=f"{photo.titre} (racine)" if photo.titre else "",
                 description=photo.description,
                 date_prise=photo.date_prise,
                 appareil=photo.appareil,
@@ -693,3 +697,21 @@ class PhotoVersionAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request: HttpRequest) -> models.QuerySet[PhotoVersion]:
         return super().get_queryset(request).select_related('photo__galerie', 'photo__collection')
+
+
+@admin.register(ConfigurationSite)
+class ConfigurationSiteAdmin(admin.ModelAdmin):
+    fieldsets = (
+        (None, {
+            'fields': ('affichage_titre_vide',),
+            'description': 'Configuration globale pour l\'affichage des photos sans titre personnalisé.'
+        }),
+    )
+    
+    def has_add_permission(self, request):
+        # Ne permettre qu'une seule instance
+        return not ConfigurationSite.objects.exists()
+    
+    def has_delete_permission(self, request, obj=None):
+        # Empêcher la suppression
+        return False
