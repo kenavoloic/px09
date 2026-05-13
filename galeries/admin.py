@@ -53,7 +53,7 @@ class GalerieForm(forms.ModelForm):
             choices = [('', 'Pas de photo de couverture')]
             for photo in photos:
                 collection_info = f" ({photo.collection.nom})" if photo.collection else " (Photo directe)"
-                label = f"{photo.titre or f'Photo {photo.id}'}{collection_info}"
+                label = f"{photo.get_titre_affichage() or f'Photo {photo.id}'}{collection_info}"
                 choices.append((str(photo.id), label))
 
             self.fields['photo_couverture_id'].choices = choices
@@ -183,8 +183,15 @@ class PhotoCollectionInline(SortableInlineAdminMixin, admin.TabularInline):
         return super().get_queryset(request).select_related('galerie', 'collection')
 
 
+class CollectionInlineForm(forms.ModelForm):
+    class Meta:
+        model = Collection
+        fields = ['nom', 'slug', 'est_publique', 'date_evenement', 'ordre_affichage']
+
+
 class CollectionInline(SortableInlineAdminMixin, admin.TabularInline):
     model = Collection
+    form = CollectionInlineForm
     extra = 0
     fields = ['nom', 'slug', 'est_publique', 'date_evenement']
     readonly_fields = []
@@ -245,7 +252,7 @@ class GalerieAdmin(SortableAdminMixin, admin.ModelAdmin):
             if selected_photo_id:
                 try:
                     photo = Photo.objects.get(id=selected_photo_id)
-                    self.message_user(request, f"✅ Photo de couverture mise à jour : {photo.titre or f'Photo {photo.id}'}")
+                    self.message_user(request, f"✅ Photo de couverture mise à jour : {photo.get_titre_affichage() or f'Photo {photo.id}'}")
                 except Photo.DoesNotExist:
                     self.message_user(request, "❌ Photo de couverture introuvable")
             else:
@@ -337,7 +344,7 @@ class CollectionAdmin(SortableAdminMixin, admin.ModelAdmin):
 
 @admin.register(Photo)
 class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
-    list_display = ['titre_ou_id', 'galerie', 'collection', 'ordre_affichage', 'est_publique', 'est_couverture', 'apercu_photo']
+    list_display = ['apercu_photo', 'titre_ou_id', 'galerie', 'collection', 'est_publique', 'est_couverture', 'ordre_affichage']
     list_filter = ['galerie', 'collection', PhotoSansCollectionFilter, 'est_publique', 'est_couverture', 'cree_le']
     search_fields = ['titre', 'nom_fichier', 'galerie__nom', 'collection__nom']
     inlines = [PhotoVersionInline]
@@ -606,7 +613,7 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
             for photo in queryset:
                 # Collecter infos avant suppression
                 photo_info = {
-                    'titre': photo.titre or f'Photo {photo.id}',
+                    'titre': photo.get_titre_affichage() or f'Photo {photo.id}',
                     'galerie': photo.galerie.nom,
                     'collection': photo.collection.nom if photo.collection else 'Photo directe'
                 }
@@ -683,7 +690,7 @@ class PhotoVersionAdmin(admin.ModelAdmin):
     readonly_fields = ['traite_le']
 
     def photo_titre(self, obj: PhotoVersion) -> str:
-        return obj.photo.titre or f"Photo {obj.photo.id}"
+        return obj.photo.get_titre_affichage() or f"Photo {obj.photo.id}"
     photo_titre.short_description = 'Photo'  # type: ignore[attr-defined]
 
     def apercu(self, obj: PhotoVersion) -> str:

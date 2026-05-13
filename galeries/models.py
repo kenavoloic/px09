@@ -133,7 +133,7 @@ class Collection(models.Model):
 
     class Meta:
         unique_together = [('galerie', 'slug')]
-        ordering = ['galerie', 'ordre_affichage', 'nom']
+        ordering = ['ordre_affichage', 'nom']
         verbose_name = 'Collection'
         verbose_name_plural = 'Collections'
 
@@ -264,6 +264,43 @@ class Photo(models.Model):
 
     def get_versions_publiques(self) -> QuerySet[PhotoVersion]:
         return self.versions.filter(est_publique=True)
+    
+    def get_appareil_nettoye(self) -> str:
+        """Retourne le nom de l'appareil sans doublons de marque"""
+        if not self.appareil:
+            return ""
+        
+        # Nettoyer les doublons de marque (ex: "Canon Canon EOS 6D" -> "Canon EOS 6D")
+        appareil = self.appareil.strip()
+        
+        # Liste des marques communes
+        marques = ['Canon', 'Nikon', 'Sony', 'Fuji', 'Fujifilm', 'Olympus', 'Pentax', 'Leica', 'Panasonic']
+        
+        for marque in marques:
+            # Si la marque apparaît au début deux fois, supprimer la première occurrence
+            double_marque = f"{marque} {marque}"
+            if appareil.startswith(double_marque):
+                appareil = appareil[len(marque):].strip()
+                break
+                
+        return appareil
+    
+    def get_ouverture_nettoyee(self) -> str:
+        """Retourne l'ouverture sans le "/1" superflu"""
+        if not self.ouverture:
+            return ""
+        
+        ouverture = str(self.ouverture).strip()
+        
+        # Supprimer "/1" à la fin
+        if ouverture.endswith('/1'):
+            ouverture = ouverture[:-2]
+            
+        # S'assurer qu'on a le préfixe f/ si c'est juste un nombre
+        if ouverture and not ouverture.startswith('f/'):
+            ouverture = f"f/{ouverture}"
+            
+        return ouverture
 
 
 class PhotoVersion(models.Model):
@@ -271,9 +308,9 @@ class PhotoVersion(models.Model):
 
     TRAITEMENT_CHOICES = [
         ('couleur', 'Couleur'),
-        ('monochrome', 'Monochrome'),
-        ('sepia', 'Sépia'),
-        ('vintage', 'Vintage'),
+        ('monochrome', 'Monochrome')
+        # ('sepia', 'Sépia'),
+        #('vintage', 'Vintage'),
     ]
 
     photo = models.ForeignKey(

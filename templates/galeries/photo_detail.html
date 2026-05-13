@@ -26,27 +26,30 @@
   </div>
 </header>
 
-<div class="photo-viewer">
-  <div class="photo-main reveal">
-    {% if version_defaut and version_defaut.fichier_web %}
-      {% if collection %}
-        <a href="{{ collection.get_absolute_url }}" class="photo-back-link" title="Retour à la collection {{ collection.nom }}">
-          <img src="{{ version_defaut.fichier_web.url }}" alt="{{ photo.get_titre_affichage }}" class="main-image">
-        </a>
+<div class="photo-detail-layout">
+  <div class="photo-side">
+    <div class="photo-main reveal">
+      {% if version_defaut and version_defaut.fichier_web %}
+        {% if collection %}
+          <a href="{{ collection.get_absolute_url }}" class="photo-back-link" title="Retour à la collection {{ collection.nom }}">
+            <img src="{{ version_defaut.fichier_web.url }}" alt="{{ photo.get_titre_affichage }}" class="main-image">
+          </a>
+        {% else %}
+          <a href="{{ galerie.get_absolute_url }}" class="photo-back-link" title="Retour à la galerie {{ galerie.nom }}">
+            <img src="{{ version_defaut.fichier_web.url }}" alt="{{ photo.get_titre_affichage }}" class="main-image">
+          </a>
+        {% endif %}
       {% else %}
-        <a href="{{ galerie.get_absolute_url }}" class="photo-back-link" title="Retour à la galerie {{ galerie.nom }}">
-          <img src="{{ version_defaut.fichier_web.url }}" alt="{{ photo.get_titre_affichage }}" class="main-image">
-        </a>
+        <div class="photo-placeholder">
+          <span>📷</span>
+          <p>Aucune version disponible</p>
+        </div>
       {% endif %}
-    {% else %}
-      <div class="photo-placeholder">
-        <span>📷</span>
-        <p>Aucune version disponible</p>
-      </div>
-    {% endif %}
+    </div>
   </div>
-  
-  <div class="photo-info">
+
+  <div class="photo-info-side">
+    <div class="photo-info">
     {% if photo.a_titre_personnalise %}
       <h1 class="photo-title reveal reveal-d1">{{ photo.titre }}</h1>
     {% else %}
@@ -70,19 +73,19 @@
         <dl>
           {% if photo.date_prise %}
             <dt>Date de prise</dt>
-            <dd>{{ photo.date_prise|date:"d F Y à H:i" }}</dd>
+            <dd>{{ photo.date_prise|date:"j F Y à H:i" }}</dd>
           {% endif %}
-          {% if photo.appareil %}
+          {% if photo.get_appareil_nettoye %}
             <dt>Appareil</dt>
-            <dd>{{ photo.appareil }}</dd>
+            <dd>{{ photo.get_appareil_nettoye }}</dd>
           {% endif %}
           {% if photo.objectif %}
             <dt>Objectif</dt>
             <dd>{{ photo.objectif }}</dd>
           {% endif %}
-          {% if photo.ouverture %}
+          {% if photo.get_ouverture_nettoyee %}
             <dt>Ouverture</dt>
-            <dd>f/{{ photo.ouverture }}</dd>
+            <dd>{{ photo.get_ouverture_nettoyee }}</dd>
           {% endif %}
           {% if photo.vitesse %}
             <dt>Vitesse</dt>
@@ -115,6 +118,7 @@
         </div>
       </div>
     {% endif %}
+    </div>
   </div>
 </div>
 

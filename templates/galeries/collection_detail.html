@@ -38,27 +38,25 @@
 </header>
 
 <section class="photo-section">
-  <div class="photo-grid">
+  <div class="photos-grid adaptive">
     {% for photo in photos %}
-    <div class="photo"
-         data-src="{% with version=photo.get_version_par_defaut %}{% if version and version.fichier_web %}{{ version.fichier_web.url }}{% endif %}{% endwith %}"
-         data-w="{{ photo.largeur_originale }}"
-         data-h="{{ photo.hauteur_originale }}"
-         data-alt="{{ photo.get_titre_affichage }}"
-         data-slug="{{ collection.slug }}"
-         data-angle="{{ forloop.counter|add:0 }}"
-         title="{{ photo.get_titre_survol }}">
-      {% with version=photo.get_version_par_defaut %}
-        {% if version and version.fichier_web %}
-          <img src="{{ version.fichier_web.url }}" alt="{{ photo.get_titre_affichage }}" title="{{ photo.get_titre_survol }}"
-               loading="lazy" width="{{ photo.largeur_originale }}" height="{{ photo.hauteur_originale }}" />
-        {% else %}
-          <div class="photo-placeholder"
-               style="aspect-ratio: {{ photo.largeur_originale }}/{{ photo.hauteur_originale }};
-                      --photo-angle: {{ forloop.counter|add:0 }}deg;"></div>
+    <div class="photo-item reveal">
+      <a href="{{ photo.get_absolute_url }}" class="photo-link" title="{{ photo.get_titre_survol }}">
+        {% with version=photo.get_version_par_defaut %}
+          {% if version and version.fichier_web %}
+            <img src="{{ version.fichier_web.url }}" alt="{{ photo.get_titre_affichage }}" title="{{ photo.get_titre_survol }}" loading="lazy">
+          {% else %}
+            <div class="photo-placeholder">
+              <span>📷</span>
+            </div>
+          {% endif %}
+        {% endwith %}
+        {% if photo.a_titre_personnalise %}
+          <div class="photo-overlay">
+            <span class="photo-title">{{ photo.titre }}</span>
+          </div>
         {% endif %}
-      {% endwith %}
-      <span class="photo-num">{{ forloop.counter|stringformat:"02d" }}</span>
+      </a>
     </div>
     {% endfor %}
   </div>
@@ -90,23 +88,4 @@
   {% endif %}
 </nav>
 
-<!-- Lightbox -->
-<div class="lightbox" id="lightbox" role="dialog" aria-modal="true"
-     data-collection-slug="{{ collection.slug }}"
-     data-collection-title="{{ collection.nom }}"
-     data-collection-date="{% if collection.date_evenement %}{{ collection.date_evenement|date:'F Y'|capfirst }}{% endif %}">
-  <button class="lb-close" id="lb-close" aria-label="Fermer">✕</button>
-  <button class="lb-arrow lb-prev" id="lb-prev" aria-label="Photo précédente">←</button>
-  <div class="lb-image" id="lb-image">
-    <span class="lb-image-label" id="lb-image-label"></span>
-  </div>
-  <button class="lb-arrow lb-next" id="lb-next" aria-label="Photo suivante">→</button>
-  <div class="lb-counter" id="lb-counter">01 / 01</div>
-  <div class="lb-caption" id="lb-caption"></div>
-</div>
-
-{% endblock %}
-
-{% block extra_js %}
-<script src="{% static 'js/lightbox.js' %}"></script>
 {% endblock %}
