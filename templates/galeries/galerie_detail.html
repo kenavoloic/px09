@@ -81,7 +81,7 @@
 {% if photos %}
   <section class="photos-section">
     <p class="section-eyebrow reveal">Photos</p>
-    <div class="photos-grid adaptive">
+    <div class="photos-grid adaptive" data-ordre-manuel="{{ galerie.ordre_manuel|yesno:'true,false' }}">
       {% for photo in photos %}
         <div class="photo-item reveal">
           <a href="{{ photo.get_absolute_url }}" class="photo-link" title="{{ photo.get_titre_survol }}">
@@ -111,5 +111,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/masonry.js' %}"></script>
+<script src="{% static 'js/masonry-optimized.js' %}"></script>
 {% endblock %}

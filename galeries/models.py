@@ -59,6 +59,11 @@ class Galerie(models.Model):
     description = models.TextField(blank=True)
     image_couverture = models.ImageField(upload_to='galeries/couvertures/', blank=True)
     ordre_affichage = models.PositiveIntegerField(default=0)
+    ordre_manuel = models.BooleanField(
+        default=True,
+        verbose_name="Ordre manuel",
+        help_text="Si coché, respecte l'ordre défini par le photographe. Sinon, optimise automatiquement le masonry."
+    )
     est_publique = models.BooleanField(default=True)
 
     cree_le = models.DateTimeField(auto_now_add=True)
@@ -126,6 +131,11 @@ class Collection(models.Model):
 
     # Gestion affichage
     ordre_affichage = models.PositiveIntegerField(default=0)
+    ordre_manuel = models.BooleanField(
+        default=True,
+        verbose_name="Ordre manuel",
+        help_text="Si coché, respecte l'ordre défini par le photographe. Sinon, optimise automatiquement le masonry."
+    )
     est_publique = models.BooleanField(default=True)
 
     cree_le = models.DateTimeField(auto_now_add=True)

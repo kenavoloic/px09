@@ -193,7 +193,7 @@ class CollectionInline(SortableInlineAdminMixin, admin.TabularInline):
     model = Collection
     form = CollectionInlineForm
     extra = 0
-    fields = ['nom', 'slug', 'est_publique', 'date_evenement']
+    fields = ['nom', 'slug', 'ordre_manuel', 'est_publique', 'date_evenement']
     readonly_fields = []
 
 
@@ -217,7 +217,7 @@ class GalerieAdmin(SortableAdminMixin, admin.ModelAdmin):
             'fields': ('nom', 'slug', 'description')
         }),
         ('Affichage', {
-            'fields': ('photo_couverture_id', 'ordre_affichage', 'est_publique')
+            'fields': ('photo_couverture_id', 'ordre_affichage', 'ordre_manuel', 'est_publique')
         }),
         ('Informations', {
             'fields': ('cree_le', 'modifie_le'),
@@ -324,7 +324,7 @@ class CollectionAdmin(SortableAdminMixin, admin.ModelAdmin):
             'fields': ('date_evenement', 'lieu')
         }),
         ('Affichage', {
-            'fields': ('ordre_affichage', 'est_publique')
+            'fields': ('ordre_affichage', 'ordre_manuel', 'est_publique')
         }),
         ('Informations', {
             'fields': ('cree_le', 'modifie_le'),
