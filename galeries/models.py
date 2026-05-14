@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from typing import TYPE_CHECKING, Any
 
 from django.db import models
@@ -338,6 +339,18 @@ class PhotoVersion(models.Model):
     largeur = models.PositiveIntegerField()
     hauteur = models.PositiveIntegerField()
 
+    # Tailles de fichiers (en octets)
+    taille_fichier_web = models.PositiveIntegerField(
+        null=True, 
+        blank=True,
+        help_text="Taille du fichier web en octets"
+    )
+    taille_fichier_hd = models.PositiveIntegerField(
+        null=True, 
+        blank=True,
+        help_text="Taille du fichier haute définition en octets"
+    )
+
     # Gestion
     est_par_defaut = models.BooleanField(default=False)
     est_publique = models.BooleanField(default=True)
@@ -348,6 +361,28 @@ class PhotoVersion(models.Model):
         verbose_name = 'Version de photo'
         verbose_name_plural = 'Versions de photos'
 
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        """Calcule automatiquement la taille des fichiers lors de la sauvegarde"""
+        super().save(*args, **kwargs)
+        
+        # Calculer la taille du fichier web
+        if self.fichier_web and hasattr(self.fichier_web, 'path'):
+            try:
+                self.taille_fichier_web = os.path.getsize(self.fichier_web.path)
+            except (OSError, FileNotFoundError):
+                self.taille_fichier_web = None
+        
+        # Calculer la taille du fichier HD
+        if self.fichier_pleine_resolution and hasattr(self.fichier_pleine_resolution, 'path'):
+            try:
+                self.taille_fichier_hd = os.path.getsize(self.fichier_pleine_resolution.path)
+            except (OSError, FileNotFoundError):
+                self.taille_fichier_hd = None
+        
+        # Sauvegarder à nouveau si les tailles ont été mises à jour
+        if self.taille_fichier_web is not None or self.taille_fichier_hd is not None:
+            super().save(update_fields=['taille_fichier_web', 'taille_fichier_hd'])
+
     def __str__(self) -> str:
         return f"{self.photo.titre or 'Photo'} - {self.get_traitement_display()}"
 
@@ -356,6 +391,35 @@ class PhotoVersion(models.Model):
 
     def get_url_telechargement(self) -> str:
         return self.fichier_pleine_resolution.url if self.fichier_pleine_resolution else self.fichier_web.url
+    
+    def get_taille_totale(self) -> int:
+        """Retourne la taille totale en octets (fichiers web + HD)"""
+        total = 0
+        if self.taille_fichier_web:
+            total += self.taille_fichier_web
+        if self.taille_fichier_hd:
+            total += self.taille_fichier_hd
+        return total
+    
+    def get_taille_totale_formatee(self) -> str:
+        """Retourne la taille totale formatée (ex: '2.5 MB')"""
+        return self.format_taille(self.get_taille_totale())
+    
+    @staticmethod
+    def format_taille(taille_octets: int) -> str:
+        """Formate une taille en octets vers une chaîne lisible"""
+        if taille_octets == 0:
+            return "0 B"
+        
+        unites = ['B', 'KB', 'MB', 'GB']
+        taille = float(taille_octets)
+        
+        for unite in unites:
+            if taille < 1024.0:
+                return f"{taille:.1f} {unite}"
+            taille /= 1024.0
+        
+        return f"{taille:.1f} TB"
     
     # Génération automatique de versions optimisées
     thumbnail = ImageSpecField(

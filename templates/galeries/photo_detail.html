@@ -52,8 +52,10 @@
     <div class="photo-info">
     {% if photo.a_titre_personnalise %}
       <h1 class="photo-title reveal reveal-d1">{{ photo.titre }}</h1>
+    {% comment %}
     {% else %}
       <h1 class="photo-title reveal reveal-d1">{{ photo.get_nom_fichier_sans_extension }}</h1>
+    {% endcomment %}
     {% endif %}
     
     <div class="photo-meta reveal reveal-d2">
@@ -72,7 +74,7 @@
         <h3>Données techniques</h3>
         <dl>
           {% if photo.date_prise %}
-            <dt>Date de prise</dt>
+            <dt>Date de prise de vue</dt>
             <dd>{{ photo.date_prise|date:"j F Y à H:i" }}</dd>
           {% endif %}
           {% if photo.get_appareil_nettoye %}
