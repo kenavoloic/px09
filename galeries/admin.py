@@ -101,8 +101,14 @@ admin.site.site_title = "Administration Portfolio"
 class PhotoVersionInline(admin.TabularInline):
     model = PhotoVersion
     extra = 0
-    readonly_fields = ['traite_le']
-    fields = ['traitement', 'fichier_web', 'fichier_pleine_resolution', 'largeur', 'hauteur', 'est_par_defaut', 'est_publique']
+    readonly_fields = ['traite_le', 'taille_fichiers']
+    fields = ['traitement', 'fichier_web', 'fichier_pleine_resolution', 'largeur', 'hauteur', 'taille_fichiers', 'est_par_defaut', 'est_publique']
+
+    def taille_fichiers(self, obj):
+        if obj and obj.pk:
+            return obj.get_taille_totale_formatee()
+        return "Non calculé"
+    taille_fichiers.short_description = 'Taille'  # type: ignore[attr-defined]
 
 
 class PhotoInline(SortableInlineAdminMixin, admin.TabularInline):
@@ -200,7 +206,7 @@ class CollectionInline(SortableInlineAdminMixin, admin.TabularInline):
 @admin.register(Galerie)
 class GalerieAdmin(SortableAdminMixin, admin.ModelAdmin):
     form = GalerieForm
-    list_display = ['nom', 'slug', 'est_publique', 'total_collections', 'total_photos', 'modifie_le']
+    list_display = ['nom', 'slug', 'est_publique', 'total_collections', 'total_photos', 'taille_totale', 'modifie_le']
     list_filter = ['est_publique', 'cree_le']
     search_fields = ['nom', 'description']
     prepopulated_fields = {'slug': ('nom',)}
@@ -234,6 +240,10 @@ class GalerieAdmin(SortableAdminMixin, admin.ModelAdmin):
     def total_photos(self, obj: Galerie) -> int:
         return obj.get_total_photos()
     total_photos.short_description = 'Photos'  # type: ignore[attr-defined]
+
+    def taille_totale(self, obj: Galerie) -> str:
+        return obj.get_taille_totale_formatee()
+    taille_totale.short_description = 'Taille totale'  # type: ignore[attr-defined]
 
     def get_queryset(self, request: HttpRequest) -> models.QuerySet[Galerie]:
         return super().get_queryset(request).prefetch_related('collections', 'photos')
@@ -278,7 +288,7 @@ class GalerieAdmin(SortableAdminMixin, admin.ModelAdmin):
 @admin.register(Collection)
 class CollectionAdmin(SortableAdminMixin, admin.ModelAdmin):
     form = CollectionForm
-    list_display = ['nom', 'galerie', 'est_publique', 'total_photos', 'date_evenement']
+    list_display = ['nom', 'galerie', 'est_publique', 'total_photos', 'taille_totale', 'date_evenement']
     list_filter = ['galerie', 'est_publique', 'date_evenement']
     search_fields = ['nom', 'galerie__nom', 'lieu']
     prepopulated_fields = {'slug': ('nom',)}
@@ -337,6 +347,10 @@ class CollectionAdmin(SortableAdminMixin, admin.ModelAdmin):
     def total_photos(self, obj: Collection) -> int:
         return obj.photos.count()
     total_photos.short_description = 'Photos'  # type: ignore[attr-defined]
+
+    def taille_totale(self, obj: Collection) -> str:
+        return obj.get_taille_totale_formatee()
+    taille_totale.short_description = 'Taille totale'  # type: ignore[attr-defined]
 
     def get_queryset(self, request: HttpRequest) -> models.QuerySet[Collection]:
         return super().get_queryset(request).select_related('galerie').prefetch_related('photos')

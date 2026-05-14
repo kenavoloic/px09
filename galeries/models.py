@@ -103,6 +103,36 @@ class Galerie(models.Model):
         photos_collections = sum(collection.photos.count() for collection in self.collections.all())
         return photos_directes + photos_collections
 
+    def get_taille_totale(self) -> int:
+        """Retourne la taille totale en octets de toutes les photos de la galerie"""
+        from django.db.models import Sum
+        
+        # Taille des photos directes (sans collection)
+        taille_directe = self.photos.filter(
+            collection__isnull=True
+        ).aggregate(
+            total_web=Sum('versions__taille_fichier_web'),
+            total_hd=Sum('versions__taille_fichier_hd')
+        )
+        
+        # Taille des photos dans les collections
+        taille_collections = self.collections.aggregate(
+            total_web=Sum('photos__versions__taille_fichier_web'),
+            total_hd=Sum('photos__versions__taille_fichier_hd')
+        )
+        
+        total = 0
+        total += taille_directe['total_web'] or 0
+        total += taille_directe['total_hd'] or 0
+        total += taille_collections['total_web'] or 0
+        total += taille_collections['total_hd'] or 0
+        
+        return total
+
+    def get_taille_totale_formatee(self) -> str:
+        """Retourne la taille totale formatée de la galerie"""
+        return PhotoVersion.format_taille(self.get_taille_totale())
+
     def get_photo_couverture(self) -> Photo | None:
         """Retourne la photo de couverture de la galerie"""
         # D'abord chercher une photo explicitement marquée comme couverture
@@ -167,6 +197,25 @@ class Collection(models.Model):
 
     def get_photos_publiques(self) -> QuerySet[Photo]:
         return self.photos.filter(est_publique=True).order_by('ordre_affichage')
+
+    def get_taille_totale(self) -> int:
+        """Retourne la taille totale en octets de toutes les photos de la collection"""
+        from django.db.models import Sum
+        
+        taille = self.photos.aggregate(
+            total_web=Sum('versions__taille_fichier_web'),
+            total_hd=Sum('versions__taille_fichier_hd')
+        )
+        
+        total = 0
+        total += taille['total_web'] or 0
+        total += taille['total_hd'] or 0
+        
+        return total
+
+    def get_taille_totale_formatee(self) -> str:
+        """Retourne la taille totale formatée de la collection"""
+        return PhotoVersion.format_taille(self.get_taille_totale())
 
 
 class Photo(models.Model):
