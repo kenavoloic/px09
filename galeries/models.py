@@ -4,6 +4,8 @@ import os
 from typing import TYPE_CHECKING, Any
 
 from django.db import models
+from django.db.models.signals import post_save, post_delete
+from django.dispatch import receiver
 from imagekit.models import ImageSpecField
 from imagekit.processors import ResizeToFill, ResizeToFit
 
@@ -66,6 +68,16 @@ class Galerie(models.Model):
         help_text="Si coché, respecte l'ordre défini par le photographe. Sinon, optimise automatiquement le masonry."
     )
     est_publique = models.BooleanField(default=True)
+    
+    # Cache des tailles (pour performance)
+    taille_totale_cache = models.PositiveIntegerField(
+        default=0,
+        help_text="Taille totale en octets (mise à jour automatiquement)"
+    )
+    cache_mis_a_jour_le = models.DateTimeField(
+        auto_now=True,
+        help_text="Dernière mise à jour du cache de taille"
+    )
 
     cree_le = models.DateTimeField(auto_now_add=True)
     modifie_le = models.DateTimeField(auto_now=True)
@@ -131,7 +143,12 @@ class Galerie(models.Model):
 
     def get_taille_totale_formatee(self) -> str:
         """Retourne la taille totale formatée de la galerie"""
-        return PhotoVersion.format_taille(self.get_taille_totale())
+        return PhotoVersion.format_taille(self.taille_totale_cache)
+    
+    def recalculer_taille_cache(self) -> None:
+        """Recalcule et met à jour le cache de taille"""
+        self.taille_totale_cache = self.get_taille_totale()
+        self.save(update_fields=['taille_totale_cache', 'cache_mis_a_jour_le'])
 
     def get_photo_couverture(self) -> Photo | None:
         """Retourne la photo de couverture de la galerie"""
@@ -168,6 +185,16 @@ class Collection(models.Model):
         help_text="Si coché, respecte l'ordre défini par le photographe. Sinon, optimise automatiquement le masonry."
     )
     est_publique = models.BooleanField(default=True)
+    
+    # Cache des tailles (pour performance)
+    taille_totale_cache = models.PositiveIntegerField(
+        default=0,
+        help_text="Taille totale en octets (mise à jour automatiquement)"
+    )
+    cache_mis_a_jour_le = models.DateTimeField(
+        auto_now=True,
+        help_text="Dernière mise à jour du cache de taille"
+    )
 
     cree_le = models.DateTimeField(auto_now_add=True)
     modifie_le = models.DateTimeField(auto_now=True)
@@ -215,7 +242,12 @@ class Collection(models.Model):
 
     def get_taille_totale_formatee(self) -> str:
         """Retourne la taille totale formatée de la collection"""
-        return PhotoVersion.format_taille(self.get_taille_totale())
+        return PhotoVersion.format_taille(self.taille_totale_cache)
+    
+    def recalculer_taille_cache(self) -> None:
+        """Recalcule et met à jour le cache de taille"""
+        self.taille_totale_cache = self.get_taille_totale()
+        self.save(update_fields=['taille_totale_cache', 'cache_mis_a_jour_le'])
 
 
 class Photo(models.Model):
@@ -491,3 +523,51 @@ class PhotoVersion(models.Model):
         format='JPEG',
         options={'quality': 88}
     )
+
+
+# Signaux pour mise à jour automatique du cache des tailles
+@receiver(post_save, sender='galeries.PhotoVersion')
+def update_cache_on_photo_version_save(sender, instance, **kwargs):
+    """Met à jour le cache de taille quand une version de photo est modifiée"""
+    try:
+        if instance.photo.collection:
+            # Photo dans une collection
+            instance.photo.collection.recalculer_taille_cache()
+            instance.photo.galerie.recalculer_taille_cache()
+        else:
+            # Photo directe dans la galerie
+            instance.photo.galerie.recalculer_taille_cache()
+    except Exception:
+        # En cas d'erreur, on continue sans bloquer
+        pass
+
+
+@receiver(post_delete, sender='galeries.PhotoVersion')
+def update_cache_on_photo_version_delete(sender, instance, **kwargs):
+    """Met à jour le cache de taille quand une version de photo est supprimée"""
+    try:
+        if instance.photo.collection:
+            instance.photo.collection.recalculer_taille_cache()
+            instance.photo.galerie.recalculer_taille_cache()
+        else:
+            instance.photo.galerie.recalculer_taille_cache()
+    except Exception:
+        pass
+
+
+@receiver(post_save, sender='galeries.Photo')
+def update_cache_on_photo_move(sender, instance, **kwargs):
+    """Met à jour le cache quand une photo change de collection"""
+    if kwargs.get('update_fields') and 'collection' in kwargs.get('update_fields', []):
+        try:
+            # Photo déplacée, recalculer les deux conteneurs
+            if hasattr(instance, '_original_collection'):
+                if instance._original_collection:
+                    instance._original_collection.recalculer_taille_cache()
+            
+            if instance.collection:
+                instance.collection.recalculer_taille_cache()
+            
+            instance.galerie.recalculer_taille_cache()
+        except Exception:
+            pass
