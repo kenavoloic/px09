@@ -114,11 +114,24 @@ class PhotoVersionInline(admin.TabularInline):
 class PhotoInline(SortableInlineAdminMixin, admin.TabularInline):
     model = Photo
     extra = 0
-    fields = ['titre', 'ordre_affichage', 'est_publique', 'est_couverture']
-    readonly_fields = []
+    fields = ['vignette', 'titre', 'ordre_affichage', 'est_publique', 'est_couverture']
+    readonly_fields = ['vignette']
 
     def get_queryset(self, request: HttpRequest) -> models.QuerySet[Photo]:
-        return super().get_queryset(request).select_related('galerie', 'collection')
+        return super().get_queryset(request).select_related('galerie', 'collection').prefetch_related('versions')
+
+    def vignette(self, obj):
+        """Affiche une vignette de la photo"""
+        if obj and obj.pk:
+            version_defaut = obj.get_version_par_defaut()
+            if version_defaut and version_defaut.fichier_web:
+                return format_html(
+                    '<img src="{}" alt="{}" style="max-width: 80px; max-height: 60px; object-fit: cover; border-radius: 4px;" />',
+                    version_defaut.fichier_web.url,
+                    obj.get_titre_affichage() or 'Photo'
+                )
+        return format_html('<div style="width: 80px; height: 60px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #666;">📷</div>')
+    vignette.short_description = 'Aperçu'  # type: ignore[attr-defined]
 
 
 class CollectionForm(forms.ModelForm):
@@ -183,10 +196,24 @@ class PhotoCollectionInline(SortableInlineAdminMixin, admin.TabularInline):
     model = Photo
     form = PhotoCollectionForm
     extra = 0
-    fields = ['titre', 'ordre_affichage', 'est_publique', 'est_couverture']
+    fields = ['vignette', 'titre', 'ordre_affichage', 'est_publique', 'est_couverture']
+    readonly_fields = ['vignette']
 
     def get_queryset(self, request: HttpRequest) -> models.QuerySet[Photo]:
-        return super().get_queryset(request).select_related('galerie', 'collection')
+        return super().get_queryset(request).select_related('galerie', 'collection').prefetch_related('versions')
+
+    def vignette(self, obj):
+        """Affiche une vignette de la photo"""
+        if obj and obj.pk:
+            version_defaut = obj.get_version_par_defaut()
+            if version_defaut and version_defaut.fichier_web:
+                return format_html(
+                    '<img src="{}" alt="{}" style="max-width: 80px; max-height: 60px; object-fit: cover; border-radius: 4px;" />',
+                    version_defaut.fichier_web.url,
+                    obj.get_titre_affichage() or 'Photo'
+                )
+        return format_html('<div style="width: 80px; height: 60px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #666;">📷</div>')
+    vignette.short_description = 'Aperçu'  # type: ignore[attr-defined]
 
 
 class CollectionInlineForm(forms.ModelForm):
