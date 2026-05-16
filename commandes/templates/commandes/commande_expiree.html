@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Commande expirée — {{ commande.reference }}{% endblock %}
+{% block description %}Cette commande photo n'est plus accessible car elle a expiré.{% endblock %}
+
+{% block nav_class %}solid{% endblock %}
+
+{% block extra_css %}
+<style>
+.error-container {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.error-card {
+  background: hsl(var(--bg-2));
+  border: 1px solid hsl(var(--border));
+  border-radius: 1rem;
+  padding: 3rem 2rem;
+  max-width: 500px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.error-icon {
+  width: 4rem;
+  height: 4rem;
+  margin: 0 auto 2rem;
+  color: hsl(var(--text-3));
+  opacity: 0.7;
+}
+
+.error-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: hsl(var(--text-1));
+}
+
+.error-message {
+  color: hsl(var(--text-2));
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.commande-info {
+  background: hsl(var(--bg-1));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1.5rem 0;
+  font-size: 0.9rem;
+  color: hsl(var(--text-2));
+}
+
+.contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: hsl(var(--accent-1));
+  border: 1px solid hsl(var(--accent-1));
+  border-radius: 0.5rem;
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.contact-btn:hover {
+  background: hsl(var(--accent-1) / 0.8);
+  border-color: hsl(var(--accent-1) / 0.8);
+  color: white;
+  text-decoration: none;
+}
+
+.contact-btn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+@media (max-width: 768px) {
+  .error-card {
+    padding: 2rem 1rem;
+    margin: 0 1rem;
+  }
+  
+  .error-icon {
+    width: 3rem;
+    height: 3rem;
+  }
+  
+  .error-title {
+    font-size: 1.25rem;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="error-container">
+  <div class="error-card">
+    <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="12" cy="12" r="10"/>
+      <polyline points="12,6 12,12 16,14"/>
+    </svg>
+    
+    <h1 class="error-title">Commande expirée</h1>
+    
+    <p class="error-message">
+      Cette commande photo n'est plus accessible car elle a expiré le 
+      <strong>{{ commande.expire_le|date:"d F Y à H:i" }}</strong>.
+    </p>
+    
+    <div class="commande-info">
+      <strong>{{ commande.titre }}</strong><br>
+      Référence : {{ commande.reference }}
+    </div>
+    
+    <p class="error-message">
+      Pour accéder à nouveau à vos photos ou prolonger l'accès, 
+      veuillez contacter votre photographe.
+    </p>
+    
+    <a href="{% url 'accueil:contact' %}" class="contact-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+        <polyline points="22,6 12,13 2,6"/>
+      </svg>
+      Nous contacter
+    </a>
+  </div>
+</div>
+
+{% endblock %}

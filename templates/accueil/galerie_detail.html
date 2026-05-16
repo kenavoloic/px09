@@ -18,10 +18,10 @@
     <span>→</span>
     <a href="{% url 'accueil:index' %}#galeries">Galeries</a>
     <span>→</span>
-    <span class="current">{{ galerie.nom|upper }}</span>
+    <span class="current">{{ galerie.nom }}</span>
   </div>
   <div class="page-title-row">
-    <h1 class="page-title reveal reveal-d1">{{ galerie.nom|upper }}</h1>
+    <h1 class="page-title reveal reveal-d1">{{ galerie.nom }}</h1>
     <span class="page-meta reveal reveal-d2">
       {{ galerie.nb_photos }} photos
     </span>

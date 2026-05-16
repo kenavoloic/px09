@@ -1,0 +1,350 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ photo.get_titre_affichage }} — {{ commande.titre }}{% endblock %}
+{% block description %}Photo {{ photo_index }}/{{ total_photos }} — {{ commande.titre }} — {{ commande.client.get_nom_complet }}{% endblock %}
+
+{% block nav_class %}solid{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/gallery.css' %}" />
+<style>
+.photo-detail-container {
+  max-width: 100%;
+  padding: 2rem 1rem;
+  margin: 0 auto;
+}
+
+.photo-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: hsl(var(--bg-2));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  color: hsl(var(--text-1));
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.nav-btn:hover {
+  background: hsl(var(--bg-3));
+  border-color: hsl(var(--accent-1));
+  color: hsl(var(--text-1));
+  text-decoration: none;
+}
+
+.nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nav-btn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.photo-counter {
+  background: hsl(var(--accent-1));
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.photo-display {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.photo-main {
+  max-width: 100%;
+  max-height: 80vh;
+  width: auto;
+  height: auto;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  margin: 0 auto;
+  display: block;
+}
+
+.photo-info {
+  background: hsl(var(--bg-2));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin: 2rem auto;
+  max-width: 600px;
+}
+
+.photo-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: hsl(var(--text-1));
+}
+
+.photo-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+.btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  background: hsl(var(--bg-1));
+  color: hsl(var(--text-1));
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-action:hover {
+  background: hsl(var(--bg-3));
+  border-color: hsl(var(--accent-1));
+  color: hsl(var(--text-1));
+  text-decoration: none;
+}
+
+.btn-action.btn-primary {
+  background: hsl(var(--accent-1));
+  border-color: hsl(var(--accent-1));
+  color: white;
+}
+
+.btn-action.btn-primary:hover {
+  background: hsl(var(--accent-1) / 0.8);
+  border-color: hsl(var(--accent-1) / 0.8);
+  color: white;
+}
+
+.btn-action svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.breadcrumb {
+  margin-bottom: 1.5rem;
+  color: hsl(var(--text-2));
+  font-size: 0.9rem;
+}
+
+.breadcrumb a {
+  color: hsl(var(--accent-1));
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.download-form {
+  display: inline;
+}
+
+@media (max-width: 768px) {
+  .photo-detail-container {
+    padding: 1rem 0.5rem;
+  }
+  
+  .photo-navigation {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .nav-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .photo-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .btn-action {
+    width: 100%;
+    max-width: 300px;
+    justify-content: center;
+  }
+  
+  .photo-main {
+    max-height: 60vh;
+  }
+}
+
+.keyboard-hint {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-size: 0.8rem;
+  opacity: 0.7;
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .keyboard-hint {
+    display: block;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="photo-detail-container">
+  <div class="breadcrumb">
+    <a href="{% url 'commandes:acces_commande' commande.code_acces %}">{{ commande.titre }}</a>
+    <span>→</span>
+    <span>{{ photo.get_titre_affichage }}</span>
+  </div>
+  
+  <nav class="photo-navigation">
+    {% if photo_precedente %}
+      <a href="{% url 'commandes:photo_detail_commande' commande.code_acces photo_precedente.id %}" 
+         class="nav-btn" id="prev-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15,18 9,12 15,6"/>
+        </svg>
+        Précédente
+      </a>
+    {% else %}
+      <span class="nav-btn" style="opacity: 0.5; cursor: not-allowed;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15,18 9,12 15,6"/>
+        </svg>
+        Précédente
+      </span>
+    {% endif %}
+    
+    <div class="photo-counter">
+      {{ photo_index }} / {{ total_photos }}
+    </div>
+    
+    {% if photo_suivante %}
+      <a href="{% url 'commandes:photo_detail_commande' commande.code_acces photo_suivante.id %}" 
+         class="nav-btn" id="next-btn">
+        Suivante
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9,18 15,12 9,6"/>
+        </svg>
+      </a>
+    {% else %}
+      <span class="nav-btn" style="opacity: 0.5; cursor: not-allowed;">
+        Suivante
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9,18 15,12 9,6"/>
+        </svg>
+      </span>
+    {% endif %}
+  </nav>
+  
+  <div class="photo-display">
+    {% if photo.version_selectionnee.fichier_web %}
+      <img src="{{ photo.version_selectionnee.fichier_web.url }}" 
+           alt="{{ photo.get_titre_affichage }}" 
+           class="photo-main">
+    {% else %}
+      <div class="photo-placeholder" style="height: 400px; display: flex; align-items: center; justify-content: center;">
+        <span>📷 Image non disponible</span>
+      </div>
+    {% endif %}
+  </div>
+  
+  <div class="photo-info">
+    <h1 class="photo-title">{{ photo.get_titre_affichage }}</h1>
+    
+    {% if peut_telecharger_web or peut_telecharger_hd %}
+    <div class="photo-actions">
+      <a href="{% url 'commandes:acces_commande' commande.code_acces %}" class="btn-action">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15,18 9,12 15,6"/>
+        </svg>
+        Retour à la galerie
+      </a>
+      
+      {% if peut_telecharger_web %}
+      <form method="post" action="{% url 'commandes:telecharger_photo' commande.code_acces photo.id %}" class="download-form">
+        {% csrf_token %}
+        <input type="hidden" name="type" value="web">
+        <button type="submit" class="btn-action btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7,10 12,15 17,10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Télécharger (Web)
+        </button>
+      </form>
+      {% endif %}
+      
+      {% if peut_telecharger_hd and photo.peut_telecharger_hd %}
+      <form method="post" action="{% url 'commandes:telecharger_photo' commande.code_acces photo.id %}" class="download-form">
+        {% csrf_token %}
+        <input type="hidden" name="type" value="hd">
+        <button type="submit" class="btn-action">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7,10 12,15 17,10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Télécharger (HD)
+        </button>
+      </form>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="keyboard-hint">
+  ← → pour naviguer
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Navigation au clavier
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowLeft') {
+      const prevBtn = document.getElementById('prev-btn');
+      if (prevBtn && !prevBtn.hasAttribute('disabled')) {
+        prevBtn.click();
+      }
+    } else if (e.key === 'ArrowRight') {
+      const nextBtn = document.getElementById('next-btn');
+      if (nextBtn && !nextBtn.hasAttribute('disabled')) {
+        nextBtn.click();
+      }
+    } else if (e.key === 'Escape') {
+      window.location.href = "{% url 'commandes:acces_commande' commande.code_acces %}";
+    }
+  });
+});
+</script>
+{% endblock %}

@@ -11,6 +11,7 @@ urlpatterns = [
     path(f"{settings.ADMIN_URL}/", admin.site.urls),
     path("", include("accueil.urls")),
     path("", include("galeries.urls")),
+    path("commande/", include("commandes.urls")),
 ]
 
 if settings.DEBUG:

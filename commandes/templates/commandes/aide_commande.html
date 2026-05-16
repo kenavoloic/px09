@@ -1,0 +1,333 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Aide — {{ commande.titre }}{% endblock %}
+{% block description %}Guide d'utilisation pour accéder et télécharger vos photos.{% endblock %}
+
+{% block nav_class %}solid{% endblock %}
+
+{% block extra_css %}
+<style>
+.help-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.help-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.help-title {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: hsl(var(--text-1));
+}
+
+.help-subtitle {
+  color: hsl(var(--text-2));
+  font-size: 1.1rem;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: hsl(var(--accent-1));
+  text-decoration: none;
+  font-weight: 500;
+  margin-bottom: 2rem;
+  transition: color 0.2s ease;
+}
+
+.back-link:hover {
+  color: hsl(var(--accent-1) / 0.8);
+  text-decoration: none;
+}
+
+.back-link svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.help-section {
+  margin-bottom: 2.5rem;
+}
+
+.help-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: hsl(var(--text-1));
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.help-section-title svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: hsl(var(--accent-1));
+}
+
+.help-content {
+  color: hsl(var(--text-2));
+  line-height: 1.6;
+}
+
+.help-content ul {
+  padding-left: 1.5rem;
+  margin: 1rem 0;
+}
+
+.help-content li {
+  margin-bottom: 0.5rem;
+}
+
+.help-content strong {
+  color: hsl(var(--text-1));
+}
+
+.tip-box {
+  background: linear-gradient(135deg, hsl(var(--accent-1) / 0.1), hsl(var(--accent-2) / 0.1));
+  border: 1px solid hsl(var(--accent-1) / 0.2);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.tip-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: hsl(var(--text-1));
+  margin-bottom: 0.5rem;
+}
+
+.tip-title svg {
+  width: 1rem;
+  height: 1rem;
+  color: hsl(var(--accent-1));
+}
+
+.keyboard-shortcuts {
+  background: hsl(var(--bg-2));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.shortcut-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.shortcut-row:last-child {
+  border-bottom: none;
+}
+
+.shortcut-key {
+  background: hsl(var(--bg-1));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: hsl(var(--text-1));
+}
+
+.contact-section {
+  background: hsl(var(--bg-2));
+  border: 1px solid hsl(var(--border));
+  border-radius: 1rem;
+  padding: 2rem;
+  text-align: center;
+  margin-top: 3rem;
+}
+
+.contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: hsl(var(--accent-1));
+  border: 1px solid hsl(var(--accent-1));
+  border-radius: 0.5rem;
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  margin-top: 1rem;
+}
+
+.contact-btn:hover {
+  background: hsl(var(--accent-1) / 0.8);
+  border-color: hsl(var(--accent-1) / 0.8);
+  color: white;
+  text-decoration: none;
+}
+
+.contact-btn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+@media (max-width: 768px) {
+  .help-container {
+    padding: 1rem 0.5rem;
+  }
+  
+  .help-title {
+    font-size: 1.5rem;
+  }
+  
+  .shortcut-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .contact-section {
+    padding: 1.5rem 1rem;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="help-container">
+  <a href="{% url 'commandes:acces_commande' commande.code_acces %}" class="back-link">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="15,18 9,12 15,6"/>
+    </svg>
+    Retour à la galerie
+  </a>
+  
+  <header class="help-header">
+    <h1 class="help-title">Guide d'utilisation</h1>
+    <p class="help-subtitle">Comment naviguer et télécharger vos photos</p>
+  </header>
+  
+  <section class="help-section">
+    <h2 class="help-section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"/>
+      </svg>
+      Visualiser vos photos
+    </h2>
+    <div class="help-content">
+      <ul>
+        <li><strong>Galerie principale :</strong> Cliquez sur n'importe quelle photo pour l'ouvrir en grand format</li>
+        <li><strong>Navigation :</strong> Utilisez les boutons "Précédente" et "Suivante" pour parcourir vos photos</li>
+        <li><strong>Raccourcis clavier :</strong> Utilisez les flèches ← et → pour naviguer rapidement</li>
+        <li><strong>Retour :</strong> Appuyez sur Échap ou cliquez sur "Retour à la galerie"</li>
+      </ul>
+    </div>
+  </section>
+  
+  <section class="help-section">
+    <h2 class="help-section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7,10 12,15 17,10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Télécharger vos photos
+    </h2>
+    <div class="help-content">
+      <p>Plusieurs options de téléchargement sont disponibles selon les autorisations :</p>
+      <ul>
+        <li><strong>Photo individuelle :</strong> Cliquez sur l'icône de téléchargement sur chaque photo</li>
+        <li><strong>Toutes les photos :</strong> Utilisez le bouton "Télécharger tout" en haut de la galerie</li>
+        <li><strong>Formats disponibles :</strong>
+          <ul>
+            <li><em>Web :</em> Format optimisé pour le partage et l'affichage</li>
+            <li><em>HD :</em> Haute résolution pour l'impression (si autorisé)</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </section>
+  
+  {% if commande.autoriser_telechargement_web or commande.autoriser_telechargement_hd %}
+  <div class="tip-box">
+    <div class="tip-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 11H5a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h4v-7zM13 11h6a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-6v-7z"/>
+      </svg>
+      Conseil
+    </div>
+    <p>Le téléchargement de toutes les photos génère un fichier ZIP. Le téléchargement peut prendre quelques instants selon le nombre et la taille des photos.</p>
+  </div>
+  {% endif %}
+  
+  <section class="help-section">
+    <h2 class="help-section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="5" width="20" height="14" rx="2"/>
+        <line x1="2" y1="9" x2="22" y2="9"/>
+      </svg>
+      Raccourcis clavier
+    </h2>
+    <div class="keyboard-shortcuts">
+      <div class="shortcut-row">
+        <span>Naviguer vers la photo précédente</span>
+        <kbd class="shortcut-key">←</kbd>
+      </div>
+      <div class="shortcut-row">
+        <span>Naviguer vers la photo suivante</span>
+        <kbd class="shortcut-key">→</kbd>
+      </div>
+      <div class="shortcut-row">
+        <span>Retourner à la galerie</span>
+        <kbd class="shortcut-key">Échap</kbd>
+      </div>
+    </div>
+  </section>
+  
+  <section class="help-section">
+    <h2 class="help-section-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      Informations importantes
+    </h2>
+    <div class="help-content">
+      <ul>
+        <li><strong>Accès limité :</strong> Cette galerie est accessible jusqu'au {{ commande.expire_le|date:"d F Y" }}</li>
+        <li><strong>Lien personnel :</strong> Ne partagez pas le lien d'accès, il est personnel</li>
+        <li><strong>Sauvegarde :</strong> Pensez à télécharger vos photos avant la date d'expiration</li>
+        {% if not commande.autoriser_telechargement_hd %}
+        <li><strong>Résolution :</strong> Les téléchargements sont limités au format web</li>
+        {% endif %}
+      </ul>
+    </div>
+  </section>
+  
+  <div class="contact-section">
+    <h3>Besoin d'aide ?</h3>
+    <p>Si vous rencontrez des difficultés ou avez des questions, n'hésitez pas à nous contacter.</p>
+    <a href="{% url 'accueil:contact' %}" class="contact-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+        <polyline points="22,6 12,13 2,6"/>
+      </svg>
+      Nous contacter
+    </a>
+  </div>
+</div>
+
+{% endblock %}

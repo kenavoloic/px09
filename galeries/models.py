@@ -67,6 +67,11 @@ class Galerie(models.Model):
         verbose_name="Ordre manuel",
         help_text="Si coché, respecte l'ordre défini par le photographe. Sinon, optimise automatiquement le masonry."
     )
+    afficher_details_techniques = models.BooleanField(
+        default=False,
+        verbose_name="Afficher les détails techniques",
+        help_text="Si coché, affiche les métadonnées EXIF (appareil, objectif, réglages) dans les vues de détail des photos."
+    )
     est_publique = models.BooleanField(default=True)
     
     # Cache des tailles (pour performance)
@@ -183,6 +188,11 @@ class Collection(models.Model):
         default=True,
         verbose_name="Ordre manuel",
         help_text="Si coché, respecte l'ordre défini par le photographe. Sinon, optimise automatiquement le masonry."
+    )
+    afficher_details_techniques = models.BooleanField(
+        default=False,
+        verbose_name="Afficher les détails techniques",
+        help_text="Si coché, affiche les métadonnées EXIF (appareil, objectif, réglages) dans les vues de détail des photos."
     )
     est_publique = models.BooleanField(default=True)
     

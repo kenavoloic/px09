@@ -16,7 +16,7 @@
   <div class="breadcrumb reveal">
     <a href="{% url 'accueil:index' %}">Accueil</a>
     <span>→</span>
-    <a href="{% url 'galeries:galerie_detail' galerie_slug=galerie.slug %}">{{ galerie.nom|upper }}</a>
+    <a href="{% url 'galeries:galerie_detail' galerie_slug=galerie.slug %}">{{ galerie.nom }}</a>
     <span>→</span>
     <span class="current">{{ collection.nom }}</span>
   </div>
@@ -51,11 +51,6 @@
             </div>
           {% endif %}
         {% endwith %}
-        {% if photo.a_titre_personnalise %}
-          <div class="photo-overlay">
-            <span class="photo-title">{{ photo.titre }}</span>
-          </div>
-        {% endif %}
       </a>
     </div>
     {% endfor %}

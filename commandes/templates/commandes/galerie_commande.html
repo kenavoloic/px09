@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ commande.titre }} — Commande {{ commande.reference }}{% endblock %}
+{% block description %}Galerie photos — {{ commande.titre }} — {{ commande.client.get_nom_complet }}{% endblock %}
+
+{% block nav_class %}solid{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/gallery.css' %}" />
+<style>
+.commande-header {
+  background: linear-gradient(135deg, hsl(var(--accent-1)), hsl(var(--accent-2)));
+  color: white;
+  padding: 4rem 2rem 3rem;
+  margin-bottom: 3rem;
+}
+
+.commande-title {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.1;
+}
+
+.commande-meta {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+  opacity: 0.9;
+}
+
+.commande-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.commande-meta-item svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.commande-actions {
+  margin-top: 2rem;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn-commande {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 0.5rem;
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.btn-commande:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: white;
+  text-decoration: none;
+}
+
+.btn-commande.btn-primary {
+  background: hsl(var(--accent-1));
+  border-color: hsl(var(--accent-1));
+}
+
+.btn-commande.btn-primary:hover {
+  background: hsl(var(--accent-1) / 0.8);
+  border-color: hsl(var(--accent-1) / 0.8);
+}
+
+.message-client {
+  background: hsl(var(--bg-2));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin: 2rem 0;
+  color: hsl(var(--text-2));
+  line-height: 1.6;
+}
+
+.download-form {
+  display: inline;
+}
+
+.photo-item {
+  position: relative;
+}
+
+.photo-actions {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.photo-item:hover .photo-actions {
+  opacity: 1;
+}
+
+.photo-action-btn {
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  border-radius: 0.25rem;
+  color: white;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photo-action-btn:hover {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.photo-action-btn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+@media (max-width: 768px) {
+  .commande-header {
+    padding: 3rem 1rem 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .commande-meta {
+    gap: 1rem;
+    flex-direction: column;
+  }
+  
+  .commande-actions {
+    gap: 0.5rem;
+  }
+  
+  .btn-commande {
+    flex: 1;
+    justify-content: center;
+    min-width: 100%;
+  }
+  
+  .photo-actions {
+    opacity: 1;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<header class="commande-header">
+  <div class="container">
+    <h1 class="commande-title">{{ commande.titre }}</h1>
+    <p class="text-lg">Pour {{ commande.client.get_nom_complet }}</p>
+    
+    <div class="commande-meta">
+      <div class="commande-meta-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        <span>Référence: {{ commande.reference }}</span>
+      </div>
+      
+      <div class="commande-meta-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"/>
+        </svg>
+        <span>{{ photos|length }} photo{{ photos|length|pluralize }}</span>
+      </div>
+      
+      {% if temps_restant > 0 %}
+      <div class="commande-meta-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12,6 12,12 16,14"/>
+        </svg>
+        <span>Expire dans {{ temps_restant }} jour{{ temps_restant|pluralize }}</span>
+      </div>
+      {% endif %}
+    </div>
+    
+    {% if peut_telecharger_web or peut_telecharger_hd %}
+    <div class="commande-actions">
+      {% if peut_telecharger_web %}
+      <a href="{% url 'commandes:telecharger_toutes_photos' commande.code_acces %}?type=web" 
+         class="btn-commande btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7,10 12,15 17,10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Télécharger tout (Web)
+      </a>
+      {% endif %}
+      
+      {% if peut_telecharger_hd %}
+      <a href="{% url 'commandes:telecharger_toutes_photos' commande.code_acces %}?type=hd" 
+         class="btn-commande">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7,10 12,15 17,10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Télécharger tout (HD)
+      </a>
+      {% endif %}
+      
+      <a href="{% url 'commandes:aide_commande' commande.code_acces %}" class="btn-commande">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M9,9a3,3 0 1,1 6,0c0,2 -3,3 -3,3"/>
+          <point cx="12" cy="17"/>
+        </svg>
+        Aide
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</header>
+
+{% if commande.message_client %}
+<div class="container">
+  <div class="message-client">
+    {{ commande.message_client|linebreaksbr }}
+  </div>
+</div>
+{% endif %}
+
+<section class="photos-section">
+  <div class="container">
+    <div class="photos-grid adaptive">
+      {% for photo in photos %}
+        <div class="photo-item reveal">
+          <a href="{% url 'commandes:photo_detail_commande' commande.code_acces photo.id %}" 
+             class="photo-link" 
+             title="{{ photo.get_titre_affichage }}">
+            {% if photo.version_selectionnee.fichier_web %}
+              <img src="{{ photo.version_selectionnee.fichier_web.url }}" 
+                   alt="{{ photo.get_titre_affichage }}" 
+                   loading="lazy">
+            {% else %}
+              <div class="photo-placeholder">
+                <span>📷</span>
+              </div>
+            {% endif %}
+          </a>
+          
+          {% if peut_telecharger_web or peut_telecharger_hd %}
+          <div class="photo-actions">
+            {% if peut_telecharger_web %}
+            <form method="post" action="{% url 'commandes:telecharger_photo' commande.code_acces photo.id %}" class="download-form">
+              {% csrf_token %}
+              <input type="hidden" name="type" value="web">
+              <button type="submit" class="photo-action-btn" title="Télécharger (Web)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7,10 12,15 17,10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+              </button>
+            </form>
+            {% endif %}
+            
+            {% if peut_telecharger_hd and photo.peut_telecharger_hd %}
+            <form method="post" action="{% url 'commandes:telecharger_photo' commande.code_acces photo.id %}" class="download-form">
+              {% csrf_token %}
+              <input type="hidden" name="type" value="hd">
+              <button type="submit" class="photo-action-btn" title="Télécharger (HD)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7,10 12,15 17,10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+              </button>
+            </form>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+      {% empty %}
+        <p class="empty-message">Aucune photo disponible pour le moment.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/masonry-optimized.js' %}"></script>
+{% endblock %}
