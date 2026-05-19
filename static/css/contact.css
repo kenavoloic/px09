@@ -91,10 +91,15 @@
   }
 }
 
-/* Labels flottants */
+/* Labels flottants avec cadre visuel */
 .floating-group {
   position: relative;
   margin-bottom: 1.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0.5rem;
 }
 
 .floating-label {
@@ -143,32 +148,34 @@
   letter-spacing: 0.01em;
 }
 
-/* Styles des champs avec labels flottants */
+/* Styles des champs avec labels flottants - sans bordure individuelle */
 .floating-input {
   padding: 1rem;
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-bg);
+  border: none;
+  border-radius: 0;
+  background: transparent;
   color: var(--color-text);
   font-size: 0.95rem;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   z-index: 0;
+  width: 100%;
+  outline: none;
 }
 
-.floating-input:focus {
-  outline: none;
+/* Focus sur le groupe entier */
+.floating-group:focus-within {
   border-color: var(--color-accent);
   box-shadow: 0 0 0 3px var(--color-accent-alpha);
   transform: translateY(-1px);
 }
 
-/* Animation de validation temps réel */
-.floating-input:valid {
+/* Animation de validation temps réel sur le groupe */
+.floating-group:has(.floating-input:valid) {
   border-color: #10b981;
 }
 
-.floating-input:invalid:not(:focus):not(:placeholder-shown) {
+.floating-group:has(.floating-input:invalid:not(:focus):not(:placeholder-shown)) {
   border-color: #ef4444;
 }
 
@@ -189,6 +196,12 @@
   font-family: inherit;
   line-height: 1.5;
   padding-top: 1.5rem;
+}
+
+/* Ajustement spécifique pour le groupe textarea */
+.floating-group:has(textarea) {
+  min-height: 160px;
+  padding-bottom: 1rem;
 }
 
 /* Métadonnées du formulaire */
@@ -383,14 +396,18 @@
     font-size: 1.3rem;
   }
   
-  /* Ajustement des labels flottants */
+  /* Ajustement des labels flottants et cadres */
+  .floating-group {
+    padding: 0.25rem;
+  }
+  
   .floating-input {
     padding: 1rem 0.75rem;
     font-size: 16px; /* Évite le zoom sur iOS */
   }
   
   .floating-label {
-    left: 0.75rem;
+    left: 1rem; /* Ajusté pour le padding du groupe */
   }
   
   .form-meta {
@@ -417,18 +434,41 @@
   
   /* Espacement réduit pour mobiles */
   .floating-group {
-    margin-bottom: 1.25rem;
+    margin-bottom: 1rem;
+    padding: 0.25rem;
   }
   
   .contact-form {
     gap: 0;
   }
+  
+  /* Ajustement cadres pour très petits écrans */
+  .floating-group:has(textarea) {
+    min-height: 140px;
+  }
 }
 
-/* États focus améliorés */
-.floating-group.focused .floating-input {
+/* États focus améliorés - déjà géré par :focus-within */
+.floating-group.focused {
   border-color: var(--color-accent);
   box-shadow: 0 0 0 3px var(--color-accent-alpha);
+  transform: translateY(-1px);
+}
+
+/* États de validation visuels pour les cadres */
+.floating-group.field-valid {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.02);
+}
+
+.floating-group.field-invalid {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.02);
+}
+
+.floating-group:hover:not(:focus-within) {
+  border-color: var(--color-accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* Animation douce pour les messages de validation */
@@ -436,6 +476,8 @@
   opacity: 0;
   transform: translateY(-10px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: 0.5rem;
+  padding: 0 0.5rem;
 }
 
 .form-status.valid,

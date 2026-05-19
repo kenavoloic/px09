@@ -85,7 +85,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const value = input.value.trim();
         
         // Reset
+        const group = input.closest('.floating-group');
         input.classList.remove('valid', 'invalid');
+        if (group) {
+            group.classList.remove('field-valid', 'field-invalid');
+        }
         if (statusElement) {
             statusElement.className = 'form-status';
             statusElement.textContent = '';
@@ -139,12 +143,18 @@ document.addEventListener('DOMContentLoaded', function() {
         // Appliquer le style et message
         if (isValid && value) {
             input.classList.add('valid');
+            if (group) {
+                group.classList.add('field-valid');
+            }
             if (statusElement) {
                 statusElement.classList.add('valid');
                 statusElement.textContent = '✓';
             }
         } else if (!isValid) {
             input.classList.add('invalid');
+            if (group) {
+                group.classList.add('field-invalid');
+            }
             if (statusElement) {
                 statusElement.classList.add('invalid');
                 statusElement.textContent = message;
@@ -276,7 +286,11 @@ document.addEventListener('DOMContentLoaded', function() {
         reset: () => {
             hideLoadingState();
             inputs.forEach(input => {
+                const group = input.closest('.floating-group');
                 input.classList.remove('valid', 'invalid');
+                if (group) {
+                    group.classList.remove('field-valid', 'field-invalid');
+                }
                 const statusElement = getStatusElement(input);
                 if (statusElement) {
                     statusElement.className = 'form-status';
