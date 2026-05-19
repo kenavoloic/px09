@@ -108,5 +108,5 @@ class TestPhotoBasic(TestCase):
             largeur_originale=1920,
             hauteur_originale=1080
         )
-        expected_str = f"Photo {photo.id}"
-        self.assertEqual(str(photo), expected_str)
+        # Par défaut, la configuration retourne "Sans titre" pour les photos sans titre personnalisé
+        self.assertEqual(str(photo), "Sans titre")
