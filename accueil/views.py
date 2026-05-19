@@ -131,7 +131,7 @@ def contact(request: HttpRequest) -> HttpResponse:
             else:
                 messages.error(
                     request,
-                    'Erreur lors de l\'envoi du message. Veuillez réessayer ou me contacter directement.'
+                    'Erreur lors de l\'envoi du message. Veuillez réessayer ou me contacter directement à contact@horslemurs.fr'
                 )
     else:
         form = ContactForm()

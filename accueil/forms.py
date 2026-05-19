@@ -63,6 +63,13 @@ class ContactForm(forms.Form):
         if website:
             raise forms.ValidationError('Spam détecté.')
         return website
+    
+    def clean_message(self) -> str:
+        """Validation du message"""
+        message = self.cleaned_data.get('message', '')
+        if len(message.strip()) < 10:
+            raise forms.ValidationError('Le message doit contenir au moins 10 caractères.')
+        return message
 
     def send_email(self) -> bool:
         """Envoie l'email de contact au photographe"""
@@ -126,5 +133,9 @@ Ceci est un email automatique, merci de ne pas y répondre.
 
             return True
 
-        except Exception:
+        except Exception as e:
+            # Log l'erreur pour debug en développement
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Erreur envoi email contact: {e}")
             return False
