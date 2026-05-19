@@ -2,7 +2,6 @@
 target-version = "py311"
 line-length = 88
 
-[lint]
 select = [
     "E",   # pycodestyle errors
     "W",   # pycodestyle warnings
@@ -19,10 +18,10 @@ ignore = [
     "C901",  # too complex
 ]
 
-[lint.per-file-ignores]
+[per-file-ignores]
 "__init__.py" = ["F401"]
 "*/migrations/*" = ["E501", "F401", "F841"]
 "*/settings/*" = ["F405", "F403"]
 
-[lint.isort]
+[isort]
 known-first-party = ["configurations"]
