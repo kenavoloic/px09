@@ -19,31 +19,32 @@ class ContactForm(forms.Form):
     nom = forms.CharField(
         max_length=100,
         widget=forms.TextInput(attrs={
-            'class': 'form-input',
-            'placeholder': 'Votre nom'
+            'class': 'form-input floating-input',
+            'placeholder': ' '  # Espace pour le label flottant
         })
     )
 
     email = forms.EmailField(
         widget=forms.EmailInput(attrs={
-            'class': 'form-input',
-            'placeholder': 'votre@email.com'
+            'class': 'form-input floating-input',
+            'placeholder': ' '  # Espace pour le label flottant
         })
     )
 
     sujet = forms.ChoiceField(
         choices=SUJET_CHOICES,
         widget=forms.Select(attrs={
-            'class': 'form-select'
+            'class': 'form-select floating-input'
         })
     )
 
     message = forms.CharField(
         max_length=1000,
         widget=forms.Textarea(attrs={
-            'class': 'form-textarea',
-            'placeholder': 'Votre message...',
-            'rows': 5
+            'class': 'form-textarea floating-input',
+            'placeholder': ' ',  # Espace pour le label flottant
+            'rows': 5,
+            'data-max-length': '1000'  # Pour le compteur
         })
     )
 

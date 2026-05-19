@@ -10,6 +10,10 @@
 <link rel="stylesheet" href="{% static 'css/contact.css' %}" />
 {% endblock %}
 
+{% block extra_js %}
+<script src="{% static 'js/contact-form.js' %}"></script>
+{% endblock %}
+
 {% block content %}
 
 <header class="page-header">
@@ -50,9 +54,10 @@
           {% csrf_token %}
           
           <div class="form-row">
-            <div class="form-group">
-              <label for="{{ form.nom.id_for_label }}" class="form-label">Nom *</label>
+            <div class="form-group floating-group">
               {{ form.nom }}
+              <label for="{{ form.nom.id_for_label }}" class="form-label floating-label">Nom *</label>
+              <div class="form-status"></div>
               {% if form.nom.errors %}
                 <div class="form-errors">
                   {% for error in form.nom.errors %}
@@ -62,9 +67,10 @@
               {% endif %}
             </div>
             
-            <div class="form-group">
-              <label for="{{ form.email.id_for_label }}" class="form-label">Email *</label>
+            <div class="form-group floating-group">
               {{ form.email }}
+              <label for="{{ form.email.id_for_label }}" class="form-label floating-label">Email *</label>
+              <div class="form-status"></div>
               {% if form.email.errors %}
                 <div class="form-errors">
                   {% for error in form.email.errors %}
@@ -75,9 +81,10 @@
             </div>
           </div>
 
-          <div class="form-group">
-            <label for="{{ form.sujet.id_for_label }}" class="form-label">Sujet *</label>
+          <div class="form-group floating-group">
             {{ form.sujet }}
+            <label for="{{ form.sujet.id_for_label }}" class="form-label floating-label">Sujet *</label>
+            <div class="form-status"></div>
             {% if form.sujet.errors %}
               <div class="form-errors">
                 {% for error in form.sujet.errors %}
@@ -87,10 +94,15 @@
             {% endif %}
           </div>
 
-          <div class="form-group">
-            <label for="{{ form.message.id_for_label }}" class="form-label">Message *</label>
+          <div class="form-group floating-group">
             {{ form.message }}
-            <small class="form-help">Maximum 1000 caractères</small>
+            <label for="{{ form.message.id_for_label }}" class="form-label floating-label">Message *</label>
+            <div class="form-meta">
+              <div class="form-status"></div>
+              <div class="char-counter">
+                <span class="char-count">0</span> / <span class="char-max">1000</span>
+              </div>
+            </div>
             {% if form.message.errors %}
               <div class="form-errors">
                 {% for error in form.message.errors %}
@@ -119,8 +131,12 @@
             </div>
           {% endif %}
 
-          <button type="submit" class="btn btn-primary">
-            Envoyer le message
+          <button type="submit" class="btn btn-primary btn-loading">
+            <span class="btn-text">Envoyer le message</span>
+            <span class="btn-loader">
+              <span class="spinner"></span>
+              Envoi en cours...
+            </span>
           </button>
         </form>
       </div>
