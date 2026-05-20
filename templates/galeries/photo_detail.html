@@ -99,10 +99,10 @@
   <div class="breadcrumb reveal">
     <a href="{% url 'accueil:index' %}">Accueil</a>
     <span>→</span>
-    <a href="{{ galerie.get_absolute_url }}">{{ galerie.nom }}</a>
+    <a href="{% if est_prive %}{% url 'galeries:galerie_privee' galerie_slug=galerie.slug %}{% else %}{{ galerie.get_absolute_url }}{% endif %}">{{ galerie.nom }}</a>
     {% if collection %}
       <span>→</span>
-      <a href="{{ collection.get_absolute_url }}">{{ collection.nom }}</a>
+      <a href="{% if est_prive %}{{ collection.get_private_url }}{% else %}{{ collection.get_absolute_url }}{% endif %}">{{ collection.nom }}</a>
     {% endif %}
     <span>→</span>
     <span class="current">{{ photo.get_titre_affichage }}</span>
@@ -114,11 +114,11 @@
     <div class="photo-main reveal">
       {% if version_defaut and version_defaut.fichier_web %}
         {% if collection %}
-          <a href="{{ collection.get_absolute_url }}" class="photo-back-link" title="Retour à la collection {{ collection.nom }}">
+          <a href="{% if est_prive %}{{ collection.get_private_url }}{% else %}{{ collection.get_absolute_url }}{% endif %}" class="photo-back-link" title="Retour à la collection {{ collection.nom }}">
             <img src="{{ version_defaut.fichier_web.url }}" alt="{{ photo.get_titre_affichage }}" class="main-image">
           </a>
         {% else %}
-          <a href="{{ galerie.get_absolute_url }}" class="photo-back-link" title="Retour à la galerie {{ galerie.nom }}">
+          <a href="{% if est_prive %}{% url 'galeries:galerie_privee' galerie_slug=galerie.slug %}{% else %}{{ galerie.get_absolute_url }}{% endif %}" class="photo-back-link" title="Retour à la galerie {{ galerie.nom }}">
             <img src="{{ version_defaut.fichier_web.url }}" alt="{{ photo.get_titre_affichage }}" class="main-image">
           </a>
         {% endif %}
