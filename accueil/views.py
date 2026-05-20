@@ -1,8 +1,10 @@
 from django.contrib import messages
-from django.http import Http404, HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 
-from galeries.models import Galerie
+from galeries.models import Galerie, AccesGalerie, VisiteurGalerie
 
 from .forms import ContactForm
 
@@ -59,6 +61,72 @@ def index(request: HttpRequest) -> HttpResponse:
     # Récupérer la configuration de l'accueil
     from .models import AccueilConfig, SectionAccueil
     config = AccueilConfig.get_config()
+    
+    # Traiter le formulaire d'accès privé (AJAX)
+    if request.method == 'POST' and ('email' in request.POST and 'code' in request.POST):
+        email = request.POST.get('email', '').strip()
+        code_acces = request.POST.get('code', '').upper().strip()
+        
+        if not email or not code_acces:
+            return JsonResponse({
+                'success': False,
+                'error': 'Email et code d\'accès requis.'
+            })
+        
+        try:
+            # Rechercher l'accès galerie
+            acces = AccesGalerie.objects.get(code_acces=code_acces)
+            
+            if not acces.est_valide():
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Ce code d\'accès n\'est plus valide.'
+                })
+            
+            # Vérifier que le visiteur est autorisé (ne pas créer automatiquement)
+            try:
+                visiteur = VisiteurGalerie.objects.get(
+                    acces_galerie=acces,
+                    email=email
+                )
+            except VisiteurGalerie.DoesNotExist:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Votre adresse email n\'est pas autorisée pour cette galerie.'
+                })
+            
+            if not visiteur.peut_acceder():
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Votre accès à cette galerie a été désactivé.'
+                })
+            
+            # Marquer la visite et incrémenter les compteurs
+            visiteur.marquer_visite()
+            acces.incrementer_acces()
+            
+            # Stocker le token en session
+            request.session['visiteur_token'] = visiteur.token_acces
+            request.session['acces_galerie_id'] = acces.id
+            
+            # Rediriger vers la galerie privée
+            galerie_url = f'/galerie/prive/{acces.galerie.slug}/'
+            return JsonResponse({
+                'success': True,
+                'message': f'Accès autorisé à la galerie : {acces.galerie.nom}',
+                'redirect_url': galerie_url
+            })
+            
+        except AccesGalerie.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'Code d\'accès invalide.'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': 'Erreur lors de la vérification. Veuillez réessayer.'
+            })
 
     # Récupérer les galeries depuis la base de données
     galeries = Galerie.objects.filter(est_publique=True).order_by('ordre_affichage', 'nom')

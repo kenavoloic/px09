@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 
 from .apps_proxy import PhotoOrderingProxy, PhotoUploadProxy  # noqa: F401
-from .models import Collection, ConfigurationSite, Galerie, Photo, PhotoVersion
+from .models import Collection, ConfigurationSite, Galerie, Photo, PhotoVersion, AccesGalerie, VisiteurGalerie
 
 
 class PhotoSansCollectionFilter(SimpleListFilter):
@@ -763,3 +763,111 @@ class ConfigurationSiteAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         # Empêcher la suppression
         return False
+
+
+class VisiteurGalerieInline(admin.TabularInline):
+    """Inline pour gérer les visiteurs d'un accès galerie"""
+    model = VisiteurGalerie
+    extra = 1
+    fields = ['email', 'nom', 'est_actif', 'date_premier_acces', 'date_dernier_acces', 'nombre_visites']
+    readonly_fields = ['token_acces', 'date_premier_acces', 'date_dernier_acces', 'nombre_visites']
+    
+    def get_readonly_fields(self, request, obj=None):
+        """Rendre certains champs readonly après création"""
+        readonly = list(self.readonly_fields)
+        if obj:  # Si l'objet existe déjà (modification)
+            readonly.extend(['email'])  # L'email ne peut plus être modifié
+        return readonly
+
+
+@admin.register(AccesGalerie)
+class AccesGalerieAdmin(admin.ModelAdmin):
+    list_display = ['galerie', 'titre_acces_ou_code', 'code_acces', 'nombre_visiteurs', 'nombre_acces', 'est_actif', 'date_expiration']
+    list_filter = ['est_actif', 'date_expiration', 'galerie', 'date_creation']
+    search_fields = ['galerie__nom', 'titre_acces', 'code_acces']
+    inlines = [VisiteurGalerieInline]
+    readonly_fields = ['code_acces', 'nombre_acces', 'date_creation', 'modifie_le']
+    
+    fieldsets = (
+        (None, {
+            'fields': ('galerie', 'titre_acces', 'code_acces')
+        }),
+        ('Configuration d\'accès', {
+            'fields': ('date_expiration', 'nombre_max_visiteurs', 'permettre_telechargement')
+        }),
+        ('État', {
+            'fields': ('est_actif', 'nombre_acces')
+        }),
+        ('Informations', {
+            'fields': ('date_creation', 'modifie_le'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def titre_acces_ou_code(self, obj: AccesGalerie) -> str:
+        """Affiche le titre personnalisé ou le code d'accès"""
+        return obj.titre_acces or f"Accès {obj.code_acces}"
+    titre_acces_ou_code.short_description = 'Titre'  # type: ignore[attr-defined]
+    
+    def nombre_visiteurs(self, obj: AccesGalerie) -> int:
+        """Nombre de visiteurs autorisés"""
+        return obj.visiteurs.filter(est_actif=True).count()
+    nombre_visiteurs.short_description = 'Visiteurs'  # type: ignore[attr-defined]
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('galerie').prefetch_related('visiteurs')
+
+
+@admin.register(VisiteurGalerie)
+class VisiteurGalerieAdmin(admin.ModelAdmin):
+    list_display = ['email', 'nom', 'galerie_nom', 'code_acces', 'est_actif', 'date_dernier_acces', 'nombre_visites']
+    list_filter = ['est_actif', 'acces_galerie__galerie', 'date_dernier_acces']
+    search_fields = ['email', 'nom', 'acces_galerie__galerie__nom', 'acces_galerie__code_acces']
+    readonly_fields = ['token_acces', 'date_premier_acces', 'date_dernier_acces', 'nombre_visites', 'cree_le', 'modifie_le']
+    
+    fieldsets = (
+        (None, {
+            'fields': ('acces_galerie', 'email', 'nom')
+        }),
+        ('Authentification', {
+            'fields': ('token_acces',),
+            'classes': ('collapse',)
+        }),
+        ('Activité', {
+            'fields': ('date_premier_acces', 'date_dernier_acces', 'nombre_visites')
+        }),
+        ('État', {
+            'fields': ('est_actif',)
+        }),
+        ('Informations', {
+            'fields': ('cree_le', 'modifie_le'),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def galerie_nom(self, obj: VisiteurGalerie) -> str:
+        """Nom de la galerie"""
+        return obj.acces_galerie.galerie.nom
+    galerie_nom.short_description = 'Galerie'  # type: ignore[attr-defined]
+    
+    def code_acces(self, obj: VisiteurGalerie) -> str:
+        """Code d'accès"""
+        return obj.acces_galerie.code_acces
+    code_acces.short_description = 'Code'  # type: ignore[attr-defined]
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('acces_galerie__galerie')
+    
+    def save_model(self, request, obj, form, change):
+        """Envoyer un email de notification lors de l'ajout d'un nouveau visiteur"""
+        is_new = not change
+        super().save_model(request, obj, form, change)
+        
+        if is_new:
+            try:
+                if obj.envoyer_notification_acces():
+                    self.message_user(request, f"✅ Email de notification envoyé à {obj.email}")
+                else:
+                    self.message_user(request, f"⚠️ Impossible d'envoyer l'email à {obj.email}", level='WARNING')
+            except Exception as e:
+                self.message_user(request, f"❌ Erreur lors de l'envoi de l'email : {e}", level='ERROR')
