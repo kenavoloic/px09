@@ -8,7 +8,15 @@ from django.urls import reverse
 from django.utils.html import format_html
 
 from .apps_proxy import PhotoOrderingProxy, PhotoUploadProxy  # noqa: F401
-from .models import Collection, ConfigurationSite, Galerie, Photo, PhotoVersion, AccesGalerie, VisiteurGalerie
+from .models import (
+    AccesGalerie,
+    Collection,
+    ConfigurationSite,
+    Galerie,
+    Photo,
+    PhotoVersion,
+    VisiteurGalerie,
+)
 
 
 class PhotoSansCollectionFilter(SimpleListFilter):
@@ -438,15 +446,15 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
         if len(galeries) > 1:
             self.message_user(request, "❌ Toutes les photos doivent être de la même galerie", level='ERROR')
             return
-        
+
         if not galeries:
             self.message_user(request, "❌ Aucune photo sélectionnée", level='ERROR')
             return
-        
+
         galerie_id = galeries.pop()
-        from django.template.response import TemplateResponse
         from django import forms
-        
+        from django.template.response import TemplateResponse
+
         class CollectionChoiceForm(forms.Form):
             collection = forms.ModelChoiceField(
                 queryset=Collection.objects.filter(galerie_id=galerie_id),
@@ -454,7 +462,7 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
                 empty_label="Aucune collection (photos directes)",
                 help_text="Sélectionnez une collection pour ces photos"
             )
-        
+
         if request.POST.get('confirm'):
             form = CollectionChoiceForm(request.POST)
             if form.is_valid():
@@ -467,66 +475,66 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
                 return None
         else:
             form = CollectionChoiceForm()
-        
+
         context = {
             'form': form,
             'photos': queryset,
             'action_name': 'attribuer_a_collection',
             'title': f'Attribuer {queryset.count()} photo(s) à une collection',
         }
-        
+
         return TemplateResponse(request, 'admin/galeries/attribuer_collection.html', context)
-    
+
     attribuer_a_collection.short_description = "🗂️ Attribuer à une collection"  # type: ignore[attr-defined]
 
     def retirer_de_collection(self, request: HttpRequest, queryset: models.QuerySet[Photo]) -> None:
         """Action pour retirer des photos de leur collection (deviennent photos directes)"""
         photos_dans_collections = queryset.exclude(collection__isnull=True)
         photos_directes = queryset.filter(collection__isnull=True)
-        
+
         if photos_directes.exists():
             self.message_user(
-                request, 
-                f"ℹ️ {photos_directes.count()} photo(s) étaient déjà des photos directes", 
+                request,
+                f"ℹ️ {photos_directes.count()} photo(s) étaient déjà des photos directes",
                 level='WARNING'
             )
-        
+
         if photos_dans_collections.exists():
             count = photos_dans_collections.update(collection=None)
             self.message_user(
-                request, 
+                request,
                 f"✅ {count} photo(s) retirée(s) de leur collection et converties en photos directes"
             )
         else:
             self.message_user(
-                request, 
-                "ℹ️ Aucune photo dans une collection à retirer", 
+                request,
+                "ℹ️ Aucune photo dans une collection à retirer",
                 level='WARNING'
             )
-    
+
     retirer_de_collection.short_description = "↩️ Retirer des collections (photos directes)"  # type: ignore[attr-defined]
 
     def dupliquer_vers_racine(self, request: HttpRequest, queryset: models.QuerySet[Photo]) -> None:
         """Action pour dupliquer des photos de collection vers la racine de galerie"""
         from django.contrib import messages
         from django.core.files.base import ContentFile
-        
+
         photos_dans_collections = queryset.exclude(collection__isnull=True)
         photos_directes = queryset.filter(collection__isnull=True)
-        
+
         if photos_directes.exists():
             messages.warning(
-                request, 
-                f"❌ {photos_directes.count()} photo(s) ignorée(s) : déjà à la racine", 
+                request,
+                f"❌ {photos_directes.count()} photo(s) ignorée(s) : déjà à la racine",
             )
-        
+
         if not photos_dans_collections.exists():
             messages.warning(
-                request, 
-                "ℹ️ Aucune photo dans une collection à dupliquer vers la racine", 
+                request,
+                "ℹ️ Aucune photo dans une collection à dupliquer vers la racine",
             )
             return
-        
+
         duplicatas_crees = 0
         for photo in photos_dans_collections:
             # Créer une copie de la photo pour la racine
@@ -548,7 +556,7 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
                 est_publique=photo.est_publique
             )
             nouvelle_photo.save()
-            
+
             # Dupliquer les versions
             for version in photo.versions.all():
                 nouvelle_version = PhotoVersion(
@@ -559,7 +567,7 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
                     est_par_defaut=version.est_par_defaut,
                     est_publique=version.est_publique
                 )
-                
+
                 # Copier les fichiers
                 if version.fichier_web:
                     with version.fichier_web.open('rb') as f:
@@ -569,7 +577,7 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
                             content,
                             save=False
                         )
-                
+
                 if version.fichier_pleine_resolution:
                     with version.fichier_pleine_resolution.open('rb') as f:
                         content = ContentFile(f.read())
@@ -578,39 +586,40 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
                             content,
                             save=False
                         )
-                
+
                 nouvelle_version.save()
-            
+
             duplicatas_crees += 1
-        
+
         messages.success(
             request,
             f"✅ {duplicatas_crees} photo(s) dupliquée(s) vers la racine de galerie"
         )
-    
+
     dupliquer_vers_racine.short_description = "📋 Dupliquer vers la racine de galerie"  # type: ignore[attr-defined]
-    
+
     def retirer_de_racine(self, request: HttpRequest, queryset: models.QuerySet[Photo]) -> None:
         """Action pour supprimer les photos directes (racine) en gardant celles en collection"""
-        from django.contrib import messages
         import os
-        
+
+        from django.contrib import messages
+
         photos_directes = queryset.filter(collection__isnull=True)
         photos_dans_collections = queryset.exclude(collection__isnull=True)
-        
+
         if photos_dans_collections.exists():
             messages.warning(
-                request, 
-                f"❌ {photos_dans_collections.count()} photo(s) ignorée(s) : dans des collections", 
+                request,
+                f"❌ {photos_dans_collections.count()} photo(s) ignorée(s) : dans des collections",
             )
-        
+
         if not photos_directes.exists():
             messages.warning(
-                request, 
-                "ℹ️ Aucune photo directe (racine) à supprimer", 
+                request,
+                "ℹ️ Aucune photo directe (racine) à supprimer",
             )
             return
-        
+
         photos_supprimees = 0
         for photo in photos_directes:
             # Supprimer les fichiers physiques
@@ -621,36 +630,36 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
                             os.remove(version.fichier_web.path)
                     except Exception:
                         pass
-                
+
                 if version.fichier_pleine_resolution:
                     try:
                         if os.path.exists(version.fichier_pleine_resolution.path):
                             os.remove(version.fichier_pleine_resolution.path)
                     except Exception:
                         pass
-            
+
             # Supprimer la photo de la DB
             photo.delete()
             photos_supprimees += 1
-        
+
         messages.success(
             request,
             f"✅ {photos_supprimees} photo(s) supprimée(s) de la racine de galerie"
         )
-    
+
     retirer_de_racine.short_description = "🗑️ Supprimer de la racine (garder collections)"  # type: ignore[attr-defined]
 
     def supprimer_photos_confirmees(self, request: HttpRequest, queryset: models.QuerySet[Photo]) -> None:
         """Action pour supprimer des photos avec confirmation"""
-        from django.template.response import TemplateResponse
-        from django import forms
         import os
-        
+
+        from django.template.response import TemplateResponse
+
         if request.POST.get('confirm_delete'):
             # Suppression confirmée
             photos_supprimees = []
             fichiers_supprimes = []
-            
+
             for photo in queryset:
                 # Collecter infos avant suppression
                 photo_info = {
@@ -659,7 +668,7 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
                     'collection': photo.collection.nom if photo.collection else 'Photo directe'
                 }
                 photos_supprimees.append(photo_info)
-                
+
                 # Supprimer les fichiers physiques des versions
                 for version in photo.versions.all():
                     if version.fichier_web:
@@ -669,7 +678,7 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
                                 fichiers_supprimes.append(version.fichier_web.name)
                         except Exception:
                             pass  # Ignorer les erreurs de fichier
-                    
+
                     if version.fichier_pleine_resolution:
                         try:
                             if os.path.exists(version.fichier_pleine_resolution.path):
@@ -677,13 +686,13 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
                                 fichiers_supprimes.append(version.fichier_pleine_resolution.name)
                         except Exception:
                             pass
-            
+
             # Supprimer de la base de données
             count, details = queryset.delete()
-            
+
             # Messages de retour
             self.message_user(
-                request, 
+                request,
                 f"✅ {len(photos_supprimees)} photo(s) supprimée(s) avec succès"
             )
             if fichiers_supprimes:
@@ -691,18 +700,18 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
                     request,
                     f"🗑️ {len(fichiers_supprimes)} fichier(s) physique(s) supprimé(s)"
                 )
-            
+
             return None
-        
+
         # Afficher la page de confirmation
         context = {
             'photos': queryset,
             'action_name': 'supprimer_photos_confirmees',
             'title': f'Supprimer {queryset.count()} photo(s)',
         }
-        
+
         return TemplateResponse(request, 'admin/galeries/confirmer_suppression.html', context)
-    
+
     supprimer_photos_confirmees.short_description = "🗑️ Supprimer les photos sélectionnées"  # type: ignore[attr-defined]
 
 
@@ -755,11 +764,11 @@ class ConfigurationSiteAdmin(admin.ModelAdmin):
             'description': 'Configuration globale pour l\'affichage des photos sans titre personnalisé.'
         }),
     )
-    
+
     def has_add_permission(self, request):
         # Ne permettre qu'une seule instance
         return not ConfigurationSite.objects.exists()
-    
+
     def has_delete_permission(self, request, obj=None):
         # Empêcher la suppression
         return False
@@ -771,7 +780,7 @@ class VisiteurGalerieInline(admin.TabularInline):
     extra = 1
     fields = ['email', 'nom', 'est_actif', 'date_premier_acces', 'date_dernier_acces', 'nombre_visites']
     readonly_fields = ['token_acces', 'date_premier_acces', 'date_dernier_acces', 'nombre_visites']
-    
+
     def get_readonly_fields(self, request, obj=None):
         """Rendre certains champs readonly après création"""
         readonly = list(self.readonly_fields)
@@ -787,7 +796,7 @@ class AccesGalerieAdmin(admin.ModelAdmin):
     search_fields = ['galerie__nom', 'titre_acces', 'code_acces']
     inlines = [VisiteurGalerieInline]
     readonly_fields = ['code_acces', 'nombre_acces', 'date_creation', 'modifie_le']
-    
+
     fieldsets = (
         (None, {
             'fields': ('galerie', 'titre_acces', 'code_acces')
@@ -803,17 +812,17 @@ class AccesGalerieAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
-    
+
     def titre_acces_ou_code(self, obj: AccesGalerie) -> str:
         """Affiche le titre personnalisé ou le code d'accès"""
         return obj.titre_acces or f"Accès {obj.code_acces}"
     titre_acces_ou_code.short_description = 'Titre'  # type: ignore[attr-defined]
-    
+
     def nombre_visiteurs(self, obj: AccesGalerie) -> int:
         """Nombre de visiteurs autorisés"""
         return obj.visiteurs.filter(est_actif=True).count()
     nombre_visiteurs.short_description = 'Visiteurs'  # type: ignore[attr-defined]
-    
+
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('galerie').prefetch_related('visiteurs')
 
@@ -824,7 +833,7 @@ class VisiteurGalerieAdmin(admin.ModelAdmin):
     list_filter = ['est_actif', 'acces_galerie__galerie', 'date_dernier_acces']
     search_fields = ['email', 'nom', 'acces_galerie__galerie__nom', 'acces_galerie__code_acces']
     readonly_fields = ['token_acces', 'date_premier_acces', 'date_dernier_acces', 'nombre_visites', 'cree_le', 'modifie_le']
-    
+
     fieldsets = (
         (None, {
             'fields': ('acces_galerie', 'email', 'nom')
@@ -844,25 +853,25 @@ class VisiteurGalerieAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
-    
+
     def galerie_nom(self, obj: VisiteurGalerie) -> str:
         """Nom de la galerie"""
         return obj.acces_galerie.galerie.nom
     galerie_nom.short_description = 'Galerie'  # type: ignore[attr-defined]
-    
+
     def code_acces(self, obj: VisiteurGalerie) -> str:
         """Code d'accès"""
         return obj.acces_galerie.code_acces
     code_acces.short_description = 'Code'  # type: ignore[attr-defined]
-    
+
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('acces_galerie__galerie')
-    
+
     def save_model(self, request, obj, form, change):
         """Envoyer un email de notification lors de l'ajout d'un nouveau visiteur"""
         is_new = not change
         super().save_model(request, obj, form, change)
-        
+
         if is_new:
             try:
                 if obj.envoyer_notification_acces():

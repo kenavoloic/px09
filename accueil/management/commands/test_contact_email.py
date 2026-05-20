@@ -2,10 +2,8 @@
 Commande de test de la configuration email du formulaire de contact
 """
 
-from django.core.management.base import BaseCommand
 from django.conf import settings
-from django.core.mail import send_mail
-from django.utils import timezone
+from django.core.management.base import BaseCommand
 
 from accueil.forms import ContactForm
 
@@ -29,13 +27,13 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS('=== Test de configuration email du contact ===')
         )
-        
+
         # Vérification de la configuration
         self.stdout.write('\n1. Configuration email actuelle:')
         self.stdout.write(f'   - EMAIL_BACKEND: {settings.EMAIL_BACKEND}')
         self.stdout.write(f'   - DEFAULT_FROM_EMAIL: {settings.DEFAULT_FROM_EMAIL}')
         self.stdout.write(f'   - CONTACT_EMAIL: {settings.CONTACT_EMAIL}')
-        
+
         # Test du formulaire
         self.stdout.write('\n2. Test de validation du formulaire:')
         test_email = options.get('to_email') or 'admin@example.com'
@@ -46,7 +44,7 @@ class Command(BaseCommand):
             'message': 'Test automatique de configuration email depuis la commande de gestion.',
             'website': '',  # Honeypot vide
         }
-        
+
         form = ContactForm(data=form_data)
         if form.is_valid():
             self.stdout.write(self.style.SUCCESS('   ✅ Formulaire valide'))
@@ -55,10 +53,10 @@ class Command(BaseCommand):
             for field, errors in form.errors.items():
                 self.stdout.write(f'      {field}: {errors}')
             return
-        
+
         # Test d'envoi
         self.stdout.write('\n3. Test d\'envoi d\'email:')
-        
+
         if options['send_real_email']:
             self.stdout.write('   Mode: ENVOI RÉEL')
             try:
@@ -72,7 +70,7 @@ class Command(BaseCommand):
         else:
             self.stdout.write('   Mode: SIMULATION (ajoutez --send-real-email pour un vrai envoi)')
             self.stdout.write('   ℹ️  Le formulaire utilise le backend: console en développement')
-        
+
         # Conseils de configuration
         self.stdout.write('\n4. Configuration pour la production:')
         if 'console' in settings.EMAIL_BACKEND.lower():
@@ -82,6 +80,6 @@ class Command(BaseCommand):
             self.stdout.write('   - EMAIL_HOST, EMAIL_PORT, EMAIL_HOST_USER, etc.')
         else:
             self.stdout.write(self.style.SUCCESS('   ✅ Backend SMTP configuré'))
-        
+
         self.stdout.write('\n' + '='*50)
         self.stdout.write(self.style.SUCCESS('Test terminé'))

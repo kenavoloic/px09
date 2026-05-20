@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
-from galeries.models import Galerie, Collection, PhotoVersion
+
+from galeries.models import Collection, Galerie, PhotoVersion
 
 
 class Command(BaseCommand):
@@ -14,7 +15,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         dry_run = options['dry_run']
-        
+
         self.stdout.write(
             self.style.SUCCESS(
                 f"{'[DRY RUN] ' if dry_run else ''}Recalcul du cache des tailles..."
@@ -24,7 +25,7 @@ class Command(BaseCommand):
         # Recalculer pour toutes les galeries
         galeries = Galerie.objects.all()
         self.stdout.write(f"Galeries à traiter : {galeries.count()}")
-        
+
         for galerie in galeries:
             if dry_run:
                 taille_calculee = galerie.get_taille_totale()
@@ -41,7 +42,7 @@ class Command(BaseCommand):
         # Recalculer pour toutes les collections
         collections = Collection.objects.all()
         self.stdout.write(f"\nCollections à traiter : {collections.count()}")
-        
+
         for collection in collections:
             if dry_run:
                 taille_calculee = collection.get_taille_totale()

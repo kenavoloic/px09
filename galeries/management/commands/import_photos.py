@@ -1,7 +1,6 @@
 """
 Commande de management pour importer des photos depuis le dossier media/raw/
 """
-import os
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -72,7 +71,7 @@ class Command(BaseCommand):
 
         # Trouver toutes les photos
         photo_files = list(raw_dir.glob('*.jpg')) + list(raw_dir.glob('*.JPG'))
-        
+
         if limit:
             photo_files = photo_files[:limit]
 
@@ -94,7 +93,7 @@ class Command(BaseCommand):
                 else:
                     self._import_photo(photo_path, galerie)
                     imported_count += 1
-                    
+
             except Exception as e:
                 self.stdout.write(
                     self.style.ERROR(f'Error processing {photo_path.name}: {str(e)}')
@@ -108,11 +107,11 @@ class Command(BaseCommand):
     def _analyze_photo(self, photo_path: Path) -> None:
         """Analyse une photo et affiche ses informations"""
         self.stdout.write(f'\n📸 {photo_path.name}')
-        
+
         # Informations de base
         stat = photo_path.stat()
         self.stdout.write(f'  Size: {stat.st_size / 1024 / 1024:.1f} MB')
-        
+
         # Dimensions avec PIL
         try:
             with Image.open(photo_path) as img:
@@ -126,20 +125,20 @@ class Command(BaseCommand):
             try:
                 with pyexiv2.Image(str(photo_path)) as img:
                     exif = img.read_exif()
-                    
+
                     # Date de prise de vue
                     if 'Exif.Photo.DateTimeOriginal' in exif:
                         self.stdout.write(f'  Date taken: {exif["Exif.Photo.DateTimeOriginal"]}')
-                    
+
                     # Appareil photo
                     if 'Exif.Image.Make' in exif and 'Exif.Image.Model' in exif:
                         camera = f'{exif["Exif.Image.Make"]} {exif["Exif.Image.Model"]}'
                         self.stdout.write(f'  Camera: {camera}')
-                    
+
                     # Objectif
                     if 'Exif.Photo.LensModel' in exif:
                         self.stdout.write(f'  Lens: {exif["Exif.Photo.LensModel"]}')
-                    
+
                     # Paramètres de prise de vue
                     settings = []
                     if 'Exif.Photo.FNumber' in exif:
@@ -148,24 +147,24 @@ class Command(BaseCommand):
                         settings.append(f'{exif["Exif.Photo.ExposureTime"]}s')
                     if 'Exif.Photo.ISOSpeedRatings' in exif:
                         settings.append(f'ISO {exif["Exif.Photo.ISOSpeedRatings"]}')
-                    
+
                     if settings:
                         self.stdout.write(f'  Settings: {" | ".join(settings)}')
-                        
+
             except Exception as e:
                 self.stdout.write(f'  EXIF error: {e}')
 
     def _extract_exif_data(self, photo_path: Path) -> dict[str, Any]:
         """Extrait les données EXIF d'une photo"""
         exif_data = {}
-        
+
         if not PYEXIV2_AVAILABLE:
             return exif_data
 
         try:
             with pyexiv2.Image(str(photo_path)) as img:
                 exif = img.read_exif()
-                
+
                 # Date de prise de vue
                 if 'Exif.Photo.DateTimeOriginal' in exif:
                     try:
@@ -173,45 +172,45 @@ class Command(BaseCommand):
                         exif_data['date_prise'] = datetime.strptime(date_str, '%Y:%m:%d %H:%M:%S')
                     except ValueError:
                         pass
-                
+
                 # Appareil photo
                 if 'Exif.Image.Make' in exif and 'Exif.Image.Model' in exif:
                     make = exif['Exif.Image.Make'].strip()
                     model = exif['Exif.Image.Model'].strip()
                     exif_data['appareil'] = f'{make} {model}'
-                
+
                 # Objectif
                 if 'Exif.Photo.LensModel' in exif:
                     exif_data['objectif'] = exif['Exif.Photo.LensModel']
-                
+
                 # Ouverture
                 if 'Exif.Photo.FNumber' in exif:
                     exif_data['ouverture'] = f'f/{exif["Exif.Photo.FNumber"]}'
-                
+
                 # Vitesse
                 if 'Exif.Photo.ExposureTime' in exif:
                     exif_data['vitesse'] = f'{exif["Exif.Photo.ExposureTime"]}s'
-                
+
                 # ISO
                 if 'Exif.Photo.ISOSpeedRatings' in exif:
                     exif_data['iso'] = int(exif['Exif.Photo.ISOSpeedRatings'])
-                    
+
         except Exception as e:
             self.stdout.write(f'Warning: EXIF extraction failed for {photo_path.name}: {e}')
-        
+
         return exif_data
 
     @transaction.atomic
     def _import_photo(self, photo_path: Path, galerie: Galerie) -> None:
         """Importe une photo dans la galerie"""
-        
+
         # Extraire les données EXIF
         exif_data = self._extract_exif_data(photo_path)
-        
+
         # Obtenir les dimensions avec PIL
         with Image.open(photo_path) as img:
             width, height = img.size
-        
+
         # Créer l'objet Photo
         photo = Photo(
             galerie=galerie,
@@ -221,7 +220,7 @@ class Command(BaseCommand):
             hauteur_originale=height,
             ordre_affichage=galerie.get_total_photos() + 1
         )
-        
+
         # Appliquer les données EXIF si disponibles
         if 'date_prise' in exif_data:
             photo.date_prise = exif_data['date_prise']
@@ -235,15 +234,15 @@ class Command(BaseCommand):
             photo.vitesse = exif_data['vitesse']
         if 'iso' in exif_data:
             photo.iso = exif_data['iso']
-        
+
         photo.save()
-        
+
         # Créer la PhotoVersion
         # Pour l'instant, on copie directement le fichier original
         with open(photo_path, 'rb') as f:
             django_file = File(f)
             django_file.name = photo_path.name
-            
+
             photo_version = PhotoVersion(
                 photo=photo,
                 traitement='couleur',
@@ -251,14 +250,14 @@ class Command(BaseCommand):
                 hauteur=height,
                 est_par_defaut=True
             )
-            
+
             # Sauvegarder dans photos/web/ pour commencer
             photo_version.fichier_web.save(
                 photo_path.name,
                 django_file,
                 save=False
             )
-            
+
             photo_version.save()
-        
+
         self.stdout.write(f'✅ Imported {photo_path.name}')

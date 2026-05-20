@@ -1,6 +1,8 @@
 import os
-from django.core.management.base import BaseCommand, CommandError
-from django.db import transaction, models
+
+from django.core.management.base import BaseCommand
+from django.db import models, transaction
+
 from galeries.models import PhotoVersion
 
 
@@ -22,7 +24,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         dry_run = options['dry_run']
         force = options['force']
-        
+
         self.stdout.write(
             self.style.SUCCESS(
                 f"{'[DRY RUN] ' if dry_run else ''}Recalcul des tailles de fichiers..."
@@ -58,7 +60,7 @@ class Command(BaseCommand):
                 # Mode dry-run : affichage seulement
                 taille_web = self._get_file_size(version.fichier_web)
                 taille_hd = self._get_file_size(version.fichier_pleine_resolution)
-                
+
                 self.stdout.write(
                     f" Web: {self._format_size(taille_web) if taille_web else 'N/A'}, "
                     f"HD: {self._format_size(taille_hd) if taille_hd else 'N/A'}"
@@ -69,7 +71,7 @@ class Command(BaseCommand):
                 with transaction.atomic():
                     # Calculer les tailles
                     updated = False
-                    
+
                     # Taille fichier web
                     if force or version.taille_fichier_web is None:
                         taille_web = self._get_file_size(version.fichier_web)
@@ -108,7 +110,7 @@ class Command(BaseCommand):
                     f"\nTerminé ! {updated_count} versions mises à jour, {error_count} erreurs."
                 )
             )
-            
+
             # Afficher les statistiques totales
             self._show_statistics()
 
@@ -116,37 +118,37 @@ class Command(BaseCommand):
         """Retourne la taille d'un fichier en octets ou None si erreur"""
         if not file_field:
             return None
-            
+
         try:
             if hasattr(file_field, 'path'):
                 return os.path.getsize(file_field.path)
         except (OSError, FileNotFoundError):
             pass
-        
+
         return None
 
     def _format_size(self, size_bytes):
         """Formate une taille en octets vers une chaîne lisible"""
         if size_bytes is None:
             return "N/A"
-        
+
         if size_bytes == 0:
             return "0 B"
-        
+
         units = ['B', 'KB', 'MB', 'GB']
         size = float(size_bytes)
-        
+
         for unit in units:
             if size < 1024.0:
                 return f"{size:.1f} {unit}"
             size /= 1024.0
-        
+
         return f"{size:.1f} TB"
 
     def _show_statistics(self):
         """Affiche les statistiques globales"""
-        from django.db.models import Sum, Count
-        
+        from django.db.models import Count, Sum
+
         stats = PhotoVersion.objects.aggregate(
             total_versions=Count('id'),
             total_web=Sum('taille_fichier_web'),
@@ -154,7 +156,7 @@ class Command(BaseCommand):
             versions_avec_web=Count('id', filter=models.Q(taille_fichier_web__isnull=False)),
             versions_avec_hd=Count('id', filter=models.Q(taille_fichier_hd__isnull=False))
         )
-        
+
         self.stdout.write("\n" + "="*50)
         self.stdout.write("STATISTIQUES GLOBALES")
         self.stdout.write("="*50)
@@ -163,6 +165,6 @@ class Command(BaseCommand):
         self.stdout.write(f"Versions avec fichier HD : {stats['versions_avec_hd']}")
         self.stdout.write(f"Taille totale fichiers web : {self._format_size(stats['total_web'] or 0)}")
         self.stdout.write(f"Taille totale fichiers HD : {self._format_size(stats['total_hd'] or 0)}")
-        
+
         total_size = (stats['total_web'] or 0) + (stats['total_hd'] or 0)
         self.stdout.write(f"Taille totale : {self._format_size(total_size)}")

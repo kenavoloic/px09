@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Mes galeries privées — Hors les Murs{% endblock %}
+{% block description %}Tableau de bord des galeries privées accessibles{% endblock %}
+
+{% block nav_class %}solid{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/gallery.css' %}" />
+<style>
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: clamp(3rem, 6vw, 5rem) clamp(1.25rem, 5vw, 3rem);
+}
+
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.dashboard-title {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  margin-bottom: 1rem;
+}
+
+.dashboard-subtitle {
+  font-size: 1.1rem;
+  color: var(--fg2);
+  margin-bottom: 0.5rem;
+}
+
+.visitor-info {
+  font-size: 0.9rem;
+  color: var(--fg3);
+}
+
+.galleries-section {
+  margin-bottom: 3rem;
+}
+
+.section-title {
+  font-size: 1.4rem;
+  margin-bottom: 2rem;
+  font-weight: 600;
+}
+
+.galleries-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.gallery-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+}
+
+.gallery-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  border-color: var(--accent);
+}
+
+.gallery-image {
+  width: 100%;
+  aspect-ratio: 16/10;
+  overflow: hidden;
+  position: relative;
+}
+
+.gallery-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.gallery-card:hover .gallery-image img {
+  transform: scale(1.05);
+}
+
+.gallery-placeholder {
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    -45deg, var(--bg3) 0px, var(--bg3) 1px,
+    var(--bg2) 1px, var(--bg2) 12px
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: var(--fg3);
+}
+
+.gallery-content {
+  padding: 1.5rem;
+}
+
+.gallery-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.gallery-stats {
+  font-size: 0.9rem;
+  color: var(--fg2);
+  margin-bottom: 1rem;
+}
+
+.gallery-description {
+  font-size: 0.85rem;
+  color: var(--fg3);
+  line-height: 1.5;
+}
+
+.current-gallery {
+  border: 2px solid var(--accent);
+  background: rgba(var(--accent-rgb), 0.05);
+}
+
+.current-badge {
+  display: inline-block;
+  background: var(--accent);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.logout-section {
+  text-align: center;
+  padding-top: 3rem;
+  border-top: 1px solid var(--border);
+}
+
+.btn-logout {
+  display: inline-block;
+  padding: 0.75rem 2rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.btn-logout:hover {
+  background: var(--bg3);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+@media (max-width: 768px) {
+  .galleries-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .dashboard-container {
+    padding: 2rem 1rem;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% if est_prive %}
+<div class="private-status-badge">
+  <div class="private-badge-content">
+    <span class="private-badge-icon">🔒</span>
+    <span class="private-badge-text">Mode privé</span>
+    <span class="private-badge-separator">•</span>
+    <span class="private-badge-gallery">Tableau de bord</span>
+    <button class="private-badge-close" onclick="window.location.href='{% url 'galeries:deconnexion_privee' %}'" title="Quitter le mode privé">×</button>
+  </div>
+</div>
+{% endif %}
+
+<div class="dashboard-container">
+  <header class="dashboard-header">
+    <h1 class="dashboard-title reveal">Mes galeries privées</h1>
+    <div class="dashboard-subtitle reveal reveal-d1">
+      {% if galeries_accessibles.count == 1 %}
+        Vous avez accès à 1 galerie privée
+      {% else %}
+        Vous avez accès à {{ galeries_accessibles.count }} galeries privées
+      {% endif %}
+    </div>
+    {% if visiteur.nom %}
+      <div class="visitor-info reveal reveal-d2">Bienvenue, {{ visiteur.nom }}</div>
+    {% endif %}
+  </header>
+
+  {% if galeries_accessibles %}
+    <section class="galleries-section">
+      <h2 class="section-title reveal">Galeries accessibles</h2>
+      <div class="galleries-grid">
+        {% for galerie in galeries_accessibles %}
+          <a href="{% url 'galeries:galerie_privee' galerie_slug=galerie.slug %}" 
+             class="gallery-card reveal{% if galerie == galerie_courante %} current-gallery{% endif %}">
+            
+            {% if galerie == galerie_courante %}
+              <div class="gallery-content" style="padding-top: 1rem;">
+                <span class="current-badge">Galerie actuelle</span>
+              </div>
+            {% endif %}
+            
+            <div class="gallery-image">
+              {% if galerie.image_couverture %}
+                <img src="{{ galerie.image_couverture.url }}" alt="{{ galerie.nom }}" loading="lazy">
+              {% else %}
+                <div class="gallery-placeholder">
+                  <span>📷</span>
+                </div>
+              {% endif %}
+            </div>
+            
+            <div class="gallery-content">
+              <h3 class="gallery-name">{{ galerie.nom }}</h3>
+              
+              <div class="gallery-stats">
+                {% if galerie.a_des_collections %}
+                  {{ galerie.get_collections_publiques.count }} collections • {{ galerie.get_total_photos }} photos
+                {% else %}
+                  {{ galerie.photos.count }} photos
+                {% endif %}
+              </div>
+              
+              {% if galerie.description %}
+                <p class="gallery-description">{{ galerie.description|truncatewords:20 }}</p>
+              {% endif %}
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </section>
+  {% else %}
+    <section class="galleries-section">
+      <div style="text-align: center; padding: 3rem 0;">
+        <p style="font-size: 1.1rem; color: var(--fg2);">Aucune galerie privée accessible pour le moment.</p>
+        <p style="font-size: 0.9rem; color: var(--fg3); margin-top: 1rem;">
+          Contactez le photographe pour obtenir l'accès à des galeries privées.
+        </p>
+      </div>
+    </section>
+  {% endif %}
+  
+  <section class="logout-section">
+    <a href="{% url 'galeries:deconnexion_privee' %}" class="btn-logout">
+      Quitter les galeries privées
+    </a>
+  </section>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/reveal.js' %}"></script>
+{% endblock %}

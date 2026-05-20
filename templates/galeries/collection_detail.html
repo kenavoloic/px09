@@ -18,7 +18,9 @@
     <span class="private-badge-icon">🔒</span>
     <span class="private-badge-text">Mode privé</span>
     <span class="private-badge-separator">•</span>
-    <span class="private-badge-gallery">{{ galerie.nom }} › {{ collection.nom }}</span>
+    <span class="private-badge-gallery">
+      <a href="{% url 'galeries:tableau_bord_prive' %}">Mes galeries</a> › {{ galerie.nom }} › {{ collection.nom }}
+    </span>
     <button class="private-badge-close" onclick="window.location.href='{% url 'galeries:deconnexion_privee' %}'" title="Quitter le mode privé">×</button>
   </div>
 </div>

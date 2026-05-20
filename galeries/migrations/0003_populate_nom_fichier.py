@@ -6,7 +6,7 @@ from django.db import migrations
 def populate_nom_fichier(apps, schema_editor):
     """Populer le champ nom_fichier avec le titre existant ou valeur par défaut"""
     Photo = apps.get_model('galeries', 'Photo')
-    
+
     for photo in Photo.objects.all():
         if photo.titre:
             # Utiliser le titre existant comme nom de fichier

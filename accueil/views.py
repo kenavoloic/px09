@@ -1,10 +1,8 @@
 from django.contrib import messages
 from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
 
-from galeries.models import Galerie, AccesGalerie, VisiteurGalerie
+from galeries.models import AccesGalerie, Galerie, VisiteurGalerie
 
 from .forms import ContactForm
 
@@ -57,32 +55,32 @@ GALERIES_DATA = [
 
 def index(request: HttpRequest) -> HttpResponse:
     """Vue pour la page d'accueil du studio photographique."""
-    
+
     # Récupérer la configuration de l'accueil
     from .models import AccueilConfig, SectionAccueil
     config = AccueilConfig.get_config()
-    
+
     # Traiter le formulaire d'accès privé (AJAX)
     if request.method == 'POST' and ('email' in request.POST and 'code' in request.POST):
         email = request.POST.get('email', '').strip()
         code_acces = request.POST.get('code', '').upper().strip()
-        
+
         if not email or not code_acces:
             return JsonResponse({
                 'success': False,
                 'error': 'Email et code d\'accès requis.'
             })
-        
+
         try:
             # Rechercher l'accès galerie
             acces = AccesGalerie.objects.get(code_acces=code_acces)
-            
+
             if not acces.est_valide():
                 return JsonResponse({
                     'success': False,
                     'error': 'Ce code d\'accès n\'est plus valide.'
                 })
-            
+
             # Vérifier que le visiteur est autorisé (ne pas créer automatiquement)
             try:
                 visiteur = VisiteurGalerie.objects.get(
@@ -94,21 +92,21 @@ def index(request: HttpRequest) -> HttpResponse:
                     'success': False,
                     'error': 'Votre adresse email n\'est pas autorisée pour cette galerie.'
                 })
-            
+
             if not visiteur.peut_acceder():
                 return JsonResponse({
                     'success': False,
                     'error': 'Votre accès à cette galerie a été désactivé.'
                 })
-            
+
             # Marquer la visite et incrémenter les compteurs
             visiteur.marquer_visite()
             acces.incrementer_acces()
-            
+
             # Stocker le token en session
             request.session['visiteur_token'] = visiteur.token_acces
             request.session['acces_galerie_id'] = acces.id
-            
+
             # Rediriger vers la galerie privée
             galerie_url = f'/galerie/prive/{acces.galerie.slug}/'
             return JsonResponse({
@@ -116,13 +114,13 @@ def index(request: HttpRequest) -> HttpResponse:
                 'message': f'Accès autorisé à la galerie : {acces.galerie.nom}',
                 'redirect_url': galerie_url
             })
-            
+
         except AccesGalerie.DoesNotExist:
             return JsonResponse({
                 'success': False,
                 'error': 'Code d\'accès invalide.'
             })
-        except Exception as e:
+        except Exception:
             return JsonResponse({
                 'success': False,
                 'error': 'Erreur lors de la vérification. Veuillez réessayer.'
@@ -130,7 +128,7 @@ def index(request: HttpRequest) -> HttpResponse:
 
     # Récupérer les galeries depuis la base de données
     galeries = Galerie.objects.filter(est_publique=True).order_by('ordre_affichage', 'nom')
-    
+
     # Récupérer les sections personnalisées
     sections = SectionAccueil.objects.filter(est_active=True).order_by('position', 'ordre')
 
@@ -182,11 +180,11 @@ def galerie_detail(request: HttpRequest, slug: str) -> HttpResponse:
 
 def contact(request: HttpRequest) -> HttpResponse:
     """Vue pour le formulaire de contact."""
-    
+
     # Récupérer la configuration de l'accueil
     from .models import AccueilConfig
     config = AccueilConfig.get_config()
-    
+
     if request.method == 'POST':
         form = ContactForm(request.POST)
         if form.is_valid():

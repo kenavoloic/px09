@@ -26,10 +26,10 @@ class PhotoOrderingProxy(Photo):
 class PhotoUploadAdmin(admin.ModelAdmin):
     def has_module_permission(self, request):
         return True
-        
+
     def has_view_permission(self, request, obj=None):
         return True
-        
+
     def changelist_view(self, request, extra_context=None):
         from django.shortcuts import redirect
         return redirect('/admin/galeries/upload/')
@@ -39,10 +39,10 @@ class PhotoUploadAdmin(admin.ModelAdmin):
 class PhotoOrderingAdmin(admin.ModelAdmin):
     def has_module_permission(self, request):
         return True
-        
+
     def has_view_permission(self, request, obj=None):
         return True
-        
+
     def changelist_view(self, request, extra_context=None):
         from django.shortcuts import redirect
         return redirect('/admin/galeries/photo-ordering/')

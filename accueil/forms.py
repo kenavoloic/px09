@@ -64,7 +64,7 @@ class ContactForm(forms.Form):
         if website:
             raise forms.ValidationError('Spam détecté.')
         return website
-    
+
     def clean_message(self) -> str:
         """Validation du message"""
         message = self.cleaned_data.get('message', '')

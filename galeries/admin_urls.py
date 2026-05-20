@@ -4,7 +4,12 @@ URLs pour les vues d'administration personnalisées
 from django.urls import path
 
 from .admin_views import upload_photos_view
-from .admin_views_photos import ajax_collections, photo_ordering_view, update_photo_order, photo_thumbnail_api
+from .admin_views_photos import (
+    ajax_collections,
+    photo_ordering_view,
+    photo_thumbnail_api,
+    update_photo_order,
+)
 
 app_name = 'galeries_admin'
 
