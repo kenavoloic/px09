@@ -205,3 +205,15 @@ def _verifier_acces_prive(request: HttpRequest, galerie: Galerie) -> bool:
         pass
     
     return False
+
+
+def deconnexion_privee(request: HttpRequest) -> HttpResponse:
+    """Déconnexion des galeries privées"""
+    # Nettoyer la session
+    if 'visiteur_token' in request.session:
+        del request.session['visiteur_token']
+    if 'acces_galerie_id' in request.session:
+        del request.session['acces_galerie_id']
+    
+    messages.success(request, "Vous avez été déconnecté des galeries privées.")
+    return redirect('accueil:index')

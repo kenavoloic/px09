@@ -9,6 +9,7 @@ urlpatterns = [
     path('galerie/prive/<slug:galerie_slug>/', views.galerie_privee, name='galerie_privee'),
     path('galerie/prive/<slug:galerie_slug>/<slug:collection_slug>/', views.collection_privee, name='collection_privee'),
     path('photo/prive/<int:photo_id>/', views.photo_privee, name='photo_privee'),
+    path('deconnexion-privee/', views.deconnexion_privee, name='deconnexion_privee'),
     
     # Galeries publiques
     path('galerie/<slug:galerie_slug>/', views.galerie_detail, name='galerie_detail'),
