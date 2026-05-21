@@ -41,9 +41,17 @@
     <h1 class="page-title reveal reveal-d1">{{ galerie.nom }}</h1>
     <span class="page-meta reveal reveal-d2">
       {% if galerie.a_des_collections %}
-        {{ collections|length }} collections · {{ galerie.get_total_photos }} photos
+        {% if est_prive %}
+          {{ collections|length }} collections · {{ galerie.get_total_photos }} photos
+        {% else %}
+          {{ collections|length }} collections · {{ galerie.get_total_photos }} photos
+        {% endif %}
       {% else %}
-        {{ photos|length }} photos
+        {% if est_prive %}
+          {{ galerie.photos.count }} photos
+        {% else %}
+          {{ galerie.get_photos_directes_publiques.count }} photos
+        {% endif %}
       {% endif %}
     </span>
   </div>
