@@ -21,6 +21,9 @@
     <span class="private-badge-gallery">
       <a href="{% url 'galeries:tableau_bord_prive' %}">Mes galeries</a> › {{ galerie.nom }}
     </span>
+    {% if photos or collections %}
+      <a href="{% url 'galeries:telecharger_galerie_zip' galerie_slug=galerie.slug %}" class="private-badge-download" title="Télécharger toutes les photos en ZIP">📥</a>
+    {% endif %}
     <button class="private-badge-close" onclick="window.location.href='{% url 'galeries:deconnexion_privee' %}'" title="Quitter le mode privé">×</button>
   </div>
 </div>

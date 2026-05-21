@@ -1,8 +1,12 @@
+import os
+import tempfile
+import zipfile
 from typing import Any
 
 from django.contrib import messages
-from django.http import Http404, HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.text import slugify
 
 from .models import AccesGalerie, Collection, Galerie, Photo, VisiteurGalerie
 
@@ -183,22 +187,30 @@ def photo_privee(request: HttpRequest, photo_id: int) -> HttpResponse:
 def _verifier_acces_prive(request: HttpRequest, galerie: Galerie) -> bool:
     """Vérifie si l'utilisateur a accès à la galerie privée"""
     token = request.session.get('visiteur_token')
-    acces_galerie_id = request.session.get('acces_galerie_id')
 
-    if not token or not acces_galerie_id:
+    if not token:
         return False
 
     try:
-        visiteur = VisiteurGalerie.objects.get(token_acces=token)
-        acces = AccesGalerie.objects.get(id=acces_galerie_id)
+        # Trouver le visiteur par son token
+        visiteur = VisiteurGalerie.objects.get(token_acces=token, est_actif=True)
+        
+        # Chercher tous les accès de ce visiteur (même email) pour la galerie demandée
+        visiteurs_meme_email = VisiteurGalerie.objects.filter(
+            email=visiteur.email,
+            est_actif=True
+        ).select_related('acces_galerie')
+        
+        for v in visiteurs_meme_email:
+            if (v.acces_galerie.galerie == galerie and
+                v.acces_galerie.est_actif and
+                v.acces_galerie.est_valide() and
+                v.peut_acceder()):
+                # Mettre à jour la session avec le bon accès
+                request.session['acces_galerie_id'] = v.acces_galerie.id
+                return True
 
-        # Vérifier que l'accès correspond à cette galerie et est valide
-        if (acces.galerie == galerie and
-            visiteur.acces_galerie == acces and
-            visiteur.peut_acceder()):
-            return True
-
-    except (VisiteurGalerie.DoesNotExist, AccesGalerie.DoesNotExist):
+    except VisiteurGalerie.DoesNotExist:
         pass
 
     return False
@@ -241,3 +253,98 @@ def tableau_bord_prive(request: HttpRequest) -> HttpResponse:
     }
 
     return render(request, 'galeries/tableau_bord_prive.html', context)
+
+
+def telecharger_galerie_zip(request: HttpRequest, galerie_slug: str) -> StreamingHttpResponse:
+    """Télécharge toutes les images d'une galerie privée en ZIP"""
+    galerie = get_object_or_404(Galerie, slug=galerie_slug, est_publique=False)
+
+    # Vérifier l'authentification
+    if not _verifier_acces_prive(request, galerie):
+        raise Http404("Accès non autorisé")
+
+    # Récupérer toutes les photos de la galerie (directes + dans collections)
+    photos = Photo.objects.filter(galerie=galerie)
+
+    if not photos.exists():
+        messages.error(request, f"La galerie '{galerie.nom}' ne contient aucune photo à télécharger.")
+        return redirect('galeries:galerie_privee', galerie_slug=galerie.slug)
+
+    def generer_zip():
+        """Générateur qui crée le ZIP en streaming"""
+        # Créer un fichier temporaire pour le ZIP
+        with tempfile.NamedTemporaryFile() as temp_file:
+            with zipfile.ZipFile(temp_file, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+                compteur_fichiers: dict[str, int] = {}  # Pour gérer les doublons de noms
+
+                for photo in photos:
+                    # Récupérer la meilleure version disponible
+                    version = None
+
+                    # Priorité : version HD couleur > version HD mono > version web couleur > version web mono
+                    versions = photo.versions.all().order_by('-traitement')  # couleur avant monochrome
+
+                    for v in versions:
+                        if v.fichier_pleine_resolution:
+                            version = v
+                            break
+
+                    if not version:
+                        # Fallback sur version web
+                        for v in versions:
+                            if v.fichier_web:
+                                version = v
+                                break
+
+                    if not version:
+                        continue  # Passer cette photo si aucune version
+
+                    # Construire le nom du fichier dans le ZIP
+                    nom_base = photo.get_titre_affichage()
+                    if photo.collection:
+                        nom_base = f"{photo.collection.nom}_{nom_base}"
+
+                    # Nettoyer le nom pour le système de fichiers
+                    nom_propre = slugify(nom_base)
+                    if not nom_propre:
+                        nom_propre = f"photo_{photo.id}"
+
+                    # Récupérer l'extension du fichier
+                    fichier_source = version.fichier_pleine_resolution if version.fichier_pleine_resolution else version.fichier_web
+                    extension = os.path.splitext(fichier_source.name or '')[1].lower()
+
+                    # Gérer les doublons de noms
+                    nom_fichier_zip = f"{nom_propre}{extension}"
+                    if nom_fichier_zip in compteur_fichiers:
+                        compteur_fichiers[nom_fichier_zip] += 1
+                        nom_fichier_zip = f"{nom_propre}_{compteur_fichiers[nom_fichier_zip]}{extension}"
+                    else:
+                        compteur_fichiers[nom_fichier_zip] = 0
+
+                    # Ajouter le fichier au ZIP
+                    try:
+                        if os.path.exists(fichier_source.path):
+                            zip_file.write(fichier_source.path, nom_fichier_zip)
+                    except Exception:
+                        # En cas d'erreur, continuer avec les autres fichiers
+                        continue
+
+            # Lire le fichier ZIP créé et le streamer
+            temp_file.seek(0)
+            while True:
+                chunk = temp_file.read(8192)
+                if not chunk:
+                    break
+                yield chunk
+
+    # Préparer la réponse de streaming
+    nom_galerie_propre = slugify(galerie.nom)
+    nom_fichier = f"{nom_galerie_propre}_photos.zip"
+
+    response = StreamingHttpResponse(
+        generer_zip(),
+        content_type='application/zip'
+    )
+    response['Content-Disposition'] = f'attachment; filename="{nom_fichier}"'
+
+    return response
