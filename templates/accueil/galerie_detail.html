@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ galerie.nom }} — Hors les Murs{% endblock %}
+{% block description %}{{ galerie.description }}{% endblock %}
+
+{% block nav_class %}solid{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/gallery.css' %}" />
+{% endblock %}
+
+{% block content %}
+
+<header class="page-header">
+  <div class="breadcrumb reveal">
+    <a href="{% url 'accueil:index' %}">Accueil</a>
+    <span>→</span>
+    <a href="{% url 'accueil:index' %}#galeries">Galeries</a>
+    <span>→</span>
+    <span class="current">{{ galerie.nom }}</span>
+  </div>
+  <div class="page-title-row">
+    <h1 class="page-title reveal reveal-d1">{{ galerie.nom }}</h1>
+    <span class="page-meta reveal reveal-d2">
+      {% with count=galerie.nb_photos %}{{ count }} photo{% if count > 1 %}s{% endif %}{% endwith %}
+    </span>
+  </div>
+  {% if galerie.description %}
+    <p class="page-desc reveal reveal-d3">{{ galerie.description }}</p>
+  {% endif %}
+</header>
+
+<section class="photos-section">
+  <p class="section-eyebrow reveal">Photos</p>
+  <div class="photos-grid">
+    {% for i in "123456789012345678901234"|make_list %}
+      {% if forloop.counter <= galerie.nb_photos %}
+        <div class="photo-item reveal">
+          <div class="photo-placeholder">
+            <span>📷</span>
+            <div class="photo-overlay">
+              <span class="photo-title">Photo {{ forloop.counter }}</span>
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <p class="empty-message">Aucune photo disponible pour le moment.</p>
+      {% endif %}
+    {% endfor %}
+  </div>
+</section>
+
+{% endblock %}
