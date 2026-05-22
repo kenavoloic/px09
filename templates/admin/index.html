@@ -1,0 +1,10 @@
+{% extends "admin/dashboard/index.html" %}
+
+{% comment %}
+Ce template hérite du dashboard personnalisé et ajoute des informations additionnelles si nécessaire
+{% endcomment %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <meta name="description" content="Tableau de bord d'administration pour le portfolio photographique Hors les Murs">
+{% endblock %}

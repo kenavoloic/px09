@@ -1,0 +1,71 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:"Django site admin" }}{% endblock %}
+
+{% block extrahead %}
+<style>
+.dashboard-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #417690;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+    margin-left: 16px;
+}
+
+.dashboard-link:hover {
+    background: #205067;
+    color: white;
+    text-decoration: none;
+}
+
+.dashboard-link:visited {
+    color: white;
+}
+
+.dashboard-icon {
+    font-size: 14px;
+}
+
+@media (max-width: 768px) {
+    .dashboard-link {
+        margin: 8px 0 0 0;
+        display: block;
+        text-align: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block branding %}
+<div style="display: flex; align-items: center; flex-wrap: wrap;">
+    <h1 id="site-name">
+        <a href="{% url 'admin:index' %}">{{ site_header|default:"Django administration" }}</a>
+    </h1>
+    {% if not is_nav_sidebar_enabled %}
+    <a href="{% url 'admin:index' %}" class="dashboard-link">
+        <span class="dashboard-icon">📊</span>
+        <span>Tableau de bord</span>
+    </a>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block nav-sidebar %}
+{% if is_nav_sidebar_enabled %}
+    {{ block.super }}
+    <div style="padding: 16px; border-top: 1px solid #e1e5e9;">
+        <a href="{% url 'admin:index' %}" class="dashboard-link" style="width: 100%; justify-content: center;">
+            <span class="dashboard-icon">📊</span>
+            <span>Tableau de bord</span>
+        </a>
+    </div>
+{% endif %}
+{% endblock %}
