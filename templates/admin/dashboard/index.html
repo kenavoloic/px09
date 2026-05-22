@@ -1,0 +1,286 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | {{ site_title|default:"Django site admin" }}{% endblock %}
+
+{% block extrahead %}
+    <link rel="stylesheet" href="{% static 'admin/css/custom-dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    
+    <!-- En-tête du dashboard -->
+    <div class="dashboard-header">
+        <div class="welcome-section">
+            <h1>🎨 Tableau de bord</h1>
+            <p>Vue d'ensemble de votre portfolio photographique</p>
+        </div>
+        <div class="dashboard-date">
+            {% now "j F Y" %}
+        </div>
+    </div>
+
+    <!-- Statistiques principales -->
+    <div class="stats-grid">
+        <div class="stat-card stat-blue">
+            <div class="stat-icon">🖼️</div>
+            <div class="stat-content">
+                <h3>{{ stats.galeries.total }}</h3>
+                <p>Galerie{% if stats.galeries.total > 1 %}s{% endif %}</p>
+                <small>{{ stats.galeries.publiques }} publique{% if stats.galeries.publiques > 1 %}s{% endif %} • {{ stats.galeries.privees }} privée{% if stats.galeries.privees > 1 %}s{% endif %}</small>
+            </div>
+        </div>
+        
+        <div class="stat-card stat-green">
+            <div class="stat-icon">📷</div>
+            <div class="stat-content">
+                <h3>{{ stats.photos.total }}</h3>
+                <p>Photo{% if stats.photos.total > 1 %}s{% endif %}</p>
+                <small>{{ stats.photos.publiques }} publique{% if stats.photos.publiques > 1 %}s{% endif %} • {{ stats.photos.directes }} directe{% if stats.photos.directes > 1 %}s{% endif %}</small>
+            </div>
+        </div>
+        
+        <div class="stat-card stat-purple">
+            <div class="stat-icon">📁</div>
+            <div class="stat-content">
+                <h3>{{ stats.collections.total }}</h3>
+                <p>Collection{% if stats.collections.total > 1 %}s{% endif %}</p>
+                <small>{{ stats.collections.publiques }} publique{% if stats.collections.publiques > 1 %}s{% endif %}</small>
+            </div>
+        </div>
+        
+        <div class="stat-card stat-orange">
+            <div class="stat-icon">🛒</div>
+            <div class="stat-content">
+                <h3>{{ commandes_stats.total }}</h3>
+                <p>Commande{% if commandes_stats.total > 1 %}s{% endif %}</p>
+                <small>{{ commandes_stats.en_cours }} en cours • {{ commandes_stats.livrees }} livrée{% if commandes_stats.livrees > 1 %}s{% endif %}</small>
+            </div>
+        </div>
+        
+        <div class="stat-card stat-teal">
+            <div class="stat-icon">💾</div>
+            <div class="stat-content">
+                <h3>{{ stats.stockage.taille_totale }}</h3>
+                <p>Stockage</p>
+                <small>Total utilisé</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="dashboard-section">
+        <h2>⚡ Actions rapides</h2>
+        <div class="actions-grid">
+            {% for action in actions_rapides %}
+            <a href="{% url action.url %}" class="action-card action-{{ action.couleur }}">
+                <div class="action-content">
+                    <h3>{{ action.titre }}</h3>
+                    <p>{{ action.description }}</p>
+                </div>
+                <div class="action-arrow">→</div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Alertes et points d'attention -->
+    {% if galeries_attention.galeries_vides or galeries_attention.galeries_sans_couverture or galeries_attention.photos_sans_titre or acces_prives.acces_expirant or commandes_stats.expirant %}
+    <div class="dashboard-section">
+        <h2>⚠️ Points d'attention</h2>
+        <div class="alerts-grid">
+            
+            {% if galeries_attention.galeries_vides %}
+            <div class="alert-card alert-warning">
+                <div class="alert-icon">📭</div>
+                <div class="alert-content">
+                    <h3>{{ galeries_attention.galeries_vides.count }} galerie{% if galeries_attention.galeries_vides.count > 1 %}s{% endif %} vide{% if galeries_attention.galeries_vides.count > 1 %}s{% endif %}</h3>
+                    <p>Ces galeries n'ont aucune photo</p>
+                    <div class="alert-items">
+                        {% for galerie in galeries_attention.galeries_vides|slice:":3" %}
+                        <span class="alert-item">{{ galerie.nom }}</span>
+                        {% endfor %}
+                        {% if galeries_attention.galeries_vides.count > 3 %}
+                        <span class="alert-more">+{{ galeries_attention.galeries_vides.count|add:"-3" }} autres...</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if galeries_attention.galeries_sans_couverture %}
+            <div class="alert-card alert-info">
+                <div class="alert-icon">🖼️</div>
+                <div class="alert-content">
+                    <h3>{{ galeries_attention.galeries_sans_couverture.count }} galerie{% if galeries_attention.galeries_sans_couverture.count > 1 %}s{% endif %} sans couverture</h3>
+                    <p>Définissez une photo de couverture</p>
+                    <div class="alert-items">
+                        {% for galerie in galeries_attention.galeries_sans_couverture|slice:":3" %}
+                        <span class="alert-item">{{ galerie.nom }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if galeries_attention.photos_sans_titre %}
+            <div class="alert-card alert-info">
+                <div class="alert-icon">🏷️</div>
+                <div class="alert-content">
+                    <h3>{{ galeries_attention.photos_sans_titre }} photo{% if galeries_attention.photos_sans_titre > 1 %}s{% endif %} sans titre</h3>
+                    <p>Dans des galeries publiques</p>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if acces_prives.acces_expirant %}
+            <div class="alert-card alert-urgent">
+                <div class="alert-icon">⏰</div>
+                <div class="alert-content">
+                    <h3>{{ acces_prives.acces_expirant.count }} accès expirant{% if acces_prives.acces_expirant.count > 1 %}s{% endif %}</h3>
+                    <p>Dans les 7 prochains jours</p>
+                    <div class="alert-items">
+                        {% for acces in acces_prives.acces_expirant|slice:":3" %}
+                        <span class="alert-item">{{ acces.galerie.nom }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if commandes_stats.expirant %}
+            <div class="alert-card alert-urgent">
+                <div class="alert-icon">⏰</div>
+                <div class="alert-content">
+                    <h3>{{ commandes_stats.expirant.count }} commande{% if commandes_stats.expirant.count > 1 %}s{% endif %} expirant{% if commandes_stats.expirant.count > 1 %}s{% endif %}</h3>
+                    <p>Dans les 7 prochains jours</p>
+                    <div class="alert-items">
+                        {% for commande in commandes_stats.expirant|slice:":3" %}
+                        <span class="alert-item">{{ commande.reference }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Activité récente et accès privés -->
+    <div class="dashboard-row">
+        
+        <!-- Activité récente -->
+        <div class="dashboard-section dashboard-half">
+            <h2>📈 Activité récente</h2>
+            
+            {% if activite_recente.photos_recentes %}
+            <div class="activity-section">
+                <h3>Photos ajoutées (7 derniers jours)</h3>
+                <div class="activity-list">
+                    {% for photo in activite_recente.photos_recentes|slice:":5" %}
+                    <div class="activity-item">
+                        <div class="activity-icon">📷</div>
+                        <div class="activity-content">
+                            <strong>{{ photo.get_titre_affichage }}</strong>
+                            <small>{{ photo.galerie.nom }}{% if photo.collection %} › {{ photo.collection.nom }}{% endif %}</small>
+                            <span class="activity-date">{{ photo.cree_le|timesince }} ago</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if activite_recente.galeries_recentes %}
+            <div class="activity-section">
+                <h3>Galeries modifiées</h3>
+                <div class="activity-list">
+                    {% for galerie in activite_recente.galeries_recentes %}
+                    <div class="activity-item">
+                        <div class="activity-icon">🖼️</div>
+                        <div class="activity-content">
+                            <strong>{{ galerie.nom }}</strong>
+                            <span class="activity-date">{{ galerie.modifie_le|timesince }} ago</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Accès privés -->
+        <div class="dashboard-section dashboard-half">
+            <h2>🔐 Accès privés</h2>
+            
+            <div class="access-stats">
+                <div class="access-stat">
+                    <strong>{{ acces_prives.acces_actifs }}</strong>
+                    <span>Accès actifs</span>
+                </div>
+                <div class="access-stat">
+                    <strong>{{ acces_prives.visiteurs_actifs }}</strong>
+                    <span>Visiteurs autorisés</span>
+                </div>
+            </div>
+            
+            {% if activite_recente.acces_recents %}
+            <div class="activity-section">
+                <h3>Accès récents</h3>
+                <div class="activity-list">
+                    {% for visiteur in activite_recente.acces_recents %}
+                    <div class="activity-item">
+                        <div class="activity-icon">👤</div>
+                        <div class="activity-content">
+                            <strong>{{ visiteur.email }}</strong>
+                            <small>{{ visiteur.acces_galerie.galerie.nom }}</small>
+                            <span class="activity-date">{{ visiteur.date_dernier_acces|timesince }} ago</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Liens vers sections détaillées -->
+    <div class="dashboard-section">
+        <h2>📋 Gestion détaillée</h2>
+        <div class="management-links">
+            <a href="{% url 'admin:galeries_galerie_changelist' %}" class="management-link">
+                <span class="management-icon">🖼️</span>
+                <span class="management-text">Gérer les galeries</span>
+                <span class="management-count">{{ stats.galeries.total }}</span>
+            </a>
+            <a href="{% url 'admin:galeries_photo_changelist' %}" class="management-link">
+                <span class="management-icon">📷</span>
+                <span class="management-text">Gérer les photos</span>
+                <span class="management-count">{{ stats.photos.total }}</span>
+            </a>
+            <a href="{% url 'admin:galeries_collection_changelist' %}" class="management-link">
+                <span class="management-icon">📁</span>
+                <span class="management-text">Gérer les collections</span>
+                <span class="management-count">{{ stats.collections.total }}</span>
+            </a>
+            <a href="{% url 'admin:galeries_accesgalerie_changelist' %}" class="management-link">
+                <span class="management-icon">🔐</span>
+                <span class="management-text">Gérer les accès privés</span>
+                <span class="management-count">{{ acces_prives.acces_actifs }}</span>
+            </a>
+            <a href="{% url 'admin:commandes_commande_changelist' %}" class="management-link">
+                <span class="management-icon">🛒</span>
+                <span class="management-text">Gérer les commandes</span>
+                <span class="management-count">{{ commandes_stats.total }}</span>
+            </a>
+            <a href="{% url 'admin:commandes_client_changelist' %}" class="management-link">
+                <span class="management-icon">👥</span>
+                <span class="management-text">Gérer les clients</span>
+                <span class="management-count">{{ commandes_stats.clients }}</span>
+            </a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

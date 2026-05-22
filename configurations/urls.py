@@ -5,10 +5,11 @@ URL configuration for Django project.
 from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
+from galeries.admin_dashboard import custom_admin_site
 
 urlpatterns = [
     path(f"{settings.ADMIN_URL}/galeries/", include("galeries.admin_urls")),
-    path(f"{settings.ADMIN_URL}/", admin.site.urls),
+    path(f"{settings.ADMIN_URL}/", custom_admin_site.urls),
     path("", include("accueil.urls")),
     path("", include("galeries.urls")),
     path("commande/", include("commandes.urls")),
