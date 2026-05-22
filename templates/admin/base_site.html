@@ -5,12 +5,62 @@
 
 {% block extrahead %}
 <style>
+/* Variables CSS pour cohérence thème */
+:root {
+    --admin-bg-primary: #ffffff;
+    --admin-text-primary: #333333;
+    --admin-accent: #417690;
+    --admin-accent-hover: #205067;
+}
+
+[data-theme="dark"] {
+    --admin-bg-primary: #1a1a1a;
+    --admin-text-primary: #ffffff;
+    --admin-accent: #4a9eff;
+    --admin-accent-hover: #2563eb;
+}
+
+/* Adapter l'interface admin de base */
+[data-theme="dark"] #header {
+    background: var(--admin-bg-primary) !important;
+    border-bottom: 1px solid #404040 !important;
+}
+
+[data-theme="dark"] #header h1,
+[data-theme="dark"] #header h1 a {
+    color: var(--admin-text-primary) !important;
+}
+
+[data-theme="dark"] #nav-sidebar {
+    background: var(--admin-bg-primary) !important;
+    border-right: 1px solid #404040 !important;
+}
+
+[data-theme="dark"] #nav-sidebar .current-app {
+    background: #2d2d2d !important;
+}
+
+[data-theme="dark"] #nav-sidebar a {
+    color: var(--admin-text-primary) !important;
+}
+
+[data-theme="dark"] #content {
+    background: var(--admin-bg-primary) !important;
+    color: var(--admin-text-primary) !important;
+}
+
+[data-theme="dark"] .module caption,
+[data-theme="dark"] .module h2 {
+    background: #2d2d2d !important;
+    color: var(--admin-text-primary) !important;
+}
+
 .dashboard-link {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
-    background: #417690;
+    background: var(--admin-accent);
     color: white;
     text-decoration: none;
     border-radius: 4px;
@@ -21,7 +71,7 @@
 }
 
 .dashboard-link:hover {
-    background: #205067;
+    background: var(--admin-accent-hover);
     color: white;
     text-decoration: none;
 }
@@ -41,7 +91,23 @@
         text-align: center;
     }
 }
+
+/* Transitions pour le changement de thème */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
 </style>
+
+<!-- Script pour persister le thème sur toute l'interface admin -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Appliquer le thème sauvegardé à toute l'interface admin
+    const savedTheme = localStorage.getItem('admin-theme');
+    if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+});
+</script>
 {% endblock %}
 
 {% block branding %}
