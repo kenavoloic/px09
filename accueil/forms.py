@@ -34,7 +34,7 @@ class ContactForm(forms.Form):
     sujet = forms.ChoiceField(
         choices=SUJET_CHOICES,
         widget=forms.Select(attrs={
-            'class': 'form-select floating-input'
+            'class': 'form-select floating-input hidden-select'
         })
     )
 

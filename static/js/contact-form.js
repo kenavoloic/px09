@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setupCharacterCounter();
         setupFormSubmission();
         setupFieldInteractions();
+        setupCustomSelect();
     }
 
     // Labels flottants
@@ -270,6 +271,153 @@ document.addEventListener('DOMContentLoaded', function() {
                 input.parentElement.classList.remove('focused');
             });
         });
+    }
+
+    // Custom Select Component
+    function setupCustomSelect() {
+        const customSelect = contactForm.querySelector('.custom-select-wrapper');
+        if (!customSelect) return;
+
+        const trigger = customSelect.querySelector('.custom-select-trigger');
+        const options = customSelect.querySelector('.custom-select-options');
+        const hiddenSelect = customSelect.querySelector('.hidden-select');
+        const placeholderText = trigger.querySelector('.placeholder-text');
+        const selectedText = trigger.querySelector('.selected-text');
+
+        if (!trigger || !options || !hiddenSelect) return;
+
+        // Handle click on trigger
+        trigger.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleDropdown();
+        });
+
+        // Handle keyboard navigation
+        trigger.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleDropdown();
+            } else if (e.key === 'Escape') {
+                closeDropdown();
+            }
+        });
+
+        // Handle option selection
+        options.addEventListener('click', (e) => {
+            const option = e.target.closest('.select-option');
+            if (!option) return;
+
+            selectOption(option);
+        });
+
+        // Handle keyboard navigation in options
+        options.addEventListener('keydown', (e) => {
+            const currentOption = options.querySelector('.select-option:focus');
+            let nextOption = null;
+
+            switch (e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    nextOption = currentOption ? 
+                        currentOption.nextElementSibling : 
+                        options.querySelector('.select-option');
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    nextOption = currentOption ? 
+                        currentOption.previousElementSibling : 
+                        options.querySelector('.select-option:last-child');
+                    break;
+                case 'Enter':
+                case ' ':
+                    e.preventDefault();
+                    if (currentOption) selectOption(currentOption);
+                    break;
+                case 'Escape':
+                    closeDropdown();
+                    trigger.focus();
+                    break;
+            }
+
+            if (nextOption) {
+                nextOption.focus();
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!customSelect.contains(e.target)) {
+                closeDropdown();
+            }
+        });
+
+        function toggleDropdown() {
+            const isOpen = trigger.getAttribute('aria-expanded') === 'true';
+            
+            if (isOpen) {
+                closeDropdown();
+            } else {
+                openDropdown();
+            }
+        }
+
+        function openDropdown() {
+            trigger.setAttribute('aria-expanded', 'true');
+            options.classList.remove('hidden');
+            
+            // Focus first option if none selected
+            const selectedOption = options.querySelector('.select-option.selected');
+            const firstOption = options.querySelector('.select-option');
+            
+            if (selectedOption) {
+                selectedOption.focus();
+            } else if (firstOption) {
+                firstOption.focus();
+            }
+        }
+
+        function closeDropdown() {
+            trigger.setAttribute('aria-expanded', 'false');
+            options.classList.add('hidden');
+        }
+
+        function selectOption(option) {
+            const value = option.dataset.value;
+            const text = option.querySelector('.option-text').textContent;
+
+            // Update hidden select
+            hiddenSelect.value = value;
+
+            // Update visual state
+            selectedText.textContent = text;
+            trigger.classList.add('has-selection');
+
+            // Update selected option
+            options.querySelectorAll('.select-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            option.classList.add('selected');
+
+            // Close dropdown
+            closeDropdown();
+            trigger.focus();
+
+            // Trigger validation
+            validateField(hiddenSelect);
+
+            // Trigger change event for form handling
+            const changeEvent = new Event('change', { bubbles: true });
+            hiddenSelect.dispatchEvent(changeEvent);
+        }
+
+        // Initialize with existing value if any
+        const initialValue = hiddenSelect.value;
+        if (initialValue) {
+            const option = options.querySelector(`[data-value="${initialValue}"]`);
+            if (option) {
+                selectOption(option);
+            }
+        }
     }
 
     // API publique pour le debug

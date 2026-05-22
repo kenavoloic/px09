@@ -82,7 +82,34 @@
           </div>
 
           <div class="form-group floating-group">
-            {{ form.sujet }}
+            <div class="custom-select-wrapper">
+              <button type="button" class="custom-select-trigger floating-input" id="custom-sujet-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="placeholder-text">Choisir le sujet de votre message</span>
+                <span class="selected-text hidden"></span>
+                <svg class="select-arrow" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 8l4 4 4-4"/>
+                </svg>
+              </button>
+              <ul class="custom-select-options hidden" role="listbox" id="custom-sujet-options">
+                <li class="select-option" data-value="devis" role="option">
+                  <span class="option-icon">💼</span>
+                  <span class="option-text">Demande de devis</span>
+                </li>
+                <li class="select-option" data-value="info" role="option">
+                  <span class="option-icon">ℹ️</span>
+                  <span class="option-text">Demande d'information</span>
+                </li>
+                <li class="select-option" data-value="rdv" role="option">
+                  <span class="option-icon">📅</span>
+                  <span class="option-text">Prise de rendez-vous</span>
+                </li>
+                <li class="select-option" data-value="autre" role="option">
+                  <span class="option-icon">💭</span>
+                  <span class="option-text">Autre</span>
+                </li>
+              </ul>
+              {{ form.sujet }}
+            </div>
             <label for="{{ form.sujet.id_for_label }}" class="form-label floating-label">Sujet *</label>
             <div class="form-status"></div>
             {% if form.sujet.errors %}

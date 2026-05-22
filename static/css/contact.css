@@ -490,3 +490,145 @@
 .floating-input.form-select:focus {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23your-accent-color' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
 }
+
+/* Custom Select Component */
+.custom-select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select-trigger {
+  width: 100%;
+  padding: 1rem;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text);
+  font-size: 0.95rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+  outline: none;
+}
+
+.custom-select-trigger .placeholder-text {
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+.custom-select-trigger .selected-text {
+  color: var(--color-text);
+}
+
+.custom-select-trigger.has-selection .placeholder-text {
+  display: none;
+}
+
+.custom-select-trigger.has-selection .selected-text {
+  display: block;
+}
+
+.select-arrow {
+  color: var(--color-muted);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.custom-select-trigger[aria-expanded="true"] .select-arrow {
+  transform: rotate(180deg);
+}
+
+.custom-select-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.custom-select-options.hidden {
+  display: none;
+}
+
+.select-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.select-option:last-child {
+  border-bottom: none;
+}
+
+.select-option:hover,
+.select-option:focus {
+  background: var(--color-surface);
+}
+
+.select-option.selected {
+  background: var(--color-accent-alpha);
+  color: var(--color-accent);
+}
+
+.option-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.option-text {
+  flex: 1;
+  font-weight: 500;
+}
+
+.hidden-select {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Focus state for custom select */
+.floating-group:has(.custom-select-trigger:focus) {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-alpha);
+  transform: translateY(-1px);
+}
+
+/* Label animation for custom select */
+.custom-select-trigger:focus + .floating-label,
+.custom-select-trigger.has-selection + .floating-label {
+  top: -0.5rem;
+  transform: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .custom-select-options {
+    max-height: 160px;
+  }
+  
+  .select-option {
+    padding: 0.875rem;
+  }
+  
+  .option-icon {
+    font-size: 1rem;
+  }
+}
