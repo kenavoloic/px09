@@ -40,7 +40,7 @@
       {% if collection.date_evenement %}
         <span class="page-date">{{ collection.date_evenement|date:"F Y"|capfirst }}</span>
       {% endif %}
-      <span class="page-photos">{{ photos|length }} photos</span>
+      <span class="page-photos">{% with count=photos|length %}{{ count }} photo{% if count > 1 %}s{% endif %}{% endwith %}</span>
       {% if collection.lieu %}
         <span class="page-location">{{ collection.lieu }}</span>
       {% endif %}

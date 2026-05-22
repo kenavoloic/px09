@@ -42,15 +42,15 @@
     <span class="page-meta reveal reveal-d2">
       {% if galerie.a_des_collections %}
         {% if est_prive %}
-          {{ collections|length }} collections · {{ galerie.get_total_photos }} photos
+          {% with c_count=collections|length t_count=galerie.get_total_photos %}{{ c_count }} collection{% if c_count > 1 %}s{% endif %} · {{ t_count }} photo{% if t_count > 1 %}s{% endif %}{% endwith %}
         {% else %}
-          {{ collections|length }} collections · {{ galerie.get_total_photos }} photos
+          {% with c_count=collections|length t_count=galerie.get_total_photos %}{{ c_count }} collection{% if c_count > 1 %}s{% endif %} · {{ t_count }} photo{% if t_count > 1 %}s{% endif %}{% endwith %}
         {% endif %}
       {% else %}
         {% if est_prive %}
-          {{ galerie.photos.count }} photos
+          {% with count=galerie.photos.count %}{{ count }} photo{% if count > 1 %}s{% endif %}{% endwith %}
         {% else %}
-          {{ galerie.get_photos_directes_publiques.count }} photos
+          {% with count=galerie.get_photos_directes_publiques.count %}{{ count }} photo{% if count > 1 %}s{% endif %}{% endwith %}
         {% endif %}
       {% endif %}
     </span>
@@ -70,7 +70,7 @@
         <div class="collection-body">
           <div>
             <div class="collection-title">{{ collection.nom }}</div>
-            <div class="collection-meta">{{ collection.photos.count }} photos</div>
+            <div class="collection-meta">{% with count=collection.photos.count %}{{ count }} photo{% if count > 1 %}s{% endif %}{% endwith %}</div>
             {% if collection.date_evenement %}
               <div class="collection-date">{{ collection.date_evenement|date:"F Y"|capfirst }}</div>
             {% endif %}

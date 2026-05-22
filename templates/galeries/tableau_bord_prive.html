@@ -235,9 +235,9 @@
               
               <div class="gallery-stats">
                 {% if galerie.a_des_collections %}
-                  {{ galerie.get_collections_publiques.count }} collections • {{ galerie.get_total_photos }} photos
+                  {% with c_count=galerie.get_collections_publiques.count p_count=galerie.get_total_photos %}{{ c_count }} collection{% if c_count > 1 %}s{% endif %} • {{ p_count }} photo{% if p_count > 1 %}s{% endif %}{% endwith %}
                 {% else %}
-                  {{ galerie.photos.count }} photos
+                  {% with count=galerie.photos.count %}{{ count }} photo{% if count > 1 %}s{% endif %}{% endwith %}
                 {% endif %}
               </div>
               
