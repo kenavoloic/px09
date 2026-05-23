@@ -759,9 +759,13 @@ class PhotoVersionAdmin(admin.ModelAdmin):
 @admin.register(ConfigurationSite)
 class ConfigurationSiteAdmin(admin.ModelAdmin):
     fieldsets = (
-        (None, {
+        ('Affichage', {
             'fields': ('affichage_titre_vide',),
-            'description': 'Configuration globale pour l\'affichage des photos sans titre personnalisé.'
+            'description': 'Configuration pour l\'affichage des photos sans titre personnalisé.'
+        }),
+        ('Langue', {
+            'fields': ('langue',),
+            'description': 'Configuration de la langue par défaut de l\'application.'
         }),
     )
 

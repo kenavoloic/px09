@@ -28,12 +28,25 @@ class ConfigurationSite(models.Model):
         ('vide', 'Afficher une chaîne vide'),
     ]
 
+    LANGUE_CHOICES = [
+        ('fr', 'Français'),
+        ('en', 'English'),
+    ]
+
     affichage_titre_vide = models.CharField(
         max_length=20,
         choices=AFFICHAGE_TITRE_CHOICES,
         default='sans_titre',
         help_text="Comment afficher les photos sans titre personnalisé",
         verbose_name="Affichage des photos sans titre"
+    )
+
+    langue = models.CharField(
+        max_length=10,
+        choices=LANGUE_CHOICES,
+        default='fr',
+        help_text="Langue par défaut de l'application",
+        verbose_name="Langue de l'application"
     )
 
     class Meta:
