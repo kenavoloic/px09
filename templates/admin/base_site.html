@@ -20,6 +20,7 @@
     --admin-accent-hover: #2563eb;
 }
 
+
 /* Adapter l'interface admin de base */
 [data-theme="dark"] #header {
     background: var(--admin-bg-primary) !important;
@@ -186,6 +187,14 @@ document.addEventListener('DOMContentLoaded', function() {
     </a>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block header %}
+{# Suppression complète du header #}
+{% endblock %}
+
+{% block breadcrumbs %}
+{# Suppression complète des breadcrumbs #}
 {% endblock %}
 
 {% block nav-sidebar %}
