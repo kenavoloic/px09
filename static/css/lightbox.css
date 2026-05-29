@@ -1,0 +1,377 @@
+/* ============================================================
+   LIGHTBOX.CSS — Lightbox moderne pour galeries photo
+   ============================================================ */
+
+.lightbox {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.lightbox.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.lightbox-container {
+  position: relative;
+  max-width: 95vw;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease;
+  cursor: zoom-in;
+}
+
+.lightbox-image.zoomed {
+  cursor: zoom-out;
+  transform: scale(2);
+}
+
+/* Boutons de navigation */
+.lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.lightbox-nav:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.lightbox-nav:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.lightbox-prev {
+  left: 30px;
+}
+
+.lightbox-next {
+  right: 30px;
+}
+
+.lightbox-nav:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Bouton de fermeture */
+.lightbox-close {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: bold;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.1);
+}
+
+.lightbox-close:active {
+  transform: scale(0.95);
+}
+
+/* Overlay d'informations */
+.lightbox-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  color: white;
+  padding: 60px 30px 30px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.lightbox-info.visible {
+  transform: translateY(0);
+}
+
+.lightbox-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.lightbox-meta {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.lightbox-description {
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
+  max-width: 600px;
+}
+
+.lightbox-counter {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Loader pour les images */
+.lightbox-loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid white;
+  border-radius: 50%;
+  animation: lightbox-spin 1s linear infinite;
+}
+
+@keyframes lightbox-spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Bouton de zoom */
+.lightbox-zoom {
+  position: absolute;
+  bottom: 30px;
+  right: 30px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.lightbox-zoom:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.1);
+}
+
+/* Bouton d'info toggle */
+.lightbox-info-toggle {
+  position: absolute;
+  bottom: 30px;
+  left: 30px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.lightbox-info-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.1);
+}
+
+.lightbox-info-toggle.active {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .lightbox-container {
+    max-width: 98vw;
+    max-height: 85vh;
+  }
+  
+  .lightbox-nav {
+    width: 45px;
+    height: 45px;
+    font-size: 16px;
+  }
+  
+  .lightbox-prev {
+    left: 15px;
+  }
+  
+  .lightbox-next {
+    right: 15px;
+  }
+  
+  .lightbox-close {
+    top: 15px;
+    right: 15px;
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  
+  .lightbox-counter {
+    top: 15px;
+    left: 15px;
+    font-size: 0.8rem;
+    padding: 6px 12px;
+  }
+  
+  .lightbox-info {
+    padding: 40px 20px 20px;
+  }
+  
+  .lightbox-title {
+    font-size: 1.2rem;
+  }
+  
+  .lightbox-zoom,
+  .lightbox-info-toggle {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+  }
+  
+  .lightbox-zoom {
+    bottom: 20px;
+    right: 20px;
+  }
+  
+  .lightbox-info-toggle {
+    bottom: 20px;
+    left: 20px;
+  }
+}
+
+/* Animation d'entrée/sortie */
+.lightbox-container {
+  animation: lightbox-zoom-in 0.3s ease;
+}
+
+.lightbox.closing .lightbox-container {
+  animation: lightbox-zoom-out 0.3s ease;
+}
+
+@keyframes lightbox-zoom-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes lightbox-zoom-out {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+/* Préchargement des images */
+.lightbox-preload {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Support du mode sombre */
+@media (prefers-color-scheme: dark) {
+  .lightbox {
+    background: rgba(0, 0, 0, 0.98);
+  }
+}
+
+/* Désactiver le scroll du body quand le lightbox est ouvert */
+body.lightbox-open {
+  overflow: hidden;
+}
