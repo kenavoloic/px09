@@ -20,21 +20,10 @@
     --admin-accent-hover: #2563eb;
 }
 
-
 /* Adapter l'interface admin de base */
-[data-theme="dark"] #header {
-    background: var(--admin-bg-primary) !important;
-    border-bottom: 1px solid #404040 !important;
-}
-
-[data-theme="dark"] #header h1,
-[data-theme="dark"] #header h1 a {
-    color: var(--admin-text-primary) !important;
-}
-
 [data-theme="dark"] #nav-sidebar {
     background: var(--admin-bg-primary) !important;
-    border-right: 1px solid #404040 !important;
+    border-right: 0.0625rem solid #404040 !important;
 }
 
 [data-theme="dark"] #nav-sidebar .current-app {
@@ -56,109 +45,38 @@
     color: var(--admin-text-primary) !important;
 }
 
-.dashboard-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 12px;
-    background: linear-gradient(135deg, var(--admin-accent) 0%, var(--admin-accent-hover) 100%);
-    color: white;
-    text-decoration: none;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    transition: all 0.3s ease;
-    margin-left: 16px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border: none;
-    position: relative;
-    overflow: hidden;
-}
-
-.dashboard-link:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: left 0.5s;
-}
-
-.dashboard-link:hover:before {
-    left: 100%;
-}
-
-.dashboard-link:hover {
-    background: linear-gradient(135deg, var(--admin-accent-hover) 0%, var(--admin-accent) 100%);
-    color: white;
-    text-decoration: none;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.dashboard-link:visited {
-    color: white;
-}
-
-.dashboard-link:focus {
-    outline: 2px solid rgba(255, 255, 255, 0.3);
-    outline-offset: 2px;
-}
-
-.dashboard-icon {
-    width: 14px;
-    height: 14px;
-    transition: transform 0.3s ease;
-    flex-shrink: 0;
-}
-
-.dashboard-link:hover .dashboard-icon {
-    transform: scale(1.1) rotate(5deg);
-}
-
-/* Style pour la sidebar */
 .dashboard-link.sidebar-style {
     width: 100%;
     justify-content: center;
     margin: 0;
     background: var(--admin-bg-primary);
     color: var(--admin-text-primary);
-    border: 2px solid var(--admin-accent);
+    border: 0.125rem solid var(--admin-accent);
     box-shadow: none;
     font-size: 0.75rem;
     padding: 0.5rem 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    text-decoration: none;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
 
 .dashboard-link.sidebar-style .dashboard-icon {
     width: 0.75rem;
     height: 0.75rem;
+    flex-shrink: 0;
 }
 
 .dashboard-link.sidebar-style:hover {
     background: var(--admin-accent);
     color: white;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.dashboard-link.sidebar-style:before {
-    background: linear-gradient(90deg, transparent, var(--admin-accent), transparent);
-    opacity: 0.1;
-}
-
-@media (max-width: 768px) {
-    .dashboard-link {
-        margin: 10px 0 0 0;
-        display: block;
-        text-align: center;
-        width: auto;
-        padding: 10px 16px;
-        font-size: 11px;
-    }
+    transform: translateY(-0.0625rem);
+    box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.1);
+    text-decoration: none;
 }
 
 /* Transitions pour le changement de thème */
@@ -170,7 +88,6 @@
 <!-- Script pour persister le thème sur toute l'interface admin -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Appliquer le thème sauvegardé à toute l'interface admin
     const savedTheme = localStorage.getItem('admin-theme');
     if (savedTheme) {
         document.documentElement.setAttribute('data-theme', savedTheme);
@@ -180,20 +97,9 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endblock %}
 
 {% block branding %}
-<div style="display: flex; align-items: center; flex-wrap: wrap;">
-    <h1 id="site-name">
-        <a href="{% url 'admin:index' %}">{{ site_header|default:"Django administration" }}</a>
-    </h1>
-    {% if not is_nav_sidebar_enabled %}
-    <a href="{% url 'admin:index' %}" class="dashboard-link">
-        <svg class="dashboard-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-            <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-        </svg>
-        <span>Tableau de bord</span>
-    </a>
-    {% endif %}
-</div>
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">{{ site_header|default:"Django administration" }}</a>
+</h1>
 {% endblock %}
 
 {% block header %}
@@ -207,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
 {% block nav-sidebar %}
 {% if is_nav_sidebar_enabled %}
     {{ block.super }}
-    <div style="padding: 16px; border-top: 1px solid var(--border-color, #e1e5e9);">
+    <div style="padding: 1rem; border-top: 0.0625rem solid var(--border-color, #e1e5e9);">
         <a href="{% url 'admin:index' %}" class="dashboard-link sidebar-style">
             <svg class="dashboard-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>

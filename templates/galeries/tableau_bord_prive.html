@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="{% static 'css/gallery.css' %}" />
 <style>
 .dashboard-container {
-  max-width: 1200px;
+  max-width: 75rem;
   margin: 0 auto;
   padding: clamp(3rem, 6vw, 5rem) clamp(1.25rem, 5vw, 3rem);
 }
@@ -48,14 +48,14 @@
 
 .galleries-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(18.75rem, 1fr));
   gap: 1.5rem;
 }
 
 .gallery-card {
   background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  border: 0.0625rem solid var(--border);
+  border-radius: 0.5rem;
   overflow: hidden;
   text-decoration: none;
   color: inherit;
@@ -63,8 +63,8 @@
 }
 
 .gallery-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  transform: translateY(-0.25rem);
+  box-shadow: 0 0.5rem 1.5625rem rgba(0,0,0,0.1);
   border-color: var(--accent);
 }
 
@@ -90,8 +90,8 @@
   width: 100%;
   height: 100%;
   background: repeating-linear-gradient(
-    -45deg, var(--bg3) 0px, var(--bg3) 1px,
-    var(--bg2) 1px, var(--bg2) 12px
+    -45deg, var(--bg3) 0rem, var(--bg3) 0.0625rem,
+    var(--bg2) 0.0625rem, var(--bg2) 0.75rem
   );
   display: flex;
   align-items: center;
@@ -123,7 +123,7 @@
 }
 
 .current-gallery {
-  border: 2px solid var(--accent);
+  border: 0.125rem solid var(--accent);
   background: rgba(var(--accent-rgb), 0.05);
 }
 
@@ -132,7 +132,7 @@
   background: var(--accent);
   color: white;
   padding: 0.25rem 0.75rem;
-  border-radius: 4px;
+  border-radius: 0.25rem;
   font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -143,17 +143,17 @@
 .logout-section {
   text-align: center;
   padding-top: 3rem;
-  border-top: 1px solid var(--border);
+  border-top: 0.0625rem solid var(--border);
 }
 
 .btn-logout {
   display: inline-block;
   padding: 0.75rem 2rem;
   background: var(--bg2);
-  border: 1px solid var(--border);
+  border: 0.0625rem solid var(--border);
   color: var(--fg);
   text-decoration: none;
-  border-radius: 6px;
+  border-radius: 0.375rem;
   font-size: 0.9rem;
   transition: all 0.2s ease;
 }
@@ -164,7 +164,7 @@
   color: var(--accent);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 48rem) {
   .galleries-grid {
     grid-template-columns: 1fr;
     gap: 1rem;

@@ -6,56 +6,56 @@
 {% block extrahead %}
 <style>
 .upload-form {
-    max-width: 800px;
-    margin: 20px auto;
+    max-width: 50rem;
+    margin: 1.25rem auto;
     background: white;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 1.875rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.625rem rgba(0,0,0,0.1);
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 1.25rem;
 }
 
 .form-group label {
     display: block;
     font-weight: bold;
-    margin-bottom: 8px;
+    margin-bottom: 0.5rem;
     color: #333;
 }
 
 .form-group select,
 .form-group input[type="file"] {
     width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
+    padding: 0.625rem 0.75rem;
+    border: 0.0625rem solid #ccc;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
     line-height: 1.4;
-    min-height: 40px;
+    min-height: 2.5rem;
     background: white;
 }
 
 .upload-options {
-    margin-bottom: 15px;
+    margin-bottom: 0.9375rem;
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 0.9375rem;
 }
 
 .btn-browse {
     background: #417690;
     border: none;
     color: white;
-    padding: 10px 20px;
-    border-radius: 4px;
-    font-size: 14px;
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
     cursor: pointer;
     transition: background 0.3s ease;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 0.5rem;
 }
 
 .btn-browse:hover {
@@ -65,7 +65,7 @@
 .upload-separator {
     color: #6c757d;
     font-style: italic;
-    font-size: 14px;
+    font-size: 0.875rem;
 }
 
 .file-input-wrapper {
@@ -76,9 +76,9 @@
 
 .file-input-styled {
     background: #f8f9fa;
-    border: 2px dashed #dee2e6;
-    border-radius: 8px;
-    padding: 30px 20px;
+    border: 0.125rem dashed #dee2e6;
+    border-radius: 0.5rem;
+    padding: 1.875rem 1.25rem;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -103,33 +103,33 @@
 }
 
 .upload-icon {
-    font-size: 48px;
+    font-size: 3rem;
     color: #6c757d;
-    margin-bottom: 10px;
+    margin-bottom: 0.625rem;
 }
 
 .upload-text {
     color: #495057;
-    font-size: 16px;
-    margin-bottom: 5px;
+    font-size: 1rem;
+    margin-bottom: 0.3125rem;
 }
 
 .upload-hint {
     color: #6c757d;
-    font-size: 14px;
+    font-size: 0.875rem;
 }
 
 .file-list {
-    margin-top: 15px;
-    padding: 15px;
+    margin-top: 0.9375rem;
+    padding: 0.9375rem;
     background: #f8f9fa;
-    border-radius: 4px;
+    border-radius: 0.25rem;
     display: none;
 }
 
 .file-item {
-    padding: 8px 0;
-    border-bottom: 1px solid #dee2e6;
+    padding: 0.5rem 0;
+    border-bottom: 0.0625rem solid #dee2e6;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -146,16 +146,16 @@
 
 .file-size {
     color: #6c757d;
-    font-size: 12px;
+    font-size: 0.75rem;
 }
 
 .btn-primary {
     background: #417690;
     border: none;
     color: white;
-    padding: 12px 30px;
-    border-radius: 4px;
-    font-size: 16px;
+    padding: 0.75rem 1.875rem;
+    border-radius: 0.25rem;
+    font-size: 1rem;
     cursor: pointer;
     transition: background 0.3s ease;
 }
@@ -171,10 +171,10 @@
 
 .progress-bar {
     width: 100%;
-    height: 4px;
+    height: 0.25rem;
     background: #e9ecef;
-    border-radius: 2px;
-    margin-top: 10px;
+    border-radius: 0.125rem;
+    margin-top: 0.625rem;
     overflow: hidden;
     display: none;
 }
@@ -321,7 +321,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const totalSizeMB = (totalSize / 1024 / 1024).toFixed(1);
         html += `
-            <div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid #dee2e6; font-weight: bold;">
+            <div style="margin-top: 0.9375rem; padding-top: 0.9375rem; border-top: 0.125rem solid #dee2e6; font-weight: bold;">
                 Total : ${files.length} photo(s) • ${totalSizeMB} MB
             </div>
         `;
@@ -338,12 +338,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const files = fileInput.files;
         
         if (!galerie) {
-            alert('Veuillez sélectionner une galerie.');
+            showNotification('Veuillez sélectionner une galerie.', 'warning');
             return;
         }
         
         if (files.length === 0) {
-            alert('Veuillez sélectionner au moins une photo.');
+            showNotification('Veuillez sélectionner au moins une photo.', 'warning');
             return;
         }
 
@@ -376,13 +376,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Success - reload page to show messages
                 window.location.reload();
             } else {
-                alert('Erreur lors de l\'upload. Veuillez réessayer.');
+                showNotification('Erreur lors de l\'upload. Veuillez réessayer.', 'error');
                 resetForm();
             }
         });
 
         xhr.addEventListener('error', function() {
-            alert('Erreur de connexion. Veuillez réessayer.');
+            showNotification('Erreur de connexion. Veuillez réessayer.', 'error');
             resetForm();
         });
 
@@ -396,6 +396,32 @@ document.addEventListener('DOMContentLoaded', function() {
         progressBar.style.display = 'none';
         progressFill.style.width = '0%';
         updateBrowseButton(0);
+    }
+
+    function showNotification(message, type = 'info') {
+        // Créer la notification
+        const notification = document.createElement('div');
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 1.25rem;
+            right: 1.25rem;
+            background: ${type === 'error' ? '#dc3545' : type === 'warning' ? '#fd7e14' : '#0d6efd'};
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.25rem;
+            z-index: 1000;
+            box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.1);
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Supprimer après 3 secondes
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 3000);
     }
 });
 </script>

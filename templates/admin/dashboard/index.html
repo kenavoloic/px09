@@ -42,7 +42,7 @@
                 <span>Panneau d'administration</span>
             </a>
             
-            <form method="post" action="{% url 'admin:logout' %}" style="display: inline;">
+            <form method="post" action="{% url 'admin:logout' %}" class="inline-form">
                 {% csrf_token %}
                 <button type="submit" class="quick-nav-link nav-logout">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

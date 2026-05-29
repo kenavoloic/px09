@@ -523,6 +523,11 @@
     text-decoration: none;
 }
 
+/* Style pour les formulaires inline */
+.inline-form {
+    display: inline;
+}
+
 .management-icon {
     font-size: 1.2rem;
     opacity: 0.7;
