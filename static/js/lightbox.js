@@ -38,14 +38,7 @@ class ModernLightbox {
           <button class="lightbox-nav lightbox-prev" id="lightbox-prev" title="Photo précédente (←)">‹</button>
           <button class="lightbox-nav lightbox-next" id="lightbox-next" title="Photo suivante (→)">›</button>
           
-          <button class="lightbox-info-toggle" id="lightbox-info-toggle" title="Afficher/Masquer infos (I)">i</button>
           <button class="lightbox-zoom" id="lightbox-zoom" title="Zoom (Z)">⊕</button>
-          
-          <div class="lightbox-info" id="lightbox-info">
-            <div class="lightbox-title" id="lightbox-title"></div>
-            <div class="lightbox-meta" id="lightbox-meta"></div>
-            <div class="lightbox-description" id="lightbox-description"></div>
-          </div>
         </div>
         
         <!-- Conteneur pour précharger les images -->
@@ -63,12 +56,7 @@ class ModernLightbox {
     this.prevBtn = document.getElementById('lightbox-prev');
     this.nextBtn = document.getElementById('lightbox-next');
     this.closeBtn = document.getElementById('lightbox-close');
-    this.infoToggle = document.getElementById('lightbox-info-toggle');
     this.zoomBtn = document.getElementById('lightbox-zoom');
-    this.info = document.getElementById('lightbox-info');
-    this.title = document.getElementById('lightbox-title');
-    this.meta = document.getElementById('lightbox-meta');
-    this.description = document.getElementById('lightbox-description');
     this.preloadContainer = document.getElementById('lightbox-preload');
   }
   
@@ -76,8 +64,13 @@ class ModernLightbox {
     // Trouve tous les liens vers des photos dans les galeries
     const photoLinks = document.querySelectorAll('.photo-link, a[href*="/photo/"]');
     
-    this.photos = Array.from(photoLinks).map(link => {
+    console.log('Lightbox: Found', photoLinks.length, 'photo links');
+    console.log('Lightbox: First link href:', photoLinks[0]?.href);
+    console.log('Lightbox: Photo links:', Array.from(photoLinks).map(l => l.href));
+    
+    this.photos = Array.from(photoLinks).map((link, originalIndex) => {
       const img = link.querySelector('img');
+      console.log('Lightbox: Processing link', originalIndex, link.href);
       return {
         href: link.href,
         thumbnail: img ? img.src : null,
@@ -87,18 +80,35 @@ class ModernLightbox {
       };
     });
     
-    // Attache les événements de clic
+    // Attache les événements de clic avec debugging
     photoLinks.forEach((link, index) => {
+      console.log('Lightbox: Attaching click event to link', index, link.href);
+      
       link.addEventListener('click', (e) => {
         e.preventDefault();
+        console.log('Lightbox: CLICK DETECTED on photo', index, 'URL:', link.href);
         this.open(index);
       });
+      
+      // Test si le link est cliquable
+      link.style.cursor = 'pointer';
+      link.style.position = 'relative';
+      link.style.zIndex = '1';
     });
+    
+    if (photoLinks.length === 0) {
+      console.warn('Lightbox: No photo links found! Check selectors: .photo-link, a[href*="/photo/"]');
+    }
   }
   
   bindEvents() {
     // Fermeture
-    this.closeBtn.addEventListener('click', () => this.close());
+    this.closeBtn.addEventListener('click', (e) => {
+      console.log('Lightbox: Close button clicked');
+      e.preventDefault();
+      e.stopPropagation();
+      this.close();
+    });
     this.lightbox.addEventListener('click', (e) => {
       if (e.target === this.lightbox) this.close();
     });
@@ -121,8 +131,6 @@ class ModernLightbox {
       }
     });
     
-    // Toggle info
-    this.infoToggle.addEventListener('click', () => this.toggleInfo());
     
     // Clavier
     document.addEventListener('keydown', (e) => this.handleKeydown(e));
@@ -136,24 +144,87 @@ class ModernLightbox {
   }
   
   async open(index) {
+    console.log('Lightbox: Opening photo at index', index);
+    console.log('Lightbox: this.lightbox element:', this.lightbox);
+    console.log('Lightbox: document.body:', document.body);
+    
     this.currentIndex = index;
     this.isOpen = true;
     
+    if (!this.lightbox) {
+      console.error('Lightbox: No lightbox element found!');
+      return;
+    }
+    
+    console.log('Lightbox: Adding classes...');
     document.body.classList.add('lightbox-open');
     this.lightbox.classList.add('active');
     
+    // Force styles pour debug
+    this.lightbox.style.display = 'flex';
+    this.lightbox.style.opacity = '1';
+    this.lightbox.style.visibility = 'visible';
+    this.lightbox.style.zIndex = '99999';
+    this.lightbox.style.position = 'fixed';
+    this.lightbox.style.top = '0';
+    this.lightbox.style.left = '0';
+    this.lightbox.style.width = '100%';
+    this.lightbox.style.height = '100%';
+    this.lightbox.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
+    
+    console.log('Lightbox: Styles forcés:', {
+      display: this.lightbox.style.display,
+      opacity: this.lightbox.style.opacity,
+      visibility: this.lightbox.style.visibility,
+      zIndex: this.lightbox.style.zIndex
+    });
+    
+    // Force les boutons de navigation à être au premier plan
+    if (this.prevBtn) {
+      this.prevBtn.style.zIndex = '100000';
+      this.prevBtn.style.position = 'absolute';
+      this.prevBtn.style.pointerEvents = 'auto';
+      console.log('Lightbox: Prev button z-index forced');
+    }
+    
+    if (this.nextBtn) {
+      this.nextBtn.style.zIndex = '100000'; 
+      this.nextBtn.style.position = 'absolute';
+      this.nextBtn.style.pointerEvents = 'auto';
+      console.log('Lightbox: Next button z-index forced');
+    }
+    
+    if (this.closeBtn) {
+      this.closeBtn.style.zIndex = '100000';
+      this.closeBtn.style.position = 'absolute'; 
+      this.closeBtn.style.pointerEvents = 'auto';
+      console.log('Lightbox: Close button z-index forced');
+    }
+    
+    console.log('Lightbox: Loading photo...');
     await this.loadPhoto(index);
+    
+    console.log('Lightbox: Updating navigation and counter...');
     this.updateNavigation();
     this.updateCounter();
     this.preloadAdjacent();
+    
+    console.log('Lightbox: Should be open now!');
   }
   
   close() {
-    if (!this.isOpen) return;
+    console.log('Lightbox: close() method called');
     
+    if (!this.isOpen) {
+      console.log('Lightbox: Already closed, ignoring close request');
+      return;
+    }
+    
+    console.log('Lightbox: Closing lightbox...');
     this.lightbox.classList.add('closing');
     
     setTimeout(() => {
+      console.log('Lightbox: Removing classes and resetting state');
       this.isOpen = false;
       this.isZoomed = false;
       this.showInfo = false;
@@ -161,35 +232,51 @@ class ModernLightbox {
       document.body.classList.remove('lightbox-open');
       this.lightbox.classList.remove('active', 'closing');
       this.image.classList.remove('zoomed');
-      this.info.classList.remove('visible');
-      this.infoToggle.classList.remove('active');
+      
+      // Reset forced styles
+      this.lightbox.style.display = '';
+      this.lightbox.style.opacity = '';
+      this.lightbox.style.visibility = '';
+      
+      console.log('Lightbox: Closed successfully');
     }, 300);
   }
   
   async loadPhoto(index) {
-    if (index < 0 || index >= this.photos.length) return;
+    console.log('Lightbox: loadPhoto called with index', index);
+    
+    if (index < 0 || index >= this.photos.length) {
+      console.error('Lightbox: Invalid photo index', index, 'Total photos:', this.photos.length);
+      return;
+    }
     
     const photo = this.photos[index];
+    console.log('Lightbox: Loading photo:', photo);
+    
+    if (!this.loader || !this.image) {
+      console.error('Lightbox: Missing loader or image elements', {loader: this.loader, image: this.image});
+      return;
+    }
     
     this.loader.style.display = 'block';
     this.image.style.opacity = '0';
     
     try {
+      console.log('Lightbox: Getting image URL for:', photo.href);
       // Si c'est un lien vers une page photo, on doit extraire l'URL de l'image
       const imageUrl = await this.getPhotoImageUrl(photo.href);
+      console.log('Lightbox: Got image URL:', imageUrl);
       
       const img = new Image();
       img.onload = () => {
+        console.log('Lightbox: Image loaded successfully');
         this.image.src = imageUrl;
         this.image.alt = photo.alt;
         this.image.style.opacity = '1';
         this.loader.style.display = 'none';
-        
-        // Mise à jour des infos
-        this.updatePhotoInfo(photo);
       };
       img.onerror = () => {
-        console.error('Erreur de chargement de l\'image:', imageUrl);
+        console.error('Lightbox: Erreur de chargement de l\'image:', imageUrl);
         this.loader.style.display = 'none';
         this.image.src = photo.thumbnail || '';
         this.image.style.opacity = '0.5';
@@ -197,7 +284,7 @@ class ModernLightbox {
       img.src = imageUrl;
       
     } catch (error) {
-      console.error('Erreur:', error);
+      console.error('Lightbox: Erreur dans loadPhoto:', error);
       this.loader.style.display = 'none';
       this.image.src = photo.thumbnail || '';
       this.image.style.opacity = '0.5';
@@ -235,11 +322,6 @@ class ModernLightbox {
     }
   }
   
-  updatePhotoInfo(photo) {
-    this.title.textContent = photo.title;
-    this.meta.textContent = `Photo ${this.currentIndex + 1} sur ${this.photos.length}`;
-    this.description.textContent = photo.alt;
-  }
   
   updateNavigation() {
     this.prevBtn.disabled = this.currentIndex === 0;
@@ -276,11 +358,6 @@ class ModernLightbox {
     this.zoomBtn.textContent = this.isZoomed ? '⊖' : '⊕';
   }
   
-  toggleInfo() {
-    this.showInfo = !this.showInfo;
-    this.info.classList.toggle('visible', this.showInfo);
-    this.infoToggle.classList.toggle('active', this.showInfo);
-  }
   
   async preloadAdjacent() {
     const preloadIndexes = [this.currentIndex - 1, this.currentIndex + 1];
@@ -324,11 +401,6 @@ class ModernLightbox {
       case 'Z':
         e.preventDefault();
         this.toggleZoom();
-        break;
-      case 'i':
-      case 'I':
-        e.preventDefault();
-        this.toggleInfo();
         break;
       case ' ':
         e.preventDefault();
@@ -410,7 +482,16 @@ class ModernLightbox {
 
 // Initialisation automatique quand le DOM est chargé
 document.addEventListener('DOMContentLoaded', () => {
-  new ModernLightbox();
+  console.log('Lightbox: DOM loaded, initializing...');
+  
+  // Délai pour laisser masonry s'exécuter d'abord
+  setTimeout(() => {
+    try {
+      new ModernLightbox();
+    } catch (error) {
+      console.error('Lightbox: Erreur d\'initialisation:', error);
+    }
+  }, 500);
 });
 
 // Export pour utilisation module

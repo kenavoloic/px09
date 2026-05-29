@@ -27,17 +27,22 @@
 
 .lightbox-container {
   position: relative;
-  max-width: 95vw;
-  max-height: 90vh;
+  width: 100vw;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 60px 80px;
+  box-sizing: border-box;
 }
 
 .lightbox-image {
   max-width: 100%;
   max-height: 100%;
+  width: auto;
+  height: auto;
   object-fit: contain;
+  object-position: center;
   border-radius: 8px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s ease;
@@ -265,8 +270,7 @@
 /* Responsive design */
 @media (max-width: 768px) {
   .lightbox-container {
-    max-width: 98vw;
-    max-height: 85vh;
+    padding: 40px 20px;
   }
   
   .lightbox-nav {
