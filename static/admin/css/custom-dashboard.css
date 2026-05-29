@@ -83,39 +83,16 @@
     border-radius: 0.25rem;
 }
 
-/* Toggle thème */
-.theme-toggle {
-    position: absolute;
-    top: 1.25rem;
-    right: 1.25rem;
-    background: transparent;
-    border: 1px solid var(--border-color);
-    border-radius: 0.5rem;
-    padding: 0.5rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    color: var(--text-secondary);
-    transition: all 0.2s ease;
+/* Couleur spécifique pour le bouton de thème */
+.nav-theme {
+    background: linear-gradient(135deg, var(--accent-teal), #0f766e);
+    color: white;
+    border-color: transparent;
 }
 
-.theme-toggle:hover {
-    background: var(--bg-secondary);
-    border-color: var(--text-secondary);
-    color: var(--text-primary);
-}
-
-.theme-toggle svg {
-    width: 1.25rem;
-    height: 1.25rem;
-    transition: transform 0.3s ease;
-}
-
-.theme-toggle:hover svg {
-    transform: scale(1.1);
+.nav-theme:hover {
+    background: linear-gradient(135deg, #0f766e, var(--accent-teal));
+    color: white;
 }
 
 /* Section de navigation rapide */
