@@ -118,6 +118,101 @@
     transform: scale(1.1);
 }
 
+/* Section de navigation rapide */
+.quick-nav-section {
+    margin-bottom: 30px;
+    padding: 0;
+}
+
+.quick-nav-links {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+}
+
+.quick-nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+}
+
+.quick-nav-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--shadow-hover);
+    text-decoration: none;
+}
+
+.quick-nav-link svg {
+    width: 20px;
+    height: 20px;
+    transition: transform 0.3s ease;
+}
+
+.quick-nav-link:hover svg {
+    transform: scale(1.1);
+}
+
+/* Couleurs spécifiques pour chaque bouton */
+.nav-site {
+    background: linear-gradient(135deg, var(--accent-blue), #1e3a8a);
+    color: white;
+    border-color: transparent;
+}
+
+.nav-site:hover {
+    background: linear-gradient(135deg, #1e3a8a, var(--accent-blue));
+    color: white;
+}
+
+.nav-admin {
+    background: linear-gradient(135deg, var(--accent-purple), #7c2d92);
+    color: white;
+    border-color: transparent;
+}
+
+.nav-admin:hover {
+    background: linear-gradient(135deg, #7c2d92, var(--accent-purple));
+    color: white;
+}
+
+.nav-logout {
+    background: linear-gradient(135deg, var(--accent-orange), #dc2626);
+    color: white;
+    border-color: transparent;
+}
+
+.nav-logout:hover {
+    background: linear-gradient(135deg, #dc2626, var(--accent-orange));
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .quick-nav-links {
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .quick-nav-link {
+        padding: 12px 18px;
+        font-size: 15px;
+    }
+}
+
 /* Grille de statistiques */
 .stats-grid {
     display: grid;

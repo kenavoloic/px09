@@ -4,7 +4,7 @@
 {% block title %}{{ title }} | {{ site_title|default:"Django site admin" }}{% endblock %}
 
 {% block extrahead %}
-    <link rel="stylesheet" href="{% static 'admin/css/custom-dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'admin/css/custom-dashboard.css' %}?v=2">
 {% endblock %}
 
 {% block content %}
@@ -31,6 +31,41 @@
         </div>
         <div class="dashboard-date">
             {% now "j F Y" %}
+        </div>
+    </div>
+
+    <!-- Section de navigation rapide -->
+    <div class="dashboard-section quick-nav-section">
+        <div class="quick-nav-links">
+            <a href="/" target="_blank" class="quick-nav-link nav-site">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    <polyline points="9,22 9,12 15,12 15,22"/>
+                </svg>
+                <span>Voir le site</span>
+            </a>
+            
+            <a href="{% url 'admin:galeries_galerie_changelist' %}" class="quick-nav-link nav-admin">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                <span>Panneau d'administration</span>
+            </a>
+            
+            <form method="post" action="{% url 'admin:logout' %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="quick-nav-link nav-logout">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <polyline points="16,17 21,12 16,7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                    <span>Déconnexion</span>
+                </button>
+            </form>
         </div>
     </div>
 
