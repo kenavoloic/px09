@@ -20,53 +20,55 @@ def acces_commande(request: HttpRequest, code_acces: str) -> HttpResponse:
         # Vérifier si la commande est accessible
         if not commande.est_accessible():
             if commande.est_expiree():
-                return render(request, 'commandes/commande_expiree.html', {
-                    'commande': commande
-                })
+                return render(
+                    request, "commandes/commande_expiree.html", {"commande": commande}
+                )
             else:
-                return render(request, 'commandes/commande_non_disponible.html', {
-                    'commande': commande
-                })
+                return render(
+                    request,
+                    "commandes/commande_non_disponible.html",
+                    {"commande": commande},
+                )
 
         # Enregistrer la visite
         commande.enregistrer_visite()
 
         # Récupérer les photos de la commande
         photos = commande.photos.select_related(
-            'photo_originale', 'version_selectionnee'
-        ).order_by('ordre_affichage')
+            "photo_originale", "version_selectionnee"
+        ).order_by("ordre_affichage")
 
         context = {
-            'commande': commande,
-            'photos': photos,
-            'peut_telecharger_web': commande.autoriser_telechargement_web,
-            'peut_telecharger_hd': commande.autoriser_telechargement_hd,
-            'temps_restant': (commande.expire_le - timezone.now()).days if not commande.est_expiree() else 0,
+            "commande": commande,
+            "photos": photos,
+            "peut_telecharger_web": commande.autoriser_telechargement_web,
+            "peut_telecharger_hd": commande.autoriser_telechargement_hd,
+            "temps_restant": (commande.expire_le - timezone.now()).days
+            if not commande.est_expiree()
+            else 0,
         }
 
-        return render(request, 'commandes/galerie_commande.html', context)
+        return render(request, "commandes/galerie_commande.html", context)
 
     except Commande.DoesNotExist:
-        raise Http404("Code d'accès invalide")
+        raise Http404("Code d'accès invalide") from None
 
 
-def photo_detail_commande(request: HttpRequest, code_acces: str, photo_id: int) -> HttpResponse:
+def photo_detail_commande(
+    request: HttpRequest, code_acces: str, photo_id: int
+) -> HttpResponse:
     """Vue détaillée d'une photo dans une commande"""
     commande = get_object_or_404(Commande, code_acces=code_acces)
 
     if not commande.est_accessible():
         raise PermissionDenied("Commande non accessible")
 
-    photo_commande = get_object_or_404(
-        PhotoCommande,
-        commande=commande,
-        id=photo_id
-    )
+    photo_commande = get_object_or_404(PhotoCommande, commande=commande, id=photo_id)
 
     # Récupérer les photos de la commande pour la navigation
     photos = commande.photos.select_related(
-        'photo_originale', 'version_selectionnee'
-    ).order_by('ordre_affichage')
+        "photo_originale", "version_selectionnee"
+    ).order_by("ordre_affichage")
 
     # Trouver l'index de la photo actuelle
     photo_index = 0
@@ -78,62 +80,60 @@ def photo_detail_commande(request: HttpRequest, code_acces: str, photo_id: int) 
         if p.id == photo_commande.id:
             photo_index = i
             if i > 0:
-                photo_precedente = photos_list[i-1]
+                photo_precedente = photos_list[i - 1]
             if i < len(photos_list) - 1:
-                photo_suivante = photos_list[i+1]
+                photo_suivante = photos_list[i + 1]
             break
 
     context = {
-        'commande': commande,
-        'photo': photo_commande,
-        'photo_precedente': photo_precedente,
-        'photo_suivante': photo_suivante,
-        'photo_index': photo_index + 1,
-        'total_photos': len(photos_list),
-        'peut_telecharger_web': commande.autoriser_telechargement_web,
-        'peut_telecharger_hd': commande.autoriser_telechargement_hd,
+        "commande": commande,
+        "photo": photo_commande,
+        "photo_precedente": photo_precedente,
+        "photo_suivante": photo_suivante,
+        "photo_index": photo_index + 1,
+        "total_photos": len(photos_list),
+        "peut_telecharger_web": commande.autoriser_telechargement_web,
+        "peut_telecharger_hd": commande.autoriser_telechargement_hd,
     }
 
-    return render(request, 'commandes/photo_detail_commande.html', context)
+    return render(request, "commandes/photo_detail_commande.html", context)
 
 
 @require_POST
-def telecharger_photo(request: HttpRequest, code_acces: str, photo_id: int) -> HttpResponse:
+def telecharger_photo(
+    request: HttpRequest, code_acces: str, photo_id: int
+) -> HttpResponse:
     """Téléchargement d'une photo individuelle"""
     commande = get_object_or_404(Commande, code_acces=code_acces)
 
     if not commande.est_accessible():
         raise PermissionDenied("Commande non accessible")
 
-    photo_commande = get_object_or_404(
-        PhotoCommande,
-        commande=commande,
-        id=photo_id
-    )
+    photo_commande = get_object_or_404(PhotoCommande, commande=commande, id=photo_id)
 
     # Déterminer le type de téléchargement
-    type_telechargement = request.POST.get('type', 'web')
+    type_telechargement = request.POST.get("type", "web")
 
-    if type_telechargement == 'hd':
+    if type_telechargement == "hd":
         if not commande.autoriser_telechargement_hd:
             raise PermissionDenied("Téléchargement HD non autorisé")
 
         if not photo_commande.version_selectionnee.fichier_pleine_resolution:
             messages.error(request, "Version haute résolution non disponible")
-            return redirect('commandes:acces_commande', code_acces=code_acces)
+            return redirect("commandes:acces_commande", code_acces=code_acces)
 
         fichier = photo_commande.version_selectionnee.fichier_pleine_resolution
-        suffix = '_HD'
+        suffix = "_HD"
     else:
         if not commande.autoriser_telechargement_web:
             raise PermissionDenied("Téléchargement non autorisé")
 
         fichier = photo_commande.version_selectionnee.fichier_web
-        suffix = ''
+        suffix = ""
 
     if not fichier:
         messages.error(request, "Fichier non disponible")
-        return redirect('commandes:acces_commande', code_acces=code_acces)
+        return redirect("commandes:acces_commande", code_acces=code_acces)
 
     # Enregistrer le téléchargement
     commande.enregistrer_telechargement()
@@ -144,8 +144,8 @@ def telecharger_photo(request: HttpRequest, code_acces: str, photo_id: int) -> H
     nom_fichier = f"{commande.reference}_{nom_original}{suffix}{extension}"
 
     # Réponse de téléchargement
-    response = HttpResponse(fichier.read(), content_type='application/octet-stream')
-    response['Content-Disposition'] = f'attachment; filename="{nom_fichier}"'
+    response = HttpResponse(fichier.read(), content_type="application/octet-stream")
+    response["Content-Disposition"] = f'attachment; filename="{nom_fichier}"'
 
     return response
 
@@ -161,27 +161,27 @@ def telecharger_toutes_photos(request: HttpRequest, code_acces: str) -> HttpResp
         raise PermissionDenied("Téléchargement non autorisé")
 
     # Déterminer le type de téléchargement
-    type_telechargement = request.GET.get('type', 'web')
+    type_telechargement = request.GET.get("type", "web")
 
-    if type_telechargement == 'hd' and not commande.autoriser_telechargement_hd:
+    if type_telechargement == "hd" and not commande.autoriser_telechargement_hd:
         messages.error(request, "Téléchargement HD non autorisé")
-        return redirect('commandes:acces_commande', code_acces=code_acces)
+        return redirect("commandes:acces_commande", code_acces=code_acces)
 
     # Créer le fichier ZIP en mémoire
     zip_buffer = BytesIO()
 
-    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-        photos = commande.photos.select_related(
-            'version_selectionnee'
-        ).order_by('ordre_affichage')
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        photos = commande.photos.select_related("version_selectionnee").order_by(
+            "ordre_affichage"
+        )
 
         for i, photo_commande in enumerate(photos, 1):
-            if type_telechargement == 'hd':
+            if type_telechargement == "hd":
                 fichier = photo_commande.version_selectionnee.fichier_pleine_resolution
-                suffix = '_HD'
+                suffix = "_HD"
             else:
                 fichier = photo_commande.version_selectionnee.fichier_web
-                suffix = ''
+                suffix = ""
 
             if fichier:
                 try:
@@ -193,7 +193,11 @@ def telecharger_toutes_photos(request: HttpRequest, code_acces: str) -> HttpResp
                     nom_dans_zip = f"{i:03d}_{photo_commande.get_titre_affichage()}{suffix}{extension}"
 
                     # Nettoyer le nom de fichier (supprimer les caractères problématiques)
-                    nom_dans_zip = "".join(c for c in nom_dans_zip if c.isalnum() or c in (' ', '-', '_', '.')).strip()
+                    nom_dans_zip = "".join(
+                        c
+                        for c in nom_dans_zip
+                        if c.isalnum() or c in (" ", "-", "_", ".")
+                    ).strip()
 
                     # Ajouter au ZIP
                     zip_file.writestr(nom_dans_zip, fichier_content)
@@ -210,12 +214,14 @@ def telecharger_toutes_photos(request: HttpRequest, code_acces: str) -> HttpResp
     zip_buffer.seek(0)
 
     # Nom du fichier ZIP
-    suffix = '_HD' if type_telechargement == 'hd' else ''
+    suffix = "_HD" if type_telechargement == "hd" else ""
     nom_zip = f"{commande.reference}_{commande.titre}{suffix}.zip"
-    nom_zip = "".join(c for c in nom_zip if c.isalnum() or c in (' ', '-', '_', '.')).strip()
+    nom_zip = "".join(
+        c for c in nom_zip if c.isalnum() or c in (" ", "-", "_", ".")
+    ).strip()
 
-    response = HttpResponse(zip_buffer.read(), content_type='application/zip')
-    response['Content-Disposition'] = f'attachment; filename="{nom_zip}"'
+    response = HttpResponse(zip_buffer.read(), content_type="application/zip")
+    response["Content-Disposition"] = f'attachment; filename="{nom_zip}"'
 
     return response
 
@@ -225,7 +231,7 @@ def aide_commande(request: HttpRequest, code_acces: str) -> HttpResponse:
     commande = get_object_or_404(Commande, code_acces=code_acces)
 
     context = {
-        'commande': commande,
+        "commande": commande,
     }
 
-    return render(request, 'commandes/aide_commande.html', context)
+    return render(request, "commandes/aide_commande.html", context)
