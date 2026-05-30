@@ -32,7 +32,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 60px 80px;
+  padding: 1vh 2vw;
   box-sizing: border-box;
 }
 
@@ -90,11 +90,11 @@
 }
 
 .lightbox-prev {
-  left: 30px;
+  left: 1vw;
 }
 
 .lightbox-next {
-  right: 30px;
+  right: 1vw;
 }
 
 .lightbox-nav:disabled {
@@ -106,8 +106,8 @@
 /* Bouton de fermeture */
 .lightbox-close {
   position: absolute;
-  top: 30px;
-  right: 30px;
+  top: 1vh;
+  right: 1vw;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
@@ -176,8 +176,8 @@
 
 .lightbox-counter {
   position: absolute;
-  top: 30px;
-  left: 30px;
+  top: 1vh;
+  left: 1vw;
   background: rgba(0, 0, 0, 0.5);
   color: white;
   padding: 8px 16px;
@@ -211,8 +211,8 @@
 /* Bouton de zoom */
 .lightbox-zoom {
   position: absolute;
-  bottom: 30px;
-  right: 30px;
+  bottom: 1vh;
+  right: 1vw;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
@@ -239,8 +239,8 @@
 /* Bouton d'info toggle */
 .lightbox-info-toggle {
   position: absolute;
-  bottom: 30px;
-  left: 30px;
+  bottom: 1vh;
+  left: 1vw;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
@@ -272,7 +272,7 @@
 /* Responsive design */
 @media (max-width: 768px) {
   .lightbox-container {
-    padding: 40px 20px;
+    padding: 0.5vh 1vw;
   }
   
   .lightbox-nav {
@@ -282,24 +282,24 @@
   }
   
   .lightbox-prev {
-    left: 15px;
+    left: 0.5vw;
   }
   
   .lightbox-next {
-    right: 15px;
+    right: 0.5vw;
   }
   
   .lightbox-close {
-    top: 15px;
-    right: 15px;
+    top: 0.5vh;
+    right: 0.5vw;
     width: 40px;
     height: 40px;
     font-size: 18px;
   }
   
   .lightbox-counter {
-    top: 15px;
-    left: 15px;
+    top: 0.5vh;
+    left: 0.5vw;
     font-size: 0.8rem;
     padding: 6px 12px;
   }
@@ -320,13 +320,13 @@
   }
   
   .lightbox-zoom {
-    bottom: 20px;
-    right: 20px;
+    bottom: 0.5vh;
+    right: 0.5vw;
   }
   
   .lightbox-info-toggle {
-    bottom: 20px;
-    left: 20px;
+    bottom: 0.5vh;
+    left: 0.5vw;
   }
 }
 
