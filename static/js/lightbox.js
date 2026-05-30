@@ -14,6 +14,9 @@ class ModernLightbox {
     this.touchStartY = 0;
     this.lastTap = 0;
     this.preloadedImages = new Set();
+    this.isDragging = false;
+    this.dragStartX = 0;
+    this.dragStartY = 0;
     
     this.init();
   }
@@ -126,8 +129,8 @@ class ModernLightbox {
         // Sur mobile, on ignore le clic simple - seul le double-tap fonctionne
         return;
       } else {
-        // Sur desktop, clic simple pour zoom
-        this.toggleZoom();
+        // Sur desktop, clic simple pour zoom avec position de souris
+        this.toggleZoom(e);
       }
     });
     
@@ -138,6 +141,12 @@ class ModernLightbox {
     // Touch events pour mobile
     this.image.addEventListener('touchstart', (e) => this.handleTouchStart(e));
     this.image.addEventListener('touchend', (e) => this.handleTouchEnd(e));
+    
+    // Events pour le drag de l'image zoomée
+    this.image.addEventListener('mousedown', (e) => this.handleDragStart(e));
+    this.image.addEventListener('mousemove', (e) => this.handleDragMove(e));
+    this.image.addEventListener('mouseup', (e) => this.handleDragEnd(e));
+    this.image.addEventListener('mouseleave', (e) => this.handleDragEnd(e));
     
     // Gestion du redimensionnement
     window.addEventListener('resize', () => this.handleResize());
@@ -352,10 +361,35 @@ class ModernLightbox {
     }
   }
   
-  toggleZoom() {
+  toggleZoom(event = null) {
     this.isZoomed = !this.isZoomed;
+    
+    if (this.isZoomed && event) {
+      // Calcul de la position de la souris relative à l'image
+      const imageRect = this.image.getBoundingClientRect();
+      const mouseX = event.clientX - imageRect.left;
+      const mouseY = event.clientY - imageRect.top;
+      
+      // Position relative en pourcentage
+      const originX = (mouseX / imageRect.width) * 100;
+      const originY = (mouseY / imageRect.height) * 100;
+      
+      // Application du transform-origin
+      this.image.style.transformOrigin = `${originX}% ${originY}%`;
+      
+      // Reset de la translation lors du zoom
+      this.image.style.transform = '';
+    } else {
+      // Reset au centre pour le dézoom ou zoom par bouton
+      this.image.style.transformOrigin = 'center';
+      this.image.style.transform = '';
+    }
+    
     this.image.classList.toggle('zoomed', this.isZoomed);
     this.zoomBtn.textContent = this.isZoomed ? '⊖' : '⊕';
+    
+    // Reset du curseur
+    this.image.style.cursor = this.isZoomed ? 'zoom-out' : 'zoom-in';
   }
   
   
@@ -434,7 +468,12 @@ class ModernLightbox {
     
     if (tapLength < 500 && tapLength > 0 && Math.abs(deltaX) < 10 && Math.abs(deltaY) < 10) {
       // Double-tap détecté (pas de mouvement significatif)
-      this.toggleZoom();
+      // Pour mobile, utiliser la position du touch comme origine
+      const touchEvent = {
+        clientX: e.changedTouches[0].clientX,
+        clientY: e.changedTouches[0].clientY
+      };
+      this.toggleZoom(touchEvent);
       e.preventDefault();
       this.lastTap = 0; // Reset pour éviter les triple-taps
       this.touchStartX = 0;
@@ -474,6 +513,41 @@ class ModernLightbox {
     }
   }
   
+  handleDragStart(e) {
+    if (!this.isZoomed) return;
+    
+    this.isDragging = true;
+    this.dragStartX = e.clientX;
+    this.dragStartY = e.clientY;
+    
+    // Changer le curseur
+    this.image.style.cursor = 'grabbing';
+    e.preventDefault();
+  }
+  
+  handleDragMove(e) {
+    if (!this.isDragging || !this.isZoomed) return;
+    
+    const deltaX = e.clientX - this.dragStartX;
+    const deltaY = e.clientY - this.dragStartY;
+    
+    // Appliquer la translation en plus du scale
+    const currentTransform = this.image.style.transform || '';
+    const scaleMatch = currentTransform.match(/scale\([^)]+\)/);
+    const scale = scaleMatch ? scaleMatch[0] : 'scale(2.5)';
+    
+    this.image.style.transform = `${scale} translate(${deltaX}px, ${deltaY}px)`;
+    
+    e.preventDefault();
+  }
+  
+  handleDragEnd(e) {
+    if (!this.isDragging) return;
+    
+    this.isDragging = false;
+    this.image.style.cursor = this.isZoomed ? 'zoom-out' : 'zoom-in';
+  }
+
   isMobileDevice() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
            || window.innerWidth <= 768;

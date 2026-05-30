@@ -51,7 +51,9 @@
 
 .lightbox-image.zoomed {
   cursor: zoom-out;
-  transform: scale(2);
+  transform: scale(2.5);
+  /* transform-origin est géré dynamiquement par JS */
+  transition: none; /* Désactive la transition lors du drag */
 }
 
 /* Boutons de navigation */
