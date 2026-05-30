@@ -74,7 +74,7 @@ body {
 .site-nav.solid {
   background: color-mix(in oklch, var(--bg) 88%, transparent);
   backdrop-filter: blur(1rem);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 0.0625rem solid var(--border);
 }
 
 .nav-logo {
@@ -105,7 +105,7 @@ body {
 /* Theme toggle */
 .theme-toggle {
   background: none;
-  border: 1px solid var(--border);
+  border: 0.0625rem solid var(--border);
   color: var(--fg2);
   width: 2.25rem; height: 2.25rem;
   border-radius: 50%;
@@ -130,11 +130,11 @@ body {
   cursor: pointer;
   transition: opacity 0.2s, transform 0.2s;
   font-weight: 500;
-  border-radius: 9px;
+  border-radius: 0.5625rem;
   text-decoration: none;
   display: inline-block;
 }
-.btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+.btn-primary:hover { opacity: 0.85; transform: translateY(-0.0625rem); }
 
 .btn-ghost {
   font-family: var(--font-body);
@@ -144,15 +144,15 @@ body {
   padding: 0.875rem 2rem;
   background: transparent;
   color: var(--fg2);
-  border: 1px solid var(--border);
+  border: 0.0625rem solid var(--border);
   cursor: pointer;
   transition: border-color 0.2s, color 0.2s, transform 0.2s;
   font-weight: 400;
-  border-radius: 9px;
+  border-radius: 0.5625rem;
   text-decoration: none;
   display: inline-block;
 }
-.btn-ghost:hover { border-color: var(--fg2); color: var(--fg); transform: translateY(-1px); }
+.btn-ghost:hover { border-color: var(--fg2); color: var(--fg); transform: translateY(-0.0625rem); }
 
 /* ---- BREADCRUMB ---- */
 .breadcrumb {
@@ -177,7 +177,7 @@ body {
 /* ---- FOOTER ---- */
 .site-footer {
   padding: clamp(2rem, 4vw, 3rem) clamp(1.25rem, 5vw, 3rem);
-  border-top: 1px solid var(--border);
+  border-top: 0.0625rem solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -218,7 +218,7 @@ body {
 /* ---- REVEAL on scroll ---- */
 .reveal {
   opacity: 0;
-  transform: translateY(24px);
+  transform: translateY(1.5rem);
   transition: opacity 0.6s cubic-bezier(0.4,0,0.2,1), transform 0.6s cubic-bezier(0.4,0,0.2,1);
 }
 .reveal.visible {
@@ -261,7 +261,7 @@ body {
 /* ---- PAGE HEADER (utilisé par galerie + collection) ---- */
 .page-header {
   padding: clamp(7rem, 12vw, 10rem) clamp(1.25rem, 5vw, 3rem) clamp(2rem, 4vw, 3rem);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 0.0625rem solid var(--border);
 }
 .page-title-row {
   display: flex;
