@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}Hors les Murs — Studio Photographique{% endblock %}</title>
-  <meta name="description" content="{% block description %}Studio photographique : paysages, sport, architecture, documentaire.{% endblock %}" />
+  <title>{% block title %}{{ config.titre_complet }}{% endblock %}</title>
+  <meta name="description" content="{% block description %}{{ config.description_site }}{% endblock %}" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -16,12 +16,12 @@
 <body>
 
   <nav class="site-nav {% block nav_class %}{% endblock %}">
-    <a href="{% url 'accueil:index' %}" class="nav-logo">HORS<span>.</span>LES<span>.</span>MURS</a>
+    <a href="{% url 'accueil:index' %}" class="nav-logo">{{ config.nom_site|upper|slice:":4" }}<span>.</span>{{ config.nom_site|upper|slice:"5:8" }}<span>.</span>{{ config.nom_site|upper|slice:"9:" }}</a>
     <div class="nav-right">
       <ul class="nav-links">
-        <li><a href="{% url 'accueil:index' %}#galeries">Galeries</a></li>
-        <li><a href="{% url 'accueil:index' %}#acces-prive">Accès privé</a></li>
-        <li><a href="{% url 'accueil:contact' %}">Contact</a></li>
+        <li><a href="{% url 'accueil:index' %}#galeries">{{ config.nav_galeries }}</a></li>
+        <li><a href="{% url 'accueil:index' %}#acces-prive">{{ config.nav_acces_prive }}</a></li>
+        <li><a href="{% url 'accueil:contact' %}">{{ config.nav_contact }}</a></li>
       </ul>
       <button class="theme-toggle" id="theme-toggle" aria-label="Basculer le thème">
         <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
@@ -40,9 +40,9 @@
   {% block content %}{% endblock %}
 
   <footer class="site-footer" id="contact">
-    <a href="#top" class="footer-logo">HORS LES MURS</a>
+    <a href="#top" class="footer-logo">{{ config.nom_site|upper }}</a>
     <div class="footer-meta">
-      <span class="footer-copy">© {% now "Y" %} · Tous droits réservés</span>
+      <span class="footer-copy">© {% now "Y" %} · {{ config.footer_copyright }}</span>
       <a href="{% url 'admin:index' %}" class="footer-link">Admin</a>
     </div>
   </footer>

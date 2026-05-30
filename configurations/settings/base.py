@@ -69,6 +69,7 @@ TEMPLATES: list[dict[str, Any]] = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "galeries.context_processors.site_config",
             ],
         },
     },
@@ -113,13 +114,13 @@ USE_TZ: bool = True
 
 # Languages
 LANGUAGES = [
-    ('fr', 'Français'),
-    ('en', 'English'),
+    ("fr", "Français"),
+    ("en", "English"),
 ]
 
 # Locale paths for custom translations
 LOCALE_PATHS = [
-    BASE_DIR / 'locale',
+    BASE_DIR / "locale",
 ]
 
 # Static files (CSS, JavaScript, Images)
@@ -149,6 +150,6 @@ ADMIN_URL: str = os.environ.get("ADMIN_URL", "admin")  # Configurable via .env
 AUTH_USER_MODEL = "utilisateurs.Utilisateur"
 
 # Configuration email
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Pour development
-DEFAULT_FROM_EMAIL = 'noreply@horslemurs.fr'
-CONTACT_EMAIL = 'contact@horslemurs.fr'
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"  # Pour development
+DEFAULT_FROM_EMAIL = "noreply@horslemurs.fr"
+CONTACT_EMAIL = "contact@horslemurs.fr"

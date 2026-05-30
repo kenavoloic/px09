@@ -24,29 +24,183 @@ class ConfigurationSite(models.Model):
     """Configuration globale du site (singleton)"""
 
     AFFICHAGE_TITRE_CHOICES = [
-        ('sans_titre', 'Afficher "Sans titre"'),
-        ('vide', 'Afficher une chaîne vide'),
+        ("sans_titre", 'Afficher "Sans titre"'),
+        ("vide", "Afficher une chaîne vide"),
     ]
 
     LANGUE_CHOICES = [
-        ('fr', 'Français'),
-        ('en', 'English'),
+        ("fr", "Français"),
+        ("en", "English"),
     ]
 
     affichage_titre_vide = models.CharField(
         max_length=20,
         choices=AFFICHAGE_TITRE_CHOICES,
-        default='sans_titre',
+        default="sans_titre",
         help_text="Comment afficher les photos sans titre personnalisé",
-        verbose_name="Affichage des photos sans titre"
+        verbose_name="Affichage des photos sans titre",
     )
 
     langue = models.CharField(
         max_length=10,
         choices=LANGUE_CHOICES,
-        default='fr',
+        default="fr",
         help_text="Langue par défaut de l'application",
-        verbose_name="Langue de l'application"
+        verbose_name="Langue de l'application",
+    )
+
+    # === TEXTES DE L'INTERFACE ===
+
+    # Site & Navigation
+    nom_site = models.CharField(
+        max_length=100,
+        default="Hors les Murs",
+        verbose_name="Nom du site",
+        help_text="Nom affiché dans le logo et les titres"
+    )
+
+    titre_complet = models.CharField(
+        max_length=200,
+        default="Hors les Murs — Studio Photographique",
+        verbose_name="Titre complet",
+        help_text="Titre affiché dans l'onglet du navigateur"
+    )
+
+    description_site = models.TextField(
+        default="Studio photographique : paysages, sport, architecture, documentaire.",
+        verbose_name="Description du site",
+        help_text="Description meta pour les moteurs de recherche"
+    )
+
+    # Navigation
+    nav_galeries = models.CharField(
+        max_length=50,
+        default="Galeries",
+        verbose_name="Menu Galeries"
+    )
+
+    nav_acces_prive = models.CharField(
+        max_length=50,
+        default="Accès privé",
+        verbose_name="Menu Accès privé"
+    )
+
+    nav_contact = models.CharField(
+        max_length=50,
+        default="Contact",
+        verbose_name="Menu Contact"
+    )
+
+    nav_accueil = models.CharField(
+        max_length=50,
+        default="Accueil",
+        verbose_name="Menu Accueil"
+    )
+
+    # Page d'accueil
+    hero_sous_titre = models.CharField(
+        max_length=100,
+        default="Studio photographique",
+        verbose_name="Sous-titre hero",
+        help_text="Texte au-dessus du titre principal"
+    )
+
+    hero_description = models.TextField(
+        default="Capturer l'instant, révéler l'émotion. Spécialisé dans la photographie de paysages, sport et architecture.",
+        verbose_name="Description hero",
+        help_text="Paragraphe descriptif dans la section hero"
+    )
+
+    btn_voir_galeries = models.CharField(
+        max_length=50,
+        default="Voir les galeries",
+        verbose_name="Bouton galeries"
+    )
+
+    btn_acces_prive = models.CharField(
+        max_length=50,
+        default="Accès privé",
+        verbose_name="Bouton accès privé"
+    )
+
+    titre_galeries = models.CharField(
+        max_length=100,
+        default="Galeries",
+        verbose_name="Titre section galeries"
+    )
+
+    titre_acces_prive = models.CharField(
+        max_length=100,
+        default="Accès privé",
+        verbose_name="Titre section accès privé"
+    )
+
+    description_acces_prive = models.TextField(
+        default="Vous avez reçu un code d'accès pour une galerie privée ? Saisissez-le ci-dessous.",
+        verbose_name="Description accès privé"
+    )
+
+    # Modal accès privé
+    modal_titre = models.CharField(
+        max_length=100,
+        default="Accéder à votre galerie",
+        verbose_name="Titre modal accès"
+    )
+
+    modal_sous_titre = models.CharField(
+        max_length=200,
+        default="Saisissez votre email et le code reçu pour accéder à la galerie.",
+        verbose_name="Sous-titre modal"
+    )
+
+    modal_placeholder_code = models.CharField(
+        max_length=50,
+        default="ABC12345",
+        verbose_name="Placeholder code"
+    )
+
+    modal_btn_entrer_code = models.CharField(
+        max_length=50,
+        default="Entrer mon code",
+        verbose_name="Bouton modal"
+    )
+
+    modal_btn_acceder = models.CharField(
+        max_length=50,
+        default="Accéder à la galerie",
+        verbose_name="Bouton accès galerie"
+    )
+
+    # Messages
+    msg_mode_prive = models.CharField(
+        max_length=50,
+        default="Mode privé",
+        verbose_name="Badge mode privé"
+    )
+
+    msg_mes_galeries = models.CharField(
+        max_length=50,
+        default="Mes galeries",
+        verbose_name="Lien mes galeries"
+    )
+
+    msg_quitter_prive = models.CharField(
+        max_length=50,
+        default="Quitter le mode privé",
+        verbose_name="Tooltip quitter privé"
+    )
+
+    msg_sans_titre = models.CharField(
+        max_length=50,
+        default="Sans titre",
+        verbose_name="Texte photos sans titre"
+    )
+
+    # Footer
+    footer_copyright = models.CharField(
+        max_length=100,
+        default="Tous droits réservés",
+        verbose_name="Texte copyright"
     )
 
     class Meta:
@@ -78,37 +232,35 @@ class Galerie(models.Model):
     nom = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, blank=True)
     description = models.TextField(blank=True)
-    image_couverture = models.ImageField(upload_to='galeries/couvertures/', blank=True)
+    image_couverture = models.ImageField(upload_to="galeries/couvertures/", blank=True)
     ordre_affichage = models.PositiveIntegerField(default=0)
     ordre_manuel = models.BooleanField(
         default=True,
         verbose_name="Ordre manuel",
-        help_text="Si coché, respecte l'ordre défini par le photographe. Sinon, optimise automatiquement le masonry."
+        help_text="Si coché, respecte l'ordre défini par le photographe. Sinon, optimise automatiquement le masonry.",
     )
     afficher_details_techniques = models.BooleanField(
         default=False,
         verbose_name="Afficher les détails techniques",
-        help_text="Si coché, affiche les métadonnées EXIF (appareil, objectif, réglages) dans les vues de détail des photos."
+        help_text="Si coché, affiche les métadonnées EXIF (appareil, objectif, réglages) dans les vues de détail des photos.",
     )
     est_publique = models.BooleanField(default=True)
 
     # Cache des tailles (pour performance)
     taille_totale_cache = models.PositiveIntegerField(
-        default=0,
-        help_text="Taille totale en octets (mise à jour automatiquement)"
+        default=0, help_text="Taille totale en octets (mise à jour automatiquement)"
     )
     cache_mis_a_jour_le = models.DateTimeField(
-        auto_now=True,
-        help_text="Dernière mise à jour du cache de taille"
+        auto_now=True, help_text="Dernière mise à jour du cache de taille"
     )
 
     cree_le = models.DateTimeField(auto_now_add=True)
     modifie_le = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['ordre_affichage', 'nom']
-        verbose_name = 'Galerie'
-        verbose_name_plural = 'Galeries'
+        ordering = ["ordre_affichage", "nom"]
+        verbose_name = "Galerie"
+        verbose_name_plural = "Galeries"
 
     def __str__(self) -> str:
         return self.nom
@@ -119,14 +271,16 @@ class Galerie(models.Model):
         super().save(*args, **kwargs)
 
     def get_absolute_url(self) -> str:
-        return reverse('galeries:galerie_detail', kwargs={'galerie_slug': self.slug})
+        return reverse("galeries:galerie_detail", kwargs={"galerie_slug": self.slug})
 
     def get_collections_publiques(self) -> QuerySet[Collection]:
-        return self.collections.filter(est_publique=True).order_by('ordre_affichage')
+        return self.collections.filter(est_publique=True).order_by("ordre_affichage")
 
     def get_photos_directes_publiques(self) -> QuerySet[Photo]:
         """Photos directement liées à la galerie (sans collection)"""
-        return self.photos.filter(collection__isnull=True, est_publique=True).order_by('ordre_affichage')
+        return self.photos.filter(collection__isnull=True, est_publique=True).order_by(
+            "ordre_affichage"
+        )
 
     def a_des_collections(self) -> bool:
         """Vérifie si la galerie utilise le mode hiérarchique"""
@@ -135,7 +289,9 @@ class Galerie(models.Model):
     def get_total_photos(self) -> int:
         """Compte total photos (directes + dans collections)"""
         photos_directes = self.photos.filter(collection__isnull=True).count()
-        photos_collections = sum(collection.photos.count() for collection in self.collections.all())
+        photos_collections = sum(
+            collection.photos.count() for collection in self.collections.all()
+        )
         return photos_directes + photos_collections
 
     def get_taille_totale(self) -> int:
@@ -143,24 +299,22 @@ class Galerie(models.Model):
         from django.db.models import Sum
 
         # Taille des photos directes (sans collection)
-        taille_directe = self.photos.filter(
-            collection__isnull=True
-        ).aggregate(
-            total_web=Sum('versions__taille_fichier_web'),
-            total_hd=Sum('versions__taille_fichier_hd')
+        taille_directe = self.photos.filter(collection__isnull=True).aggregate(
+            total_web=Sum("versions__taille_fichier_web"),
+            total_hd=Sum("versions__taille_fichier_hd"),
         )
 
         # Taille des photos dans les collections
         taille_collections = self.collections.aggregate(
-            total_web=Sum('photos__versions__taille_fichier_web'),
-            total_hd=Sum('photos__versions__taille_fichier_hd')
+            total_web=Sum("photos__versions__taille_fichier_web"),
+            total_hd=Sum("photos__versions__taille_fichier_hd"),
         )
 
         total = 0
-        total += taille_directe['total_web'] or 0
-        total += taille_directe['total_hd'] or 0
-        total += taille_collections['total_web'] or 0
-        total += taille_collections['total_hd'] or 0
+        total += taille_directe["total_web"] or 0
+        total += taille_directe["total_hd"] or 0
+        total += taille_collections["total_web"] or 0
+        total += taille_collections["total_hd"] or 0
 
         return total
 
@@ -171,12 +325,14 @@ class Galerie(models.Model):
     def recalculer_taille_cache(self) -> None:
         """Recalcule et met à jour le cache de taille"""
         self.taille_totale_cache = self.get_taille_totale()
-        self.save(update_fields=['taille_totale_cache', 'cache_mis_a_jour_le'])
+        self.save(update_fields=["taille_totale_cache", "cache_mis_a_jour_le"])
 
     def get_photo_couverture(self) -> Photo | None:
         """Retourne la photo de couverture de la galerie"""
         # D'abord chercher une photo explicitement marquée comme couverture
-        photo_couverture = self.photos.filter(est_couverture=True, est_publique=True).first()
+        photo_couverture = self.photos.filter(
+            est_couverture=True, est_publique=True
+        ).first()
         if photo_couverture:
             return photo_couverture
 
@@ -188,9 +344,7 @@ class Collection(models.Model):
     """Collection d'événement ou projet spécifique"""
 
     galerie = models.ForeignKey(
-        Galerie,
-        on_delete=models.CASCADE,
-        related_name='collections'
+        Galerie, on_delete=models.CASCADE, related_name="collections"
     )
     nom = models.CharField(max_length=200)
     slug = models.SlugField(blank=True)
@@ -205,33 +359,31 @@ class Collection(models.Model):
     ordre_manuel = models.BooleanField(
         default=True,
         verbose_name="Ordre manuel",
-        help_text="Si coché, respecte l'ordre défini par le photographe. Sinon, optimise automatiquement le masonry."
+        help_text="Si coché, respecte l'ordre défini par le photographe. Sinon, optimise automatiquement le masonry.",
     )
     afficher_details_techniques = models.BooleanField(
         default=False,
         verbose_name="Afficher les détails techniques",
-        help_text="Si coché, affiche les métadonnées EXIF (appareil, objectif, réglages) dans les vues de détail des photos."
+        help_text="Si coché, affiche les métadonnées EXIF (appareil, objectif, réglages) dans les vues de détail des photos.",
     )
     est_publique = models.BooleanField(default=True)
 
     # Cache des tailles (pour performance)
     taille_totale_cache = models.PositiveIntegerField(
-        default=0,
-        help_text="Taille totale en octets (mise à jour automatiquement)"
+        default=0, help_text="Taille totale en octets (mise à jour automatiquement)"
     )
     cache_mis_a_jour_le = models.DateTimeField(
-        auto_now=True,
-        help_text="Dernière mise à jour du cache de taille"
+        auto_now=True, help_text="Dernière mise à jour du cache de taille"
     )
 
     cree_le = models.DateTimeField(auto_now_add=True)
     modifie_le = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = [('galerie', 'slug')]
-        ordering = ['ordre_affichage', 'nom']
-        verbose_name = 'Collection'
-        verbose_name_plural = 'Collections'
+        unique_together = [("galerie", "slug")]
+        ordering = ["ordre_affichage", "nom"]
+        verbose_name = "Collection"
+        verbose_name_plural = "Collections"
 
     def __str__(self) -> str:
         return f"{self.galerie.nom} - {self.nom}"
@@ -242,35 +394,35 @@ class Collection(models.Model):
         super().save(*args, **kwargs)
 
     def get_absolute_url(self) -> str:
-        return reverse('galeries:collection_detail', kwargs={
-            'galerie_slug': self.galerie.slug,
-            'collection_slug': self.slug
-        })
+        return reverse(
+            "galeries:collection_detail",
+            kwargs={"galerie_slug": self.galerie.slug, "collection_slug": self.slug},
+        )
 
     def get_private_url(self) -> str:
-        return reverse('galeries:collection_privee', kwargs={
-            'galerie_slug': self.galerie.slug,
-            'collection_slug': self.slug
-        })
+        return reverse(
+            "galeries:collection_privee",
+            kwargs={"galerie_slug": self.galerie.slug, "collection_slug": self.slug},
+        )
 
     def get_photo_couverture(self) -> Photo | None:
         return self.photos.filter(est_couverture=True).first() or self.photos.first()
 
     def get_photos_publiques(self) -> QuerySet[Photo]:
-        return self.photos.filter(est_publique=True).order_by('ordre_affichage')
+        return self.photos.filter(est_publique=True).order_by("ordre_affichage")
 
     def get_taille_totale(self) -> int:
         """Retourne la taille totale en octets de toutes les photos de la collection"""
         from django.db.models import Sum
 
         taille = self.photos.aggregate(
-            total_web=Sum('versions__taille_fichier_web'),
-            total_hd=Sum('versions__taille_fichier_hd')
+            total_web=Sum("versions__taille_fichier_web"),
+            total_hd=Sum("versions__taille_fichier_hd"),
         )
 
         total = 0
-        total += taille['total_web'] or 0
-        total += taille['total_hd'] or 0
+        total += taille["total_web"] or 0
+        total += taille["total_hd"] or 0
 
         return total
 
@@ -281,29 +433,31 @@ class Collection(models.Model):
     def recalculer_taille_cache(self) -> None:
         """Recalcule et met à jour le cache de taille"""
         self.taille_totale_cache = self.get_taille_totale()
-        self.save(update_fields=['taille_totale_cache', 'cache_mis_a_jour_le'])
+        self.save(update_fields=["taille_totale_cache", "cache_mis_a_jour_le"])
 
 
 class Photo(models.Model):
     """Photo individuelle dans une galerie (directe ou via collection)"""
 
     galerie = models.ForeignKey(
-        Galerie,
-        on_delete=models.CASCADE,
-        related_name='photos'
+        Galerie, on_delete=models.CASCADE, related_name="photos"
     )
     collection = models.ForeignKey(
         Collection,
         on_delete=models.CASCADE,
-        related_name='photos',
+        related_name="photos",
         blank=True,
         null=True,
-        help_text="Laissez vide pour une photo directe dans la galerie"
+        help_text="Laissez vide pour une photo directe dans la galerie",
     )
 
     # Métadonnées photo
-    nom_fichier = models.CharField(max_length=255, blank=True, help_text="Nom du fichier original")
-    titre = models.CharField(max_length=200, blank=True, help_text="Titre personnalisé (optionnel)")
+    nom_fichier = models.CharField(
+        max_length=255, blank=True, help_text="Nom du fichier original"
+    )
+    titre = models.CharField(
+        max_length=200, blank=True, help_text="Titre personnalisé (optionnel)"
+    )
     description = models.TextField(blank=True)
 
     # Métadonnées techniques (extraites EXIF)
@@ -327,9 +481,9 @@ class Photo(models.Model):
     modifie_le = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['ordre_affichage', 'titre']
-        verbose_name = 'Photo'
-        verbose_name_plural = 'Photos'
+        ordering = ["ordre_affichage", "titre"]
+        verbose_name = "Photo"
+        verbose_name_plural = "Photos"
 
     def __str__(self) -> str:
         return self.get_titre_affichage() or f"Photo {self.id}"
@@ -342,8 +496,8 @@ class Photo(models.Model):
         # Comparer avec le nom de fichier sans extension
         nom_fichier_sans_ext = self.get_nom_fichier_sans_extension()
         # Vérifier si le titre est différent du nom de fichier (avec ou sans espaces/underscores)
-        titre_nettoye = self.titre.replace(' ', '_').replace('-', '_').lower()
-        nom_nettoye = nom_fichier_sans_ext.replace(' ', '_').replace('-', '_').lower()
+        titre_nettoye = self.titre.replace(" ", "_").replace("-", "_").lower()
+        nom_nettoye = nom_fichier_sans_ext.replace(" ", "_").replace("-", "_").lower()
 
         return titre_nettoye != nom_nettoye
 
@@ -353,8 +507,8 @@ class Photo(models.Model):
             return self.titre
 
         config = ConfigurationSite.get_instance()
-        if config.affichage_titre_vide == 'sans_titre':
-            return "Sans titre"
+        if config.affichage_titre_vide == "sans_titre":
+            return config.msg_sans_titre
         else:
             return ""
 
@@ -364,21 +518,22 @@ class Photo(models.Model):
             return self.titre
 
         config = ConfigurationSite.get_instance()
-        if config.affichage_titre_vide == 'sans_titre':
-            return "Sans titre"
+        if config.affichage_titre_vide == "sans_titre":
+            return config.msg_sans_titre
         else:
             return ""  # Même comportement que get_titre_affichage pour la cohérence
 
     def get_nom_fichier_sans_extension(self) -> str:
         """Retourne le nom de fichier sans l'extension"""
         import os
+
         return os.path.splitext(self.nom_fichier)[0]
 
     def get_absolute_url(self) -> str:
-        return reverse('galeries:photo_detail', kwargs={'photo_id': self.id})
+        return reverse("galeries:photo_detail", kwargs={"photo_id": self.id})
 
     def get_private_url(self) -> str:
-        return reverse('galeries:photo_privee', kwargs={'photo_id': self.id})
+        return reverse("galeries:photo_privee", kwargs={"photo_id": self.id})
 
     def est_dans_collection(self) -> bool:
         """Vérifie si la photo est dans une collection ou directe"""
@@ -403,13 +558,23 @@ class Photo(models.Model):
         appareil = self.appareil.strip()
 
         # Liste des marques communes
-        marques = ['Canon', 'Nikon', 'Sony', 'Fuji', 'Fujifilm', 'Olympus', 'Pentax', 'Leica', 'Panasonic']
+        marques = [
+            "Canon",
+            "Nikon",
+            "Sony",
+            "Fuji",
+            "Fujifilm",
+            "Olympus",
+            "Pentax",
+            "Leica",
+            "Panasonic",
+        ]
 
         for marque in marques:
             # Si la marque apparaît au début deux fois, supprimer la première occurrence
             double_marque = f"{marque} {marque}"
             if appareil.startswith(double_marque):
-                appareil = appareil[len(marque):].strip()
+                appareil = appareil[len(marque) :].strip()
                 break
 
         return appareil
@@ -422,11 +587,11 @@ class Photo(models.Model):
         ouverture = str(self.ouverture).strip()
 
         # Supprimer "/1" à la fin
-        if ouverture.endswith('/1'):
+        if ouverture.endswith("/1"):
             ouverture = ouverture[:-2]
 
         # S'assurer qu'on a le préfixe f/ si c'est juste un nombre
-        if ouverture and not ouverture.startswith('f/'):
+        if ouverture and not ouverture.startswith("f/"):
             ouverture = f"f/{ouverture}"
 
         return ouverture
@@ -436,22 +601,18 @@ class PhotoVersion(models.Model):
     """Version traitée d'une photo (couleur, monochrome, etc.)"""
 
     TRAITEMENT_CHOICES = [
-        ('couleur', 'Couleur'),
-        ('monochrome', 'Monochrome')
+        ("couleur", "Couleur"),
+        ("monochrome", "Monochrome"),
         # ('sepia', 'Sépia'),
-        #('vintage', 'Vintage'),
+        # ('vintage', 'Vintage'),
     ]
 
-    photo = models.ForeignKey(
-        Photo,
-        on_delete=models.CASCADE,
-        related_name='versions'
-    )
+    photo = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name="versions")
     traitement = models.CharField(max_length=20, choices=TRAITEMENT_CHOICES)
 
     # Fichiers
-    fichier_web = models.ImageField(upload_to='photos/web/')  # Optimisé web
-    fichier_pleine_resolution = models.ImageField(upload_to='photos/hd/', blank=True)
+    fichier_web = models.ImageField(upload_to="photos/web/")  # Optimisé web
+    fichier_pleine_resolution = models.ImageField(upload_to="photos/hd/", blank=True)
 
     # Dimensions version
     largeur = models.PositiveIntegerField()
@@ -459,14 +620,10 @@ class PhotoVersion(models.Model):
 
     # Tailles de fichiers (en octets)
     taille_fichier_web = models.PositiveIntegerField(
-        null=True,
-        blank=True,
-        help_text="Taille du fichier web en octets"
+        null=True, blank=True, help_text="Taille du fichier web en octets"
     )
     taille_fichier_hd = models.PositiveIntegerField(
-        null=True,
-        blank=True,
-        help_text="Taille du fichier haute définition en octets"
+        null=True, blank=True, help_text="Taille du fichier haute définition en octets"
     )
 
     # Gestion
@@ -475,31 +632,35 @@ class PhotoVersion(models.Model):
     traite_le = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = [('photo', 'traitement')]
-        verbose_name = 'Version de photo'
-        verbose_name_plural = 'Versions de photos'
+        unique_together = [("photo", "traitement")]
+        verbose_name = "Version de photo"
+        verbose_name_plural = "Versions de photos"
 
     def save(self, *args: Any, **kwargs: Any) -> None:
         """Calcule automatiquement la taille des fichiers lors de la sauvegarde"""
         super().save(*args, **kwargs)
 
         # Calculer la taille du fichier web
-        if self.fichier_web and hasattr(self.fichier_web, 'path'):
+        if self.fichier_web and hasattr(self.fichier_web, "path"):
             try:
                 self.taille_fichier_web = os.path.getsize(self.fichier_web.path)
             except (OSError, FileNotFoundError):
                 self.taille_fichier_web = None
 
         # Calculer la taille du fichier HD
-        if self.fichier_pleine_resolution and hasattr(self.fichier_pleine_resolution, 'path'):
+        if self.fichier_pleine_resolution and hasattr(
+            self.fichier_pleine_resolution, "path"
+        ):
             try:
-                self.taille_fichier_hd = os.path.getsize(self.fichier_pleine_resolution.path)
+                self.taille_fichier_hd = os.path.getsize(
+                    self.fichier_pleine_resolution.path
+                )
             except (OSError, FileNotFoundError):
                 self.taille_fichier_hd = None
 
         # Sauvegarder à nouveau si les tailles ont été mises à jour
         if self.taille_fichier_web is not None or self.taille_fichier_hd is not None:
-            super().save(update_fields=['taille_fichier_web', 'taille_fichier_hd'])
+            super().save(update_fields=["taille_fichier_web", "taille_fichier_hd"])
 
     def __str__(self) -> str:
         return f"{self.photo.titre or 'Photo'} - {self.get_traitement_display()}"
@@ -508,7 +669,11 @@ class PhotoVersion(models.Model):
         return self.fichier_web.url
 
     def get_url_telechargement(self) -> str:
-        return self.fichier_pleine_resolution.url if self.fichier_pleine_resolution else self.fichier_web.url
+        return (
+            self.fichier_pleine_resolution.url
+            if self.fichier_pleine_resolution
+            else self.fichier_web.url
+        )
 
     def get_taille_totale(self) -> int:
         """Retourne la taille totale en octets (fichiers web + HD)"""
@@ -529,7 +694,7 @@ class PhotoVersion(models.Model):
         if taille_octets == 0:
             return "0 B"
 
-        unites = ['B', 'KB', 'MB', 'GB']
+        unites = ["B", "KB", "MB", "GB"]
         taille = float(taille_octets)
 
         for unite in unites:
@@ -541,29 +706,29 @@ class PhotoVersion(models.Model):
 
     # Génération automatique de versions optimisées
     thumbnail = ImageSpecField(
-        source='fichier_web',
+        source="fichier_web",
         processors=[ResizeToFill(300, 300)],
-        format='JPEG',
-        options={'quality': 85}
+        format="JPEG",
+        options={"quality": 85},
     )
 
     lightbox = ImageSpecField(
-        source='fichier_web',
+        source="fichier_web",
         processors=[ResizeToFit(2560, 1440)],
-        format='JPEG',
-        options={'quality': 92}
+        format="JPEG",
+        options={"quality": 92},
     )
 
     gallery_preview = ImageSpecField(
-        source='fichier_web',
+        source="fichier_web",
         processors=[ResizeToFit(800, 600)],
-        format='JPEG',
-        options={'quality': 88}
+        format="JPEG",
+        options={"quality": 88},
     )
 
 
 # Signaux pour mise à jour automatique du cache des tailles
-@receiver(post_save, sender='galeries.PhotoVersion')
+@receiver(post_save, sender="galeries.PhotoVersion")
 def update_cache_on_photo_version_save(sender, instance, **kwargs):
     """Met à jour le cache de taille quand une version de photo est modifiée"""
     try:
@@ -579,7 +744,7 @@ def update_cache_on_photo_version_save(sender, instance, **kwargs):
         pass
 
 
-@receiver(post_delete, sender='galeries.PhotoVersion')
+@receiver(post_delete, sender="galeries.PhotoVersion")
 def update_cache_on_photo_version_delete(sender, instance, **kwargs):
     """Met à jour le cache de taille quand une version de photo est supprimée"""
     try:
@@ -592,13 +757,13 @@ def update_cache_on_photo_version_delete(sender, instance, **kwargs):
         pass
 
 
-@receiver(post_save, sender='galeries.Photo')
+@receiver(post_save, sender="galeries.Photo")
 def update_cache_on_photo_move(sender, instance, **kwargs):
     """Met à jour le cache quand une photo change de collection"""
-    if kwargs.get('update_fields') and 'collection' in kwargs.get('update_fields', []):
+    if kwargs.get("update_fields") and "collection" in kwargs.get("update_fields", []):
         try:
             # Photo déplacée, recalculer les deux conteneurs
-            if hasattr(instance, '_original_collection'):
+            if hasattr(instance, "_original_collection"):
                 if instance._original_collection:
                     instance._original_collection.recalculer_taille_cache()
 
@@ -614,65 +779,57 @@ class AccesGalerie(models.Model):
     """Système d'accès privé pour les galeries"""
 
     galerie = models.ForeignKey(
-        Galerie,
-        on_delete=models.CASCADE,
-        related_name='acces_prives'
+        Galerie, on_delete=models.CASCADE, related_name="acces_prives"
     )
 
     # Code d'accès unique pour cette galerie
     code_acces = models.CharField(
-        max_length=20,
-        unique=True,
-        help_text="Code d'accès généré automatiquement"
+        max_length=20, unique=True, help_text="Code d'accès généré automatiquement"
     )
 
     # Titre personnalisé pour cet accès (optionnel)
     titre_acces = models.CharField(
         max_length=100,
         blank=True,
-        help_text="Titre personnalisé pour identifier cet accès (ex: 'Mariage Julie & Pierre')"
+        help_text="Titre personnalisé pour identifier cet accès (ex: 'Mariage Julie & Pierre')",
     )
 
     # Configuration d'accès
     date_creation = models.DateTimeField(auto_now_add=True)
     date_expiration = models.DateTimeField(
-        blank=True,
-        null=True,
-        help_text="Laissez vide pour un accès illimité"
+        blank=True, null=True, help_text="Laissez vide pour un accès illimité"
     )
 
     # Limitations d'accès
     nombre_max_visiteurs = models.PositiveIntegerField(
         blank=True,
         null=True,
-        help_text="Nombre maximum de visiteurs autorisés (laissez vide pour illimité)"
+        help_text="Nombre maximum de visiteurs autorisés (laissez vide pour illimité)",
     )
 
     # Permissions
     permettre_telechargement = models.BooleanField(
         default=True,
-        help_text="Autoriser le téléchargement des photos haute résolution"
+        help_text="Autoriser le téléchargement des photos haute résolution",
     )
 
     # Statistiques
     nombre_acces = models.PositiveIntegerField(
-        default=0,
-        help_text="Nombre total d'accès avec ce code"
+        default=0, help_text="Nombre total d'accès avec ce code"
     )
 
     # Activation
     est_actif = models.BooleanField(
-        default=True,
-        help_text="Désactiver temporairement cet accès"
+        default=True, help_text="Désactiver temporairement cet accès"
     )
 
     cree_le = models.DateTimeField(auto_now_add=True)
     modifie_le = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-cree_le']
-        verbose_name = 'Accès privé'
-        verbose_name_plural = 'Accès privés'
+        ordering = ["-cree_le"]
+        verbose_name = "Accès privé"
+        verbose_name_plural = "Accès privés"
 
     def __str__(self) -> str:
         titre = self.titre_acces or f"Accès {self.code_acces}"
@@ -689,8 +846,7 @@ class AccesGalerie(models.Model):
         while True:
             # Générer un code lisible (sans caractères ambigus)
             code = get_random_string(
-                length=8,
-                allowed_chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+                length=8, allowed_chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
             )
             # Vérifier l'unicité
             if not AccesGalerie.objects.filter(code_acces=code).exists():
@@ -716,67 +872,57 @@ class AccesGalerie(models.Model):
     def incrementer_acces(self) -> None:
         """Incrémente le compteur d'accès"""
         self.nombre_acces += 1
-        self.save(update_fields=['nombre_acces'])
+        self.save(update_fields=["nombre_acces"])
 
 
 class VisiteurGalerie(models.Model):
     """Visiteur ayant accès à une galerie privée"""
 
     acces_galerie = models.ForeignKey(
-        AccesGalerie,
-        on_delete=models.CASCADE,
-        related_name='visiteurs'
+        AccesGalerie, on_delete=models.CASCADE, related_name="visiteurs"
     )
 
     # Identité du visiteur
     email = models.EmailField(help_text="Email du visiteur")
     nom = models.CharField(
-        max_length=100,
-        blank=True,
-        help_text="Nom du visiteur (optionnel)"
+        max_length=100, blank=True, help_text="Nom du visiteur (optionnel)"
     )
 
     # Authentification
     token_acces = models.CharField(
         max_length=64,
         unique=True,
-        help_text="Token unique pour l'authentification en session"
+        help_text="Token unique pour l'authentification en session",
     )
 
     # Suivi d'activité
     date_premier_acces = models.DateTimeField(
-        blank=True,
-        null=True,
-        help_text="Date du premier accès à la galerie"
+        blank=True, null=True, help_text="Date du premier accès à la galerie"
     )
     date_dernier_acces = models.DateTimeField(
-        blank=True,
-        null=True,
-        help_text="Date du dernier accès à la galerie"
+        blank=True, null=True, help_text="Date du dernier accès à la galerie"
     )
 
     nombre_visites = models.PositiveIntegerField(
-        default=0,
-        help_text="Nombre total de visites"
+        default=0, help_text="Nombre total de visites"
     )
 
     # Activation
     est_actif = models.BooleanField(
-        default=True,
-        help_text="Désactiver l'accès pour ce visiteur spécifique"
+        default=True, help_text="Désactiver l'accès pour ce visiteur spécifique"
     )
 
     cree_le = models.DateTimeField(auto_now_add=True)
     modifie_le = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = [('acces_galerie', 'email')]
-        ordering = ['-date_dernier_acces']
-        verbose_name = 'Visiteur'
-        verbose_name_plural = 'Visiteurs'
+        unique_together = [("acces_galerie", "email")]
+        ordering = ["-date_dernier_acces"]
+        verbose_name = "Visiteur"
+        verbose_name_plural = "Visiteurs"
 
     def __str__(self) -> str:
-        nom_affiche = self.nom or self.email.split('@')[0]
+        nom_affiche = self.nom or self.email.split("@")[0]
         return f"{nom_affiche} - {self.acces_galerie.galerie.nom}"
 
     def save(self, *args: Any, **kwargs: Any) -> None:
@@ -795,6 +941,7 @@ class VisiteurGalerie(models.Model):
     def marquer_visite(self) -> None:
         """Enregistre une nouvelle visite"""
         from django.utils import timezone
+
         maintenant = timezone.now()
 
         if not self.date_premier_acces:
@@ -802,7 +949,9 @@ class VisiteurGalerie(models.Model):
 
         self.date_dernier_acces = maintenant
         self.nombre_visites += 1
-        self.save(update_fields=['date_premier_acces', 'date_dernier_acces', 'nombre_visites'])
+        self.save(
+            update_fields=["date_premier_acces", "date_dernier_acces", "nombre_visites"]
+        )
 
     def peut_acceder(self) -> bool:
         """Vérifie si le visiteur peut accéder à la galerie"""
@@ -814,14 +963,14 @@ class VisiteurGalerie(models.Model):
             galerie = self.acces_galerie.galerie
             sujet = f"Accès à la galerie privée : {galerie.nom}"
 
-            message = f"""Bonjour{' ' + self.nom if self.nom else ''},
+            message = f"""Bonjour{" " + self.nom if self.nom else ""},
 
 Vous avez maintenant accès à la galerie privée "{galerie.nom}".
 
 Code d'accès : {self.acces_galerie.code_acces}
 Lien direct : {settings.SITE_URL}/galerie/prive/{self.acces_galerie.code_acces}/?token={self.token_acces}
 
-{galerie.description if galerie.description else ''}
+{galerie.description if galerie.description else ""}
 
 Cordialement,
 {settings.DEFAULT_FROM_EMAIL}
@@ -832,7 +981,7 @@ Cordialement,
                 message=message,
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[self.email],
-                fail_silently=False
+                fail_silently=False,
             )
             return True
 
@@ -844,10 +993,8 @@ Cordialement,
         """Récupère toutes les galeries privées accessibles à un visiteur donné"""
 
         visiteurs = VisiteurGalerie.objects.filter(
-            email=email,
-            est_actif=True,
-            acces_galerie__est_actif=True
-        ).select_related('acces_galerie__galerie')
+            email=email, est_actif=True, acces_galerie__est_actif=True
+        ).select_related("acces_galerie__galerie")
 
         # Filtrer les accès valides (non expirés, limites respectées)
         galeries_accessibles = []
@@ -856,16 +1003,15 @@ Cordialement,
                 galeries_accessibles.append(visiteur.acces_galerie.galerie.id)
 
         return Galerie.objects.filter(
-            id__in=galeries_accessibles,
-            est_publique=False
-        ).order_by('nom')
+            id__in=galeries_accessibles, est_publique=False
+        ).order_by("nom")
 
     @staticmethod
     def get_visiteur_par_token(token: str) -> VisiteurGalerie | None:
         """Récupère un visiteur par son token d'accès"""
         try:
-            return VisiteurGalerie.objects.select_related(
-                'acces_galerie__galerie'
-            ).get(token_acces=token, est_actif=True)
+            return VisiteurGalerie.objects.select_related("acces_galerie__galerie").get(
+                token_acces=token, est_actif=True
+            )
         except VisiteurGalerie.DoesNotExist:
             return None
