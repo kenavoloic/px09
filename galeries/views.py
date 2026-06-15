@@ -10,6 +10,23 @@ from django.utils.text import slugify
 from .models import Collection, Galerie, Photo, VisiteurGalerie
 
 
+def _collections_adjacentes(galerie, collection, inclure_privees=False):
+    """Retourne le couple (précédente, suivante) dans la même galerie."""
+    collections = galerie.collections.order_by("ordre_affichage", "cree_le")
+    if not inclure_privees:
+        collections = collections.filter(est_publique=True)
+
+    collection_list = list(collections)
+    try:
+        index = collection_list.index(collection)
+    except ValueError:
+        return None, None
+
+    precedente = collection_list[index - 1] if index > 0 else None
+    suivante = collection_list[index + 1] if index < len(collection_list) - 1 else None
+    return precedente, suivante
+
+
 def galerie_detail(request, galerie_slug):
     """Vue galerie - affiche collections OU photos directes selon l'organisation"""
     galerie = get_object_or_404(Galerie, slug=galerie_slug, est_publique=True)
@@ -21,7 +38,9 @@ def galerie_detail(request, galerie_slug):
         context["collections"] = galerie.get_collections_publiques()
 
     # Toujours inclure les photos directes s'il y en a
-    photos_directes = galerie.get_photos_directes_publiques()
+    photos_directes = galerie.get_photos_directes_publiques().prefetch_related(
+        "versions"
+    )
     if photos_directes.exists():
         context["photos"] = photos_directes
 
@@ -35,25 +54,9 @@ def collection_detail(request, galerie_slug, collection_slug):
         Collection, galerie=galerie, slug=collection_slug, est_publique=True
     )
 
-    photos = collection.get_photos_publiques()
+    photos = collection.get_photos_publiques().prefetch_related("versions")
 
-    # Collections précédente et suivante dans la même galerie
-    collections_galerie = galerie.collections.filter(est_publique=True).order_by(
-        "ordre_affichage", "cree_le"
-    )
-    collection_list = list(collections_galerie)
-
-    prev_collection = None
-    next_collection = None
-
-    try:
-        current_index = collection_list.index(collection)
-        if current_index > 0:
-            prev_collection = collection_list[current_index - 1]
-        if current_index < len(collection_list) - 1:
-            next_collection = collection_list[current_index + 1]
-    except ValueError:
-        pass
+    prev_collection, next_collection = _collections_adjacentes(galerie, collection)
 
     context = {
         "galerie": galerie,
@@ -107,8 +110,10 @@ def galerie_privee(request, galerie_slug):
         context["collections"] = galerie.collections.order_by("ordre_affichage")
 
     # Photos directes (toutes, même non publiques)
-    photos_directes = galerie.photos.filter(collection__isnull=True).order_by(
-        "ordre_affichage"
+    photos_directes = (
+        galerie.photos.filter(collection__isnull=True)
+        .order_by("ordre_affichage")
+        .prefetch_related("versions")
     )
     if photos_directes.exists():
         context["photos"] = photos_directes
@@ -127,23 +132,11 @@ def collection_privee(request, galerie_slug, collection_slug):
         return redirect("accueil:index")
 
     # Photos de la collection (toutes, même non publiques)
-    photos = collection.photos.order_by("ordre_affichage")
+    photos = collection.photos.order_by("ordre_affichage").prefetch_related("versions")
 
-    # Collections précédente et suivante
-    collections_galerie = galerie.collections.order_by("ordre_affichage", "cree_le")
-    collection_list = list(collections_galerie)
-
-    prev_collection = None
-    next_collection = None
-
-    try:
-        current_index = collection_list.index(collection)
-        if current_index > 0:
-            prev_collection = collection_list[current_index - 1]
-        if current_index < len(collection_list) - 1:
-            next_collection = collection_list[current_index + 1]
-    except ValueError:
-        pass
+    prev_collection, next_collection = _collections_adjacentes(
+        galerie, collection, inclure_privees=True
+    )
 
     context = {
         "galerie": galerie,

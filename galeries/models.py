@@ -2,6 +2,7 @@ import os
 import secrets
 
 from django.conf import settings
+from django.core.cache import cache
 from django.core.mail import send_mail
 from django.db import models
 from django.db.models.signals import post_delete, post_save
@@ -175,16 +176,27 @@ class ConfigurationSite(models.Model):
     def __str__(self):
         return "Configuration du site"
 
+    CACHE_KEY = "configuration_site_instance"
+
     @classmethod
     def get_instance(cls):
-        """Récupère l'instance unique de configuration"""
-        instance, created = cls.objects.get_or_create(pk=1)
+        """Récupère l'instance unique de configuration (mise en cache).
+
+        Le singleton est lu à de nombreux endroits (un appel par photo via
+        get_titre_affichage), d'où la mise en cache pour éviter une requête
+        par appel. Le cache est invalidé à chaque sauvegarde.
+        """
+        instance = cache.get(cls.CACHE_KEY)
+        if instance is None:
+            instance, _ = cls.objects.get_or_create(pk=1)
+            cache.set(cls.CACHE_KEY, instance, None)
         return instance
 
     def save(self, *args, **kwargs):
         # Forcer l'ID à 1 pour maintenir le singleton
         self.pk = 1
         super().save(*args, **kwargs)
+        cache.delete(self.CACHE_KEY)
 
     def delete(self, *args, **kwargs):
         # Empêcher la suppression du singleton
@@ -509,7 +521,12 @@ class Photo(models.Model):
         return self.collection if self.collection else self.galerie
 
     def get_version_par_defaut(self):
-        return self.versions.filter(est_par_defaut=True).first()
+        # Itère sur les versions plutôt qu'un filtre SQL, afin de profiter de
+        # prefetch_related("versions") dans les vues listant de nombreuses photos.
+        for version in self.versions.all():
+            if version.est_par_defaut:
+                return version
+        return None
 
     def get_versions_publiques(self):
         return self.versions.filter(est_publique=True)
