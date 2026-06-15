@@ -162,9 +162,8 @@ cython_debug/
 # VS Code
 .vscode/
 
-# Static files
+# Static files (collectstatic output only ; les sources static/ sont versionnées)
 /staticfiles/
-/static/
 
 # Media files
 /media/
