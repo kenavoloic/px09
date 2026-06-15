@@ -67,14 +67,14 @@ class ContactForm(forms.Form):
         ),
     )
 
-    def clean_website(self) -> str:
+    def clean_website(self):
         """Vérification honeypot anti-spam"""
         website = self.cleaned_data.get("website", "") or ""
         if website:
             raise forms.ValidationError("Spam détecté.")
         return website
 
-    def clean_message(self) -> str:
+    def clean_message(self):
         """Validation du message"""
         message = self.cleaned_data.get("message", "")
         if len(message.strip()) < 10:
@@ -83,7 +83,7 @@ class ContactForm(forms.Form):
             )
         return message
 
-    def send_email(self) -> bool:
+    def send_email(self):
         """Envoie l'email de contact au photographe"""
         if not self.is_valid():
             return False

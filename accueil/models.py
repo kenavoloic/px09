@@ -1,5 +1,3 @@
-from typing import Any
-
 from django.core.exceptions import ValidationError
 from django.db import models
 
@@ -67,10 +65,10 @@ class AccueilConfig(models.Model):
         verbose_name = "Configuration de l'accueil"
         verbose_name_plural = "Configuration de l'accueil"
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"Configuration accueil - {self.titre_site}"
 
-    def save(self, *args: Any, **kwargs: Any) -> None:
+    def save(self, *args, **kwargs):
         # S'assurer qu'il n'y a qu'une seule instance
         if not self.pk and AccueilConfig.objects.exists():
             raise ValidationError(
@@ -79,7 +77,7 @@ class AccueilConfig(models.Model):
         super().save(*args, **kwargs)
 
     @classmethod
-    def get_config(cls) -> "AccueilConfig":
+    def get_config(cls):
         """Récupère la configuration d'accueil (crée une instance par défaut si nécessaire)"""
         config, created = cls.objects.get_or_create(pk=1)
         return config
@@ -115,5 +113,5 @@ class SectionAccueil(models.Model):
         verbose_name = "Section d'accueil"
         verbose_name_plural = "Sections d'accueil"
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"{self.titre} ({self.get_position_display()})"

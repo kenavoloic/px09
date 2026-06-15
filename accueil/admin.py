@@ -1,8 +1,5 @@
-from typing import Any
-
 from django.contrib import admin
 from django.forms import ModelForm
-from django.http import HttpRequest
 
 from .models import AccueilConfig, SectionAccueil
 
@@ -14,7 +11,7 @@ class AccueilConfigForm(ModelForm):
         model = AccueilConfig
         fields = "__all__"
 
-    def clean(self) -> dict[str, Any]:
+    def clean(self):
         cleaned_data = super().clean()
         return cleaned_data or {}
 
@@ -23,12 +20,10 @@ class AccueilConfigForm(ModelForm):
 class AccueilConfigAdmin(admin.ModelAdmin):
     form = AccueilConfigForm
 
-    def has_add_permission(self, request: HttpRequest) -> bool:
+    def has_add_permission(self, request):
         return not AccueilConfig.objects.exists()
 
-    def has_delete_permission(
-        self, request: HttpRequest, obj: Any | None = None
-    ) -> bool:
+    def has_delete_permission(self, request, obj=None):
         return False
 
     fieldsets = (
@@ -61,14 +56,10 @@ class AccueilConfigAdmin(admin.ModelAdmin):
 
     readonly_fields = ("cree_le", "modifie_le")
 
-    def get_object(
-        self, request: HttpRequest, object_id: str, from_field: str | None = None
-    ) -> AccueilConfig:
+    def get_object(self, request, object_id, from_field=None):
         return AccueilConfig.get_config()
 
-    def changelist_view(
-        self, request: HttpRequest, extra_context: dict[str, Any] | None = None
-    ) -> Any:
+    def changelist_view(self, request, extra_context=None):
         config = AccueilConfig.get_config()
         return self.changeform_view(request, str(config.pk))
 

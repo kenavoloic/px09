@@ -3,8 +3,6 @@ from datetime import timedelta
 from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin
 from django import forms
 from django.contrib import admin
-from django.db import models
-from django.http import HttpRequest
 from django.utils import timezone
 from django.utils.html import format_html
 
@@ -36,12 +34,12 @@ class ClientAdmin(admin.ModelAdmin):
         ),
     )
 
-    def nombre_commandes(self, obj: Client) -> int:
+    def nombre_commandes(self, obj):
         return obj.commandes.count()
 
     nombre_commandes.short_description = "Commandes"  # type: ignore[attr-defined]
 
-    def derniere_commande(self, obj: Client) -> str:
+    def derniere_commande(self, obj):
         derniere = obj.commandes.first()
         if derniere:
             return f"{derniere.reference} ({derniere.cree_le.strftime('%d/%m/%Y')})"
@@ -49,7 +47,7 @@ class ClientAdmin(admin.ModelAdmin):
 
     derniere_commande.short_description = "Dernière commande"  # type: ignore[attr-defined]
 
-    def get_queryset(self, request: HttpRequest) -> models.QuerySet[Client]:
+    def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related("commandes")
 
 
@@ -75,7 +73,7 @@ class PhotoCommandeInline(SortableInlineAdminMixin, admin.TabularInline):
 
     apercu_photo.short_description = "Aperçu"  # type: ignore[attr-defined]
 
-    def get_queryset(self, request: HttpRequest) -> models.QuerySet[PhotoCommande]:
+    def get_queryset(self, request):
         return (
             super()
             .get_queryset(request)
@@ -169,12 +167,12 @@ class CommandeAdmin(SortableAdminMixin, admin.ModelAdmin):
         ),
     )
 
-    def nombre_photos(self, obj: Commande) -> int:
+    def nombre_photos(self, obj):
         return obj.get_photos_count()
 
     nombre_photos.short_description = "Photos"  # type: ignore[attr-defined]
 
-    def est_accessible_display(self, obj: Commande) -> str:
+    def est_accessible_display(self, obj):
         if obj.est_accessible():
             return format_html('<span style="color: green;">✓ Accessible</span>')
         elif obj.est_expiree():
@@ -184,7 +182,7 @@ class CommandeAdmin(SortableAdminMixin, admin.ModelAdmin):
 
     est_accessible_display.short_description = "Accessibilité"  # type: ignore[attr-defined]
 
-    def url_acces_client(self, obj: Commande) -> str:
+    def url_acces_client(self, obj):
         if obj.pk:
             url = obj.get_absolute_url()
             return format_html(
@@ -198,7 +196,7 @@ class CommandeAdmin(SortableAdminMixin, admin.ModelAdmin):
 
     url_acces_client.short_description = "URL d'accès client"  # type: ignore[attr-defined]
 
-    def actions_rapides(self, obj: Commande) -> str:
+    def actions_rapides(self, obj):
         if obj.pk:
             actions = []
 
@@ -220,7 +218,7 @@ class CommandeAdmin(SortableAdminMixin, admin.ModelAdmin):
 
     actions_rapides.short_description = "Actions"  # type: ignore[attr-defined]
 
-    def get_queryset(self, request: HttpRequest) -> models.QuerySet[Commande]:
+    def get_queryset(self, request):
         return (
             super()
             .get_queryset(request)
@@ -257,7 +255,7 @@ class PhotoCommandeAdmin(admin.ModelAdmin):
 
     apercu_photo.short_description = "Aperçu"  # type: ignore[attr-defined]
 
-    def get_queryset(self, request: HttpRequest) -> models.QuerySet[PhotoCommande]:
+    def get_queryset(self, request):
         return (
             super()
             .get_queryset(request)

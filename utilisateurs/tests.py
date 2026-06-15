@@ -7,7 +7,7 @@ from .models import ProfilClient, ProfilPhotographe, Utilisateur
 class UtilisateurModelTest(TestCase):
     """Tests pour le modèle Utilisateur"""
 
-    def setUp(self) -> None:
+    def setUp(self):
         """Configuration des tests"""
         self.photographe_data = {
             "username": "photographe_test",
@@ -20,7 +20,7 @@ class UtilisateurModelTest(TestCase):
             "role": Utilisateur.Role.CLIENT,
         }
 
-    def test_creation_utilisateur_photographe(self) -> None:
+    def test_creation_utilisateur_photographe(self):
         """Test création d'un utilisateur photographe"""
         photographe = Utilisateur.objects.create_user(**self.photographe_data)
 
@@ -28,7 +28,7 @@ class UtilisateurModelTest(TestCase):
         self.assertFalse(photographe.est_client())
         self.assertFalse(photographe.est_visiteur())
 
-    def test_creation_utilisateur_client(self) -> None:
+    def test_creation_utilisateur_client(self):
         """Test création d'un utilisateur client"""
         client = Utilisateur.objects.create_user(**self.client_data)
 
@@ -36,7 +36,7 @@ class UtilisateurModelTest(TestCase):
         self.assertTrue(client.est_client())
         self.assertFalse(client.est_visiteur())
 
-    def test_utilisateur_visiteur_par_defaut(self) -> None:
+    def test_utilisateur_visiteur_par_defaut(self):
         """Test que le rôle par défaut est visiteur"""
         visiteur = Utilisateur.objects.create_user(
             username="visiteur_test", email="visiteur@test.com"
@@ -47,7 +47,7 @@ class UtilisateurModelTest(TestCase):
         self.assertTrue(visiteur.est_visiteur())
         self.assertEqual(visiteur.role, Utilisateur.Role.VISITEUR)
 
-    def test_un_seul_photographe_autorise(self) -> None:
+    def test_un_seul_photographe_autorise(self):
         """Test qu'un seul photographe peut exister"""
         # Créer le premier photographe
         Utilisateur.objects.create_user(**self.photographe_data)
@@ -63,7 +63,7 @@ class UtilisateurModelTest(TestCase):
 
         self.assertIn("Un seul photographe est autorisé", str(context.exception))
 
-    def test_modifier_role_en_photographe_impossible(self) -> None:
+    def test_modifier_role_en_photographe_impossible(self):
         """Test qu'on ne peut pas changer un utilisateur en photographe si un existe déjà"""
         # Créer un photographe
         Utilisateur.objects.create_user(**self.photographe_data)
@@ -76,7 +76,7 @@ class UtilisateurModelTest(TestCase):
             client.role = Utilisateur.Role.PHOTOGRAPHE
             client.save()
 
-    def test_peut_creer_plusieurs_clients(self) -> None:
+    def test_peut_creer_plusieurs_clients(self):
         """Test qu'on peut créer plusieurs clients"""
         client1 = Utilisateur.objects.create_user(
             username="client1", email="client1@test.com", role=Utilisateur.Role.CLIENT
@@ -95,7 +95,7 @@ class UtilisateurModelTest(TestCase):
 class ProfilCreationSignalTest(TestCase):
     """Tests pour la création automatique des profils"""
 
-    def test_profil_photographe_cree_automatiquement(self) -> None:
+    def test_profil_photographe_cree_automatiquement(self):
         """Test que le profil photographe est créé automatiquement"""
         photographe = Utilisateur.objects.create_user(
             username="photographe",
@@ -111,7 +111,7 @@ class ProfilCreationSignalTest(TestCase):
             photographe.profil_photographe.nom_entreprise, "Studio Jean Dupont"
         )
 
-    def test_profil_client_cree_automatiquement(self) -> None:
+    def test_profil_client_cree_automatiquement(self):
         """Test que le profil client est créé automatiquement"""
         client = Utilisateur.objects.create_user(
             username="client", email="client@test.com", role=Utilisateur.Role.CLIENT
@@ -121,7 +121,7 @@ class ProfilCreationSignalTest(TestCase):
         self.assertTrue(hasattr(client, "profil_client"))
         self.assertIsInstance(client.profil_client, ProfilClient)
 
-    def test_visiteur_pas_de_profil_automatique(self) -> None:
+    def test_visiteur_pas_de_profil_automatique(self):
         """Test qu'aucun profil n'est créé pour les visiteurs"""
         visiteur = Utilisateur.objects.create_user(
             username="visiteur",
@@ -137,7 +137,7 @@ class ProfilCreationSignalTest(TestCase):
 class ProfilModelTest(TestCase):
     """Tests pour les modèles de profils"""
 
-    def test_profil_photographe_str(self) -> None:
+    def test_profil_photographe_str(self):
         """Test de la représentation string du profil photographe"""
         photographe = Utilisateur.objects.create_user(
             username="photographe", role=Utilisateur.Role.PHOTOGRAPHE
@@ -148,7 +148,7 @@ class ProfilModelTest(TestCase):
 
         self.assertEqual(str(profil), "Profil photographe: Studio Test")
 
-    def test_profil_client_str(self) -> None:
+    def test_profil_client_str(self):
         """Test de la représentation string du profil client"""
         client = Utilisateur.objects.create_user(
             username="client_test",

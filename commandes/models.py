@@ -1,14 +1,8 @@
-from __future__ import annotations
-
 import secrets
-from typing import TYPE_CHECKING, Any
 
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
-
-if TYPE_CHECKING:
-    pass
 
 
 class Client(models.Model):
@@ -31,12 +25,12 @@ class Client(models.Model):
         verbose_name = "Client"
         verbose_name_plural = "Clients"
 
-    def __str__(self) -> str:
+    def __str__(self):
         if self.entreprise:
             return f"{self.nom} {self.prenom} ({self.entreprise})"
         return f"{self.nom} {self.prenom}"
 
-    def get_nom_complet(self) -> str:
+    def get_nom_complet(self):
         return f"{self.prenom} {self.nom}"
 
 
@@ -100,10 +94,10 @@ class Commande(models.Model):
         verbose_name = "Commande"
         verbose_name_plural = "Commandes"
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"{self.reference} - {self.titre}"
 
-    def save(self, *args: Any, **kwargs: Any) -> None:
+    def save(self, *args, **kwargs):
         # Générer un code d'accès unique si pas encore défini
         if not self.code_acces:
             self.code_acces = self.generer_code_acces()
@@ -114,14 +108,14 @@ class Commande(models.Model):
 
         super().save(*args, **kwargs)
 
-    def generer_code_acces(self) -> str:
+    def generer_code_acces(self):
         """Génère un code d'accès unique"""
         while True:
             code = secrets.token_urlsafe(24)
             if not Commande.objects.filter(code_acces=code).exists():
                 return code
 
-    def generer_reference(self) -> str:
+    def generer_reference(self):
         """Génère une référence unique avec gestion des conflits"""
         maintenant = timezone.now()
         date_str = maintenant.strftime("%Y_%m_%d")
@@ -136,25 +130,25 @@ class Commande(models.Model):
         timestamp = int(maintenant.timestamp())
         return f"{date_str}_{timestamp}"
 
-    def est_accessible(self) -> bool:
+    def est_accessible(self):
         """Vérifie si la commande est accessible (non expirée et livrée)"""
         return self.statut == "livree" and self.expire_le > timezone.now()
 
-    def est_expiree(self) -> bool:
+    def est_expiree(self):
         """Vérifie si la commande est expirée"""
         return self.expire_le <= timezone.now()
 
-    def get_absolute_url(self) -> str:
+    def get_absolute_url(self):
         """URL d'accès client avec le code"""
         return reverse(
             "commandes:acces_commande", kwargs={"code_acces": self.code_acces}
         )
 
-    def get_admin_url(self) -> str:
+    def get_admin_url(self):
         """URL d'administration de la commande"""
         return reverse("admin:commandes_commande_change", args=[self.pk])
 
-    def enregistrer_visite(self) -> None:
+    def enregistrer_visite(self):
         """Enregistre une visite client"""
         maintenant = timezone.now()
         self.nombre_vues += 1
@@ -167,12 +161,12 @@ class Commande(models.Model):
             update_fields=["nombre_vues", "premiere_visite_le", "derniere_visite_le"]
         )
 
-    def enregistrer_telechargement(self) -> None:
+    def enregistrer_telechargement(self):
         """Enregistre un téléchargement"""
         self.nombre_telechargements += 1
         self.save(update_fields=["nombre_telechargements"])
 
-    def get_photos_count(self) -> int:
+    def get_photos_count(self):
         """Retourne le nombre de photos dans la commande"""
         return self.photos.count()
 
@@ -217,20 +211,20 @@ class PhotoCommande(models.Model):
         verbose_name = "Photo de commande"
         verbose_name_plural = "Photos de commande"
 
-    def __str__(self) -> str:
+    def __str__(self):
         if self.titre_personnalise:
             return f"{self.commande.reference} - {self.titre_personnalise}"
         return (
             f"{self.commande.reference} - {self.photo_originale.get_titre_affichage()}"
         )
 
-    def get_titre_affichage(self) -> str:
+    def get_titre_affichage(self):
         """Retourne le titre à afficher au client"""
         if self.titre_personnalise:
             return self.titre_personnalise
         return self.photo_originale.get_titre_affichage()
 
-    def get_url_web(self) -> str:
+    def get_url_web(self):
         """URL de la version web"""
         return (
             self.version_selectionnee.fichier_web.url
@@ -238,7 +232,7 @@ class PhotoCommande(models.Model):
             else ""
         )
 
-    def get_url_hd(self) -> str:
+    def get_url_hd(self):
         """URL de la version haute résolution"""
         return (
             self.version_selectionnee.fichier_pleine_resolution.url
@@ -246,7 +240,7 @@ class PhotoCommande(models.Model):
             else ""
         )
 
-    def peut_telecharger_hd(self) -> bool:
+    def peut_telecharger_hd(self):
         """Vérifie si le téléchargement HD est autorisé et disponible"""
         return (
             self.commande.autoriser_telechargement_hd

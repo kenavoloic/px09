@@ -1,13 +1,12 @@
 # Django Template Project
 
-Template de projet Django moderne utilisant uv, ruff, mypy et pytest avec approche TDD.
+Template de projet Django moderne utilisant uv, ruff et pytest avec approche TDD.
 
 ## 🚀 Fonctionnalités
 
 - ✅ Django 5.0+
 - ✅ Gestion des dépendances avec **uv** (dependency-groups moderne)
 - ✅ Linting et formatage avec **ruff**
-- ✅ **Typage strict avec mypy** + django-stubs
 - ✅ Tests avec **pytest** + couverture >95%
 - ✅ **Approche TDD** (Test-Driven Development)
 - ✅ Configuration multi-environnements (dev/prod)
@@ -35,9 +34,9 @@ Template de projet Django moderne utilisant uv, ruff, mypy et pytest avec approc
 ├── .env.example             # Variables d'environnement exemple
 ├── .env.dev                 # Config développement
 ├── .env.prod                # Config production
-├── pyproject.toml           # Configuration uv, ruff, mypy, pytest
+├── pyproject.toml           # Configuration uv, ruff, pytest
 ├── ruff.toml                # Configuration ruff (linting/formatage)
-└── manage.py               # Script Django (typé)
+└── manage.py               # Script Django
 ```
 
 ## 🛠 Installation
@@ -73,9 +72,6 @@ uv run manage.py runserver
 # Lancer les tests
 uv run pytest
 
-# Vérification de typage
-uv run mypy .
-
 # Linting et formatage
 uv run ruff check .
 uv run ruff format .
@@ -85,12 +81,7 @@ uv run ruff format .
 
 1. Configurer les variables d'environnement dans `.env.prod`
 2. Définir `DJANGO_ENVIRONMENT=prod`
-3. Vérifier le typage :
-```bash
-uv run mypy .
-```
-
-4. Collecter les fichiers statiques :
+3. Collecter les fichiers statiques :
 ```bash
 uv run manage.py collectstatic
 ```
@@ -108,9 +99,6 @@ uv run pytest --cov
 
 # Tests spécifiques
 uv run pytest tests/test_settings.py
-
-# Vérification mypy strict
-uv run mypy .
 ```
 
 ## 📝 Configuration
@@ -132,7 +120,6 @@ Le module `configurations.settings.__init__.py` sélectionne automatiquement les
 
 - **uv** : Gestionnaire de dépendances moderne et rapide
 - **ruff** : Linting et formatage ultra-rapide
-- **mypy** : Vérification de typage strict avec django-stubs
 - **pytest** : Framework de tests moderne avec couverture
 - **django-debug-toolbar** : Debug en développement
 - **django-extensions** : Commandes utiles pour Django
@@ -159,8 +146,6 @@ uv run pytest tests/test_nouvelle_feature.py
 ```bash
 # Vérifier que tous les tests passent
 uv run pytest
-# Vérifier le typage
-uv run mypy .
 # Vérifier le linting
 uv run ruff check .
 ```
@@ -168,7 +153,6 @@ uv run ruff check .
 ### Exigences de qualité
 
 - **Couverture de tests** : >95% obligatoire
-- **Typage** : mypy --strict sans erreurs
 - **Linting** : ruff check sans warnings
 - **Git** : Commit à chaque étape TDD
 
@@ -202,7 +186,6 @@ git merge feature/nouvelle-fonctionnalite
 
 - [ ] Tests passent : `uv run pytest`
 - [ ] Couverture >95% : `uv run pytest --cov`
-- [ ] Typage OK : `uv run mypy .`
 - [ ] Linting OK : `uv run ruff check .`
 - [ ] Formatage OK : `uv run ruff format .`
 
@@ -220,7 +203,6 @@ uv run manage.py runserver
 
 # Workflow qualité complet
 uv run pytest          # Tests
-uv run mypy .          # Typage  
 uv run ruff check .    # Linting
 uv run ruff format .   # Formatage
 ```

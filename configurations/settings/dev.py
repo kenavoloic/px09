@@ -2,14 +2,12 @@
 Development settings for Django project.
 """
 
-from typing import Any
-
 from .base import *
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG: bool = True
+DEBUG = True
 
-ALLOWED_HOSTS: list[str] = ["localhost", "127.0.0.1", "testserver"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "testserver"]
 
 # Development-specific apps
 INSTALLED_APPS += [
@@ -31,15 +29,15 @@ DATABASES = {
 }
 
 # Debug toolbar configuration
-INTERNAL_IPS: list[str] = [
+INTERNAL_IPS = [
     "127.0.0.1",
 ]
 
 # Email backend for development
-EMAIL_BACKEND: str = "django.core.mail.backends.console.EmailBackend"
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 # Logging configuration
-LOGGING: dict[str, Any] = {
+LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "handlers": {

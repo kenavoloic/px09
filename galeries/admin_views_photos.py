@@ -5,7 +5,7 @@ Vues d'administration pour la gestion de l'ordre des photos
 import json
 
 from django.contrib.admin.views.decorators import staff_member_required
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
@@ -14,7 +14,7 @@ from .models import Collection, Galerie, Photo
 
 
 @staff_member_required
-def photo_ordering_view(request: HttpRequest) -> HttpResponse:
+def photo_ordering_view(request):
     """Vue principale pour gérer l'ordre des photos"""
 
     # Récupérer la galerie ou collection sélectionnée
@@ -55,7 +55,7 @@ def photo_ordering_view(request: HttpRequest) -> HttpResponse:
 @staff_member_required
 @csrf_exempt
 @require_POST
-def update_photo_order(request: HttpRequest) -> JsonResponse:
+def update_photo_order(request):
     """API pour mettre à jour l'ordre des photos via AJAX"""
 
     try:
@@ -90,7 +90,7 @@ def update_photo_order(request: HttpRequest) -> JsonResponse:
 
 
 @staff_member_required
-def ajax_collections(request: HttpRequest) -> JsonResponse:
+def ajax_collections(request):
     """API AJAX pour récupérer les collections d'une galerie"""
 
     galerie_id = request.GET.get("galerie_id")
@@ -116,7 +116,7 @@ def ajax_collections(request: HttpRequest) -> JsonResponse:
 
 @staff_member_required
 @require_GET
-def photo_thumbnail_api(request: HttpRequest, photo_id: int) -> JsonResponse:
+def photo_thumbnail_api(request, photo_id):
     """API endpoint pour récupérer les informations de thumbnail d'une photo"""
     try:
         photo = get_object_or_404(Photo, id=photo_id)

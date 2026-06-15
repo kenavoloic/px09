@@ -1,9 +1,5 @@
-from typing import Any
-
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.db import models
-from django.http import HttpRequest
 from django.utils.html import format_html
 
 from .models import ProfilClient, ProfilPhotographe, Utilisateur
@@ -38,7 +34,7 @@ class UtilisateurAdmin(UserAdmin):
 
     readonly_fields = ["cree_le"]
 
-    def get_queryset(self, request: HttpRequest) -> models.QuerySet[Any]:
+    def get_queryset(self, request):
         return (
             super()
             .get_queryset(request)
@@ -68,7 +64,7 @@ class ProfilPhotographeAdmin(admin.ModelAdmin):
         ),
     )
 
-    def get_queryset(self, request: HttpRequest) -> models.QuerySet[Any]:
+    def get_queryset(self, request):
         return super().get_queryset(request).select_related("utilisateur")
 
 
@@ -108,21 +104,21 @@ class ProfilClientAdmin(admin.ModelAdmin):
         ),
     )
 
-    def utilisateur_nom(self, obj: ProfilClient) -> str:
+    def utilisateur_nom(self, obj):
         """Nom complet ou nom d'utilisateur"""
         return obj.utilisateur.get_full_name() or obj.utilisateur.username
 
     utilisateur_nom.short_description = "Nom"  # type: ignore[attr-defined]
     utilisateur_nom.admin_order_field = "utilisateur__first_name"  # type: ignore[attr-defined]
 
-    def utilisateur_email(self, obj: ProfilClient) -> str:
+    def utilisateur_email(self, obj):
         """Email de l'utilisateur"""
         return obj.utilisateur.email
 
     utilisateur_email.short_description = "Email"  # type: ignore[attr-defined]
     utilisateur_email.admin_order_field = "utilisateur__email"  # type: ignore[attr-defined]
 
-    def a_des_notes(self, obj: ProfilClient) -> str:
+    def a_des_notes(self, obj):
         """Indique si le client a des notes"""
         if obj.notes.strip():
             return format_html('<span style="color: #28a745;">✓ Oui</span>')
@@ -130,5 +126,5 @@ class ProfilClientAdmin(admin.ModelAdmin):
 
     a_des_notes.short_description = "Notes"  # type: ignore[attr-defined]
 
-    def get_queryset(self, request: HttpRequest) -> models.QuerySet[Any]:
+    def get_queryset(self, request):
         return super().get_queryset(request).select_related("utilisateur")

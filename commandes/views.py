@@ -4,7 +4,7 @@ from io import BytesIO
 
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
-from django.http import Http404, HttpRequest, HttpResponse
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST
 from .models import Commande, PhotoCommande
 
 
-def acces_commande(request: HttpRequest, code_acces: str) -> HttpResponse:
+def acces_commande(request, code_acces):
     """Page d'accès à une commande avec code d'accès"""
     try:
         commande = get_object_or_404(Commande, code_acces=code_acces)
@@ -54,9 +54,7 @@ def acces_commande(request: HttpRequest, code_acces: str) -> HttpResponse:
         raise Http404("Code d'accès invalide") from None
 
 
-def photo_detail_commande(
-    request: HttpRequest, code_acces: str, photo_id: int
-) -> HttpResponse:
+def photo_detail_commande(request, code_acces, photo_id):
     """Vue détaillée d'une photo dans une commande"""
     commande = get_object_or_404(Commande, code_acces=code_acces)
 
@@ -100,9 +98,7 @@ def photo_detail_commande(
 
 
 @require_POST
-def telecharger_photo(
-    request: HttpRequest, code_acces: str, photo_id: int
-) -> HttpResponse:
+def telecharger_photo(request, code_acces, photo_id):
     """Téléchargement d'une photo individuelle"""
     commande = get_object_or_404(Commande, code_acces=code_acces)
 
@@ -150,7 +146,7 @@ def telecharger_photo(
     return response
 
 
-def telecharger_toutes_photos(request: HttpRequest, code_acces: str) -> HttpResponse:
+def telecharger_toutes_photos(request, code_acces):
     """Téléchargement de toutes les photos en ZIP"""
     commande = get_object_or_404(Commande, code_acces=code_acces)
 
@@ -226,7 +222,7 @@ def telecharger_toutes_photos(request: HttpRequest, code_acces: str) -> HttpResp
     return response
 
 
-def aide_commande(request: HttpRequest, code_acces: str) -> HttpResponse:
+def aide_commande(request, code_acces):
     """Page d'aide pour les clients"""
     commande = get_object_or_404(Commande, code_acces=code_acces)
 

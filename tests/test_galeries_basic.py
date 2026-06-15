@@ -10,7 +10,7 @@ from galeries.models import Collection, Galerie, Photo
 class TestGalerieBasic(TestCase):
     """Tests basiques pour Galerie"""
 
-    def test_creation_galerie(self) -> None:
+    def test_creation_galerie(self):
         """Test de création d'une galerie"""
         galerie = Galerie.objects.create(
             nom="Test Galerie",
@@ -24,12 +24,12 @@ class TestGalerieBasic(TestCase):
         self.assertEqual(galerie.slug, "test-galerie")
         self.assertTrue(galerie.est_publique)
 
-    def test_str_galerie(self) -> None:
+    def test_str_galerie(self):
         """Test de la représentation string"""
         galerie = Galerie.objects.create(nom="Ma Galerie", slug="ma-galerie")
         self.assertEqual(str(galerie), "Ma Galerie")
 
-    def test_get_absolute_url(self) -> None:
+    def test_get_absolute_url(self):
         """Test de l'URL absolue"""
         galerie = Galerie.objects.create(nom="Test", slug="test-galerie")
         self.assertEqual(galerie.get_absolute_url(), "/galerie/test-galerie/")
@@ -38,7 +38,7 @@ class TestGalerieBasic(TestCase):
 class TestCollectionBasic(TestCase):
     """Tests basiques pour Collection"""
 
-    def test_creation_collection(self) -> None:
+    def test_creation_collection(self):
         """Test de création d'une collection"""
         galerie = Galerie.objects.create(nom="Galerie", slug="galerie")
         collection = Collection.objects.create(
@@ -52,7 +52,7 @@ class TestCollectionBasic(TestCase):
         self.assertEqual(collection.nom, "Test Collection")
         self.assertEqual(collection.galerie, galerie)
 
-    def test_str_collection(self) -> None:
+    def test_str_collection(self):
         """Test de la représentation string"""
         galerie = Galerie.objects.create(nom="Galerie", slug="galerie")
         collection = Collection.objects.create(
@@ -64,7 +64,7 @@ class TestCollectionBasic(TestCase):
 class TestPhotoBasic(TestCase):
     """Tests basiques pour Photo"""
 
-    def test_creation_photo(self) -> None:
+    def test_creation_photo(self):
         """Test de création d'une photo"""
         galerie = Galerie.objects.create(nom="Galerie", slug="galerie")
         photo = Photo.objects.create(
@@ -79,7 +79,7 @@ class TestPhotoBasic(TestCase):
         self.assertEqual(photo.titre, "Test Photo")
         self.assertEqual(photo.galerie, galerie)
 
-    def test_str_photo_avec_titre(self) -> None:
+    def test_str_photo_avec_titre(self):
         """Test de la représentation string avec titre"""
         galerie = Galerie.objects.create(nom="Galerie", slug="galerie")
         photo = Photo.objects.create(
@@ -90,7 +90,7 @@ class TestPhotoBasic(TestCase):
         )
         self.assertEqual(str(photo), "Ma Photo")
 
-    def test_str_photo_sans_titre(self) -> None:
+    def test_str_photo_sans_titre(self):
         """Test de la représentation string sans titre"""
         galerie = Galerie.objects.create(nom="Galerie", slug="galerie")
         photo = Photo.objects.create(

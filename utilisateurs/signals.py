@@ -5,9 +5,7 @@ from .models import ProfilClient, ProfilPhotographe, Utilisateur
 
 
 @receiver(post_save, sender=Utilisateur)
-def creer_profil_utilisateur(
-    sender: object, instance: Utilisateur, created: bool, **kwargs: object
-) -> None:
+def creer_profil_utilisateur(sender, instance, created, **kwargs):
     """
     Crée automatiquement le profil approprié selon le rôle de l'utilisateur.
     """
@@ -22,9 +20,7 @@ def creer_profil_utilisateur(
 
 
 @receiver(post_save, sender=Utilisateur)
-def synchroniser_profil_utilisateur(
-    sender: object, instance: Utilisateur, created: bool, **kwargs: object
-) -> None:
+def synchroniser_profil_utilisateur(sender, instance, created, **kwargs):
     """
     Synchronise les profils quand le rôle d'un utilisateur change.
     """

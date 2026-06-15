@@ -4,10 +4,9 @@ Commande de management pour importer des photos depuis le dossier media/raw/
 
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 from django.core.files import File
-from django.core.management.base import BaseCommand, CommandParser
+from django.core.management.base import BaseCommand
 from django.db import transaction
 from PIL import Image
 
@@ -24,7 +23,7 @@ except ImportError:
 class Command(BaseCommand):
     help = "Import photos from media/raw/ directory with EXIF analysis"
 
-    def add_arguments(self, parser: CommandParser) -> None:
+    def add_arguments(self, parser):
         parser.add_argument(
             "--dry-run",
             action="store_true",
@@ -39,7 +38,7 @@ class Command(BaseCommand):
             "--limit", type=int, default=None, help="Limit number of photos to import"
         )
 
-    def handle(self, *args: Any, **options: Any) -> None:
+    def handle(self, *args, **options):
         dry_run = options["dry_run"]
         galerie_slug = options["galerie"]
         limit = options["limit"]
@@ -105,7 +104,7 @@ class Command(BaseCommand):
                 self.style.SUCCESS(f"Successfully imported {imported_count} photos")
             )
 
-    def _analyze_photo(self, photo_path: Path) -> None:
+    def _analyze_photo(self, photo_path):
         """Analyse une photo et affiche ses informations"""
         self.stdout.write(f"\n📸 {photo_path.name}")
 
@@ -157,7 +156,7 @@ class Command(BaseCommand):
             except Exception as e:
                 self.stdout.write(f"  EXIF error: {e}")
 
-    def _extract_exif_data(self, photo_path: Path) -> dict[str, Any]:
+    def _extract_exif_data(self, photo_path):
         """Extrait les données EXIF d'une photo"""
         exif_data = {}
 
@@ -208,7 +207,7 @@ class Command(BaseCommand):
         return exif_data
 
     @transaction.atomic
-    def _import_photo(self, photo_path: Path, galerie: Galerie) -> None:
+    def _import_photo(self, photo_path, galerie):
         """Importe une photo dans la galerie"""
 
         # Extraire les données EXIF

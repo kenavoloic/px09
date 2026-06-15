@@ -1,23 +1,16 @@
-from __future__ import annotations
-
 import os
-from typing import TYPE_CHECKING, Any
-
-from django.db import models
-from django.db.models.signals import post_delete, post_save
-from django.dispatch import receiver
-from imagekit.models import ImageSpecField
-from imagekit.processors import ResizeToFill, ResizeToFit
-
-if TYPE_CHECKING:
-    from django.db.models import QuerySet
 import secrets
 
 from django.conf import settings
 from django.core.mail import send_mail
+from django.db import models
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
 from django.urls import reverse
 from django.utils.crypto import get_random_string
 from django.utils.text import slugify
+from imagekit.models import ImageSpecField
+from imagekit.processors import ResizeToFill, ResizeToFit
 
 
 class ConfigurationSite(models.Model):
@@ -179,21 +172,21 @@ class ConfigurationSite(models.Model):
         verbose_name = "Configuration du site"
         verbose_name_plural = "Configuration du site"
 
-    def __str__(self) -> str:
+    def __str__(self):
         return "Configuration du site"
 
     @classmethod
-    def get_instance(cls) -> ConfigurationSite:
+    def get_instance(cls):
         """Récupère l'instance unique de configuration"""
         instance, created = cls.objects.get_or_create(pk=1)
         return instance
 
-    def save(self, *args: Any, **kwargs: Any) -> None:
+    def save(self, *args, **kwargs):
         # Forcer l'ID à 1 pour maintenir le singleton
         self.pk = 1
         super().save(*args, **kwargs)
 
-    def delete(self, *args: Any, **kwargs: Any) -> None:
+    def delete(self, *args, **kwargs):
         # Empêcher la suppression du singleton
         pass
 
@@ -234,31 +227,31 @@ class Galerie(models.Model):
         verbose_name = "Galerie"
         verbose_name_plural = "Galeries"
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self.nom
 
-    def save(self, *args: Any, **kwargs: Any) -> None:
+    def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.nom)
         super().save(*args, **kwargs)
 
-    def get_absolute_url(self) -> str:
+    def get_absolute_url(self):
         return reverse("galeries:galerie_detail", kwargs={"galerie_slug": self.slug})
 
-    def get_collections_publiques(self) -> QuerySet[Collection]:
+    def get_collections_publiques(self):
         return self.collections.filter(est_publique=True).order_by("ordre_affichage")
 
-    def get_photos_directes_publiques(self) -> QuerySet[Photo]:
+    def get_photos_directes_publiques(self):
         """Photos directement liées à la galerie (sans collection)"""
         return self.photos.filter(collection__isnull=True, est_publique=True).order_by(
             "ordre_affichage"
         )
 
-    def a_des_collections(self) -> bool:
+    def a_des_collections(self):
         """Vérifie si la galerie utilise le mode hiérarchique"""
         return self.collections.exists()
 
-    def get_total_photos(self) -> int:
+    def get_total_photos(self):
         """Compte total photos (directes + dans collections)"""
         photos_directes = self.photos.filter(collection__isnull=True).count()
         photos_collections = sum(
@@ -266,7 +259,7 @@ class Galerie(models.Model):
         )
         return photos_directes + photos_collections
 
-    def get_taille_totale(self) -> int:
+    def get_taille_totale(self):
         """Retourne la taille totale en octets de toutes les photos de la galerie"""
         from django.db.models import Sum
 
@@ -290,16 +283,16 @@ class Galerie(models.Model):
 
         return total
 
-    def get_taille_totale_formatee(self) -> str:
+    def get_taille_totale_formatee(self):
         """Retourne la taille totale formatée de la galerie"""
         return PhotoVersion.format_taille(self.taille_totale_cache)
 
-    def recalculer_taille_cache(self) -> None:
+    def recalculer_taille_cache(self):
         """Recalcule et met à jour le cache de taille"""
         self.taille_totale_cache = self.get_taille_totale()
         self.save(update_fields=["taille_totale_cache", "cache_mis_a_jour_le"])
 
-    def get_photo_couverture(self) -> Photo | None:
+    def get_photo_couverture(self):
         """Retourne la photo de couverture de la galerie"""
         # D'abord chercher une photo explicitement marquée comme couverture
         photo_couverture = self.photos.filter(
@@ -357,33 +350,33 @@ class Collection(models.Model):
         verbose_name = "Collection"
         verbose_name_plural = "Collections"
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"{self.galerie.nom} - {self.nom}"
 
-    def save(self, *args: Any, **kwargs: Any) -> None:
+    def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.nom)
         super().save(*args, **kwargs)
 
-    def get_absolute_url(self) -> str:
+    def get_absolute_url(self):
         return reverse(
             "galeries:collection_detail",
             kwargs={"galerie_slug": self.galerie.slug, "collection_slug": self.slug},
         )
 
-    def get_private_url(self) -> str:
+    def get_private_url(self):
         return reverse(
             "galeries:collection_privee",
             kwargs={"galerie_slug": self.galerie.slug, "collection_slug": self.slug},
         )
 
-    def get_photo_couverture(self) -> Photo | None:
+    def get_photo_couverture(self):
         return self.photos.filter(est_couverture=True).first() or self.photos.first()
 
-    def get_photos_publiques(self) -> QuerySet[Photo]:
+    def get_photos_publiques(self):
         return self.photos.filter(est_publique=True).order_by("ordre_affichage")
 
-    def get_taille_totale(self) -> int:
+    def get_taille_totale(self):
         """Retourne la taille totale en octets de toutes les photos de la collection"""
         from django.db.models import Sum
 
@@ -398,11 +391,11 @@ class Collection(models.Model):
 
         return total
 
-    def get_taille_totale_formatee(self) -> str:
+    def get_taille_totale_formatee(self):
         """Retourne la taille totale formatée de la collection"""
         return PhotoVersion.format_taille(self.taille_totale_cache)
 
-    def recalculer_taille_cache(self) -> None:
+    def recalculer_taille_cache(self):
         """Recalcule et met à jour le cache de taille"""
         self.taille_totale_cache = self.get_taille_totale()
         self.save(update_fields=["taille_totale_cache", "cache_mis_a_jour_le"])
@@ -457,10 +450,10 @@ class Photo(models.Model):
         verbose_name = "Photo"
         verbose_name_plural = "Photos"
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self.get_titre_affichage() or f"Photo {self.id}"
 
-    def a_titre_personnalise(self) -> bool:
+    def a_titre_personnalise(self):
         """Vérifie si la photo a un vrai titre personnalisé (pas juste le nom de fichier)"""
         if not self.titre:
             return False
@@ -473,7 +466,7 @@ class Photo(models.Model):
 
         return titre_nettoye != nom_nettoye
 
-    def get_titre_affichage(self) -> str:
+    def get_titre_affichage(self):
         """Retourne le titre à afficher selon la configuration du site"""
         if self.a_titre_personnalise():
             return self.titre
@@ -484,7 +477,7 @@ class Photo(models.Model):
         else:
             return ""
 
-    def get_titre_survol(self) -> str:
+    def get_titre_survol(self):
         """Retourne le titre pour les tooltips au survol (toujours explicite)"""
         if self.a_titre_personnalise():
             return self.titre
@@ -495,33 +488,33 @@ class Photo(models.Model):
         else:
             return ""  # Même comportement que get_titre_affichage pour la cohérence
 
-    def get_nom_fichier_sans_extension(self) -> str:
+    def get_nom_fichier_sans_extension(self):
         """Retourne le nom de fichier sans l'extension"""
         import os
 
         return os.path.splitext(self.nom_fichier)[0]
 
-    def get_absolute_url(self) -> str:
+    def get_absolute_url(self):
         return reverse("galeries:photo_detail", kwargs={"photo_id": self.id})
 
-    def get_private_url(self) -> str:
+    def get_private_url(self):
         return reverse("galeries:photo_privee", kwargs={"photo_id": self.id})
 
-    def est_dans_collection(self) -> bool:
+    def est_dans_collection(self):
         """Vérifie si la photo est dans une collection ou directe"""
         return self.collection is not None
 
-    def get_conteneur_parent(self) -> Galerie | Collection:
+    def get_conteneur_parent(self):
         """Retourne la collection ou la galerie parente selon l'organisation"""
         return self.collection if self.collection else self.galerie
 
-    def get_version_par_defaut(self) -> PhotoVersion | None:
+    def get_version_par_defaut(self):
         return self.versions.filter(est_par_defaut=True).first()
 
-    def get_versions_publiques(self) -> QuerySet[PhotoVersion]:
+    def get_versions_publiques(self):
         return self.versions.filter(est_publique=True)
 
-    def get_appareil_nettoye(self) -> str:
+    def get_appareil_nettoye(self):
         """Retourne le nom de l'appareil sans doublons de marque"""
         if not self.appareil:
             return ""
@@ -551,7 +544,7 @@ class Photo(models.Model):
 
         return appareil
 
-    def get_ouverture_nettoyee(self) -> str:
+    def get_ouverture_nettoyee(self):
         """Retourne l'ouverture sans le "/1" superflu"""
         if not self.ouverture:
             return ""
@@ -608,7 +601,7 @@ class PhotoVersion(models.Model):
         verbose_name = "Version de photo"
         verbose_name_plural = "Versions de photos"
 
-    def save(self, *args: Any, **kwargs: Any) -> None:
+    def save(self, *args, **kwargs):
         """Calcule automatiquement la taille des fichiers lors de la sauvegarde"""
         super().save(*args, **kwargs)
 
@@ -634,20 +627,20 @@ class PhotoVersion(models.Model):
         if self.taille_fichier_web is not None or self.taille_fichier_hd is not None:
             super().save(update_fields=["taille_fichier_web", "taille_fichier_hd"])
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"{self.photo.titre or 'Photo'} - {self.get_traitement_display()}"
 
-    def get_url_affichage(self) -> str:
+    def get_url_affichage(self):
         return self.fichier_web.url
 
-    def get_url_telechargement(self) -> str:
+    def get_url_telechargement(self):
         return (
             self.fichier_pleine_resolution.url
             if self.fichier_pleine_resolution
             else self.fichier_web.url
         )
 
-    def get_taille_totale(self) -> int:
+    def get_taille_totale(self):
         """Retourne la taille totale en octets (fichiers web + HD)"""
         total = 0
         if self.taille_fichier_web:
@@ -656,12 +649,12 @@ class PhotoVersion(models.Model):
             total += self.taille_fichier_hd
         return total
 
-    def get_taille_totale_formatee(self) -> str:
+    def get_taille_totale_formatee(self):
         """Retourne la taille totale formatée (ex: '2.5 MB')"""
         return self.format_taille(self.get_taille_totale())
 
     @staticmethod
-    def format_taille(taille_octets: int) -> str:
+    def format_taille(taille_octets):
         """Formate une taille en octets vers une chaîne lisible"""
         if taille_octets == 0:
             return "0 B"
@@ -803,17 +796,17 @@ class AccesGalerie(models.Model):
         verbose_name = "Accès privé"
         verbose_name_plural = "Accès privés"
 
-    def __str__(self) -> str:
+    def __str__(self):
         titre = self.titre_acces or f"Accès {self.code_acces}"
         return f"{self.galerie.nom} - {titre}"
 
-    def save(self, *args: Any, **kwargs: Any) -> None:
+    def save(self, *args, **kwargs):
         if not self.code_acces:
             self.code_acces = self.generer_code_acces()
         super().save(*args, **kwargs)
 
     @staticmethod
-    def generer_code_acces() -> str:
+    def generer_code_acces():
         """Génère un code d'accès unique"""
         while True:
             # Générer un code lisible (sans caractères ambigus)
@@ -824,7 +817,7 @@ class AccesGalerie(models.Model):
             if not AccesGalerie.objects.filter(code_acces=code).exists():
                 return code
 
-    def est_valide(self) -> bool:
+    def est_valide(self):
         """Vérifie si l'accès est valide (actif, pas expiré, limite non atteinte)"""
         from django.utils import timezone
 
@@ -841,7 +834,7 @@ class AccesGalerie(models.Model):
 
         return True
 
-    def incrementer_acces(self) -> None:
+    def incrementer_acces(self):
         """Incrémente le compteur d'accès"""
         self.nombre_acces += 1
         self.save(update_fields=["nombre_acces"])
@@ -893,24 +886,24 @@ class VisiteurGalerie(models.Model):
         verbose_name = "Visiteur"
         verbose_name_plural = "Visiteurs"
 
-    def __str__(self) -> str:
+    def __str__(self):
         nom_affiche = self.nom or self.email.split("@")[0]
         return f"{nom_affiche} - {self.acces_galerie.galerie.nom}"
 
-    def save(self, *args: Any, **kwargs: Any) -> None:
+    def save(self, *args, **kwargs):
         if not self.token_acces:
             self.token_acces = self.generer_token()
         super().save(*args, **kwargs)
 
     @staticmethod
-    def generer_token() -> str:
+    def generer_token():
         """Génère un token d'accès sécurisé unique"""
         while True:
             token = secrets.token_urlsafe(48)  # 64 caractères URL-safe
             if not VisiteurGalerie.objects.filter(token_acces=token).exists():
                 return token
 
-    def marquer_visite(self) -> None:
+    def marquer_visite(self):
         """Enregistre une nouvelle visite"""
         from django.utils import timezone
 
@@ -925,11 +918,11 @@ class VisiteurGalerie(models.Model):
             update_fields=["date_premier_acces", "date_dernier_acces", "nombre_visites"]
         )
 
-    def peut_acceder(self) -> bool:
+    def peut_acceder(self):
         """Vérifie si le visiteur peut accéder à la galerie"""
         return self.est_actif and self.acces_galerie.est_valide()
 
-    def envoyer_notification_acces(self) -> bool:
+    def envoyer_notification_acces(self):
         """Envoie un email de notification d'accès au visiteur"""
         try:
             galerie = self.acces_galerie.galerie
@@ -961,7 +954,7 @@ Cordialement,
             return False
 
     @staticmethod
-    def get_galeries_accessibles(email: str) -> QuerySet[Galerie]:
+    def get_galeries_accessibles(email):
         """Récupère toutes les galeries privées accessibles à un visiteur donné"""
 
         visiteurs = VisiteurGalerie.objects.filter(
@@ -979,7 +972,7 @@ Cordialement,
         ).order_by("nom")
 
     @staticmethod
-    def get_visiteur_par_token(token: str) -> VisiteurGalerie | None:
+    def get_visiteur_par_token(token):
         """Récupère un visiteur par son token d'accès"""
         try:
             return VisiteurGalerie.objects.select_related("acces_galerie__galerie").get(

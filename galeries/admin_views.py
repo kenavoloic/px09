@@ -3,13 +3,11 @@ Vues d'administration personnalisées pour l'upload de photos
 """
 
 from pathlib import Path
-from typing import Any
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.files import File
 from django.db import transaction
-from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from PIL import Image
 
@@ -24,7 +22,7 @@ except ImportError:
 
 
 @staff_member_required
-def upload_photos_view(request: HttpRequest) -> HttpResponse:
+def upload_photos_view(request):
     """Vue d'upload de photos en masse pour l'admin"""
 
     if request.method == "POST":
@@ -148,7 +146,7 @@ def upload_photos_view(request: HttpRequest) -> HttpResponse:
     return render(request, "admin/galeries/upload_photos.html", context)
 
 
-def _extract_exif_data(photo_path: Path) -> dict[str, Any]:
+def _extract_exif_data(photo_path):
     """Extrait les données EXIF d'une photo (similaire au script d'import)"""
     exif_data = {}
 

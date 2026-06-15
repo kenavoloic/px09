@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
 
 from galeries.models import AccesGalerie, Galerie, VisiteurGalerie
@@ -53,7 +53,7 @@ GALERIES_DATA = [
 ]
 
 
-def index(request: HttpRequest) -> HttpResponse:
+def index(request):
     """Vue pour la page d'accueil du studio photographique."""
 
     # Récupérer la configuration de l'accueil
@@ -160,7 +160,7 @@ def index(request: HttpRequest) -> HttpResponse:
     return render(request, "accueil/index.html", context)
 
 
-def galerie_detail(request: HttpRequest, slug: str) -> HttpResponse:
+def galerie_detail(request, slug):
     """Vue pour afficher une galerie spécifique."""
     # Trouver la galerie par slug
     galerie = None
@@ -187,7 +187,7 @@ def galerie_detail(request: HttpRequest, slug: str) -> HttpResponse:
     return render(request, "accueil/galerie_detail.html", context)
 
 
-def contact(request: HttpRequest) -> HttpResponse:
+def contact(request):
     """Vue pour le formulaire de contact."""
 
     # Récupérer la configuration de l'accueil

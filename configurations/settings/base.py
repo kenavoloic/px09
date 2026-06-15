@@ -4,7 +4,6 @@ Base settings for Django project.
 
 import os
 from pathlib import Path
-from typing import Any
 
 from dotenv import load_dotenv
 
@@ -12,15 +11,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR: Path = Path(__file__).resolve().parent.parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY: str = os.environ.get(
-    "SECRET_KEY", "django-insecure-change-me-in-production"
-)
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-change-me-in-production")
 
 # Application definition
-DJANGO_APPS: list[str] = [
+DJANGO_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -29,21 +26,21 @@ DJANGO_APPS: list[str] = [
     "django.contrib.staticfiles",
 ]
 
-THIRD_PARTY_APPS: list[str] = [
+THIRD_PARTY_APPS = [
     "adminsortable2",
     "imagekit",
 ]
 
-LOCAL_APPS: list[str] = [
+LOCAL_APPS = [
     "accueil",
     "utilisateurs",
     "galeries",
     "commandes",
 ]
 
-INSTALLED_APPS: list[str] = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
-MIDDLEWARE: list[str] = [
+MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -56,9 +53,9 @@ MIDDLEWARE: list[str] = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF: str = "configurations.urls"
+ROOT_URLCONF = "configurations.urls"
 
-TEMPLATES: list[dict[str, Any]] = [
+TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [BASE_DIR / "templates"],
@@ -75,10 +72,10 @@ TEMPLATES: list[dict[str, Any]] = [
     },
 ]
 
-WSGI_APPLICATION: str = "configurations.wsgi.application"
+WSGI_APPLICATION = "configurations.wsgi.application"
 
 # Database
-DATABASES: dict[str, dict[str, Any]] = {
+DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": os.environ.get("DB_NAME", "django_db"),
@@ -90,7 +87,7 @@ DATABASES: dict[str, dict[str, Any]] = {
 }
 
 # Password validation
-AUTH_PASSWORD_VALIDATORS: list[dict[str, str]] = [
+AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
@@ -106,11 +103,11 @@ AUTH_PASSWORD_VALIDATORS: list[dict[str, str]] = [
 ]
 
 # Internationalization
-LANGUAGE_CODE: str = "fr-fr"
-TIME_ZONE: str = "Europe/Paris"
-USE_I18N: bool = True
-USE_L10N: bool = True
-USE_TZ: bool = True
+LANGUAGE_CODE = "fr-fr"
+TIME_ZONE = "Europe/Paris"
+USE_I18N = True
+USE_L10N = True
+USE_TZ = True
 
 # Languages
 LANGUAGES = [
@@ -124,27 +121,27 @@ LOCALE_PATHS = [
 ]
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL: str = "/static/"
-STATIC_ROOT: Path = BASE_DIR / "staticfiles"
-STATICFILES_DIRS: list[Path] = [BASE_DIR / "static"]
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 # Media files
-MEDIA_URL: str = "/media/"
-MEDIA_ROOT: Path = BASE_DIR / "media"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Default primary key field type
-DEFAULT_AUTO_FIELD: str = "django.db.models.BigAutoField"
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Security settings
-SECURE_BROWSER_XSS_FILTER: bool = True
-SECURE_CONTENT_TYPE_NOSNIFF: bool = True
-X_FRAME_OPTIONS: str = "DENY"
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "DENY"
 
 # Redirection après déconnexion admin
-LOGOUT_REDIRECT_URL: str = "/"
+LOGOUT_REDIRECT_URL = "/"
 
 # Sécurité admin
-ADMIN_URL: str = os.environ.get("ADMIN_URL", "admin")  # Configurable via .env
+ADMIN_URL = os.environ.get("ADMIN_URL", "admin")  # Configurable via .env
 
 # Modèle utilisateur personnalisé
 AUTH_USER_MODEL = "utilisateurs.Utilisateur"

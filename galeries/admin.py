@@ -2,8 +2,6 @@ from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin
 from django import forms
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
-from django.db import models
-from django.http import HttpRequest
 from django.urls import reverse
 from django.utils.html import format_html
 
@@ -146,7 +144,7 @@ class PhotoInline(SortableInlineAdminMixin, admin.TabularInline):
     fields = ["vignette", "titre", "ordre_affichage", "est_publique", "est_couverture"]
     readonly_fields = ["vignette"]
 
-    def get_queryset(self, request: HttpRequest) -> models.QuerySet[Photo]:
+    def get_queryset(self, request):
         return (
             super()
             .get_queryset(request)
@@ -238,7 +236,7 @@ class PhotoCollectionInline(SortableInlineAdminMixin, admin.TabularInline):
     fields = ["vignette", "titre", "ordre_affichage", "est_publique", "est_couverture"]
     readonly_fields = ["vignette"]
 
-    def get_queryset(self, request: HttpRequest) -> models.QuerySet[Photo]:
+    def get_queryset(self, request):
         return (
             super()
             .get_queryset(request)
@@ -320,22 +318,22 @@ class GalerieAdmin(SortableAdminMixin, admin.ModelAdmin):
 
     readonly_fields = ["cree_le", "modifie_le"]
 
-    def total_collections(self, obj: Galerie) -> int:
+    def total_collections(self, obj):
         return obj.collections.count()
 
     total_collections.short_description = "Collections"  # type: ignore[attr-defined]
 
-    def total_photos(self, obj: Galerie) -> int:
+    def total_photos(self, obj):
         return obj.get_total_photos()
 
     total_photos.short_description = "Photos"  # type: ignore[attr-defined]
 
-    def taille_totale(self, obj: Galerie) -> str:
+    def taille_totale(self, obj):
         return obj.get_taille_totale_formatee()
 
     taille_totale.short_description = "Taille totale"  # type: ignore[attr-defined]
 
-    def get_queryset(self, request: HttpRequest) -> models.QuerySet[Galerie]:
+    def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related("collections", "photos")
 
     def save_model(self, request, obj, form, change):
@@ -448,17 +446,17 @@ class CollectionAdmin(SortableAdminMixin, admin.ModelAdmin):
 
     readonly_fields = ["cree_le", "modifie_le"]
 
-    def total_photos(self, obj: Collection) -> int:
+    def total_photos(self, obj):
         return obj.photos.count()
 
     total_photos.short_description = "Photos"  # type: ignore[attr-defined]
 
-    def taille_totale(self, obj: Collection) -> str:
+    def taille_totale(self, obj):
         return obj.get_taille_totale_formatee()
 
     taille_totale.short_description = "Taille totale"  # type: ignore[attr-defined]
 
-    def get_queryset(self, request: HttpRequest) -> models.QuerySet[Collection]:
+    def get_queryset(self, request):
         return (
             super()
             .get_queryset(request)
@@ -538,7 +536,7 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
 
     readonly_fields = ["cree_le", "modifie_le"]
 
-    def titre_ou_id(self, obj: Photo) -> str:
+    def titre_ou_id(self, obj):
         titre = obj.get_titre_affichage()
         if titre == "Sans titre":
             return f"{titre} ({obj.get_nom_fichier_sans_extension()})"
@@ -546,7 +544,7 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
 
     titre_ou_id.short_description = "Titre"  # type: ignore[attr-defined]
 
-    def apercu_photo(self, obj: Photo) -> str:
+    def apercu_photo(self, obj):
         version_defaut = obj.get_version_par_defaut()
         if version_defaut and version_defaut.fichier_web:
             return format_html(
@@ -557,7 +555,7 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
 
     apercu_photo.short_description = "Aperçu"  # type: ignore[attr-defined]
 
-    def get_queryset(self, request: HttpRequest) -> models.QuerySet[Photo]:
+    def get_queryset(self, request):
         return (
             super()
             .get_queryset(request)
@@ -565,9 +563,7 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
             .prefetch_related("versions")
         )
 
-    def attribuer_a_collection(
-        self, request: HttpRequest, queryset: models.QuerySet[Photo]
-    ) -> None:
+    def attribuer_a_collection(self, request, queryset):
         """Action pour attribuer des photos à une collection"""
         # Vérifier que toutes les photos sont de la même galerie
         galeries = set(queryset.values_list("galerie_id", flat=True))
@@ -626,9 +622,7 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
 
     attribuer_a_collection.short_description = "🗂️ Attribuer à une collection"  # type: ignore[attr-defined]
 
-    def retirer_de_collection(
-        self, request: HttpRequest, queryset: models.QuerySet[Photo]
-    ) -> None:
+    def retirer_de_collection(self, request, queryset):
         """Action pour retirer des photos de leur collection (deviennent photos directes)"""
         photos_dans_collections = queryset.exclude(collection__isnull=True)
         photos_directes = queryset.filter(collection__isnull=True)
@@ -655,9 +649,7 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
         "↩️ Retirer des collections (photos directes)"  # type: ignore[attr-defined]
     )
 
-    def dupliquer_vers_racine(
-        self, request: HttpRequest, queryset: models.QuerySet[Photo]
-    ) -> None:
+    def dupliquer_vers_racine(self, request, queryset):
         """Action pour dupliquer des photos de collection vers la racine de galerie"""
         from django.contrib import messages
         from django.core.files.base import ContentFile
@@ -739,9 +731,7 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
 
     dupliquer_vers_racine.short_description = "📋 Dupliquer vers la racine de galerie"  # type: ignore[attr-defined]
 
-    def retirer_de_racine(
-        self, request: HttpRequest, queryset: models.QuerySet[Photo]
-    ) -> None:
+    def retirer_de_racine(self, request, queryset):
         """Action pour supprimer les photos directes (racine) en gardant celles en collection"""
         import os
 
@@ -794,9 +784,7 @@ class PhotoAdmin(SortableAdminMixin, admin.ModelAdmin):
         "🗑️ Supprimer de la racine (garder collections)"  # type: ignore[attr-defined]
     )
 
-    def supprimer_photos_confirmees(
-        self, request: HttpRequest, queryset: models.QuerySet[Photo]
-    ) -> None:
+    def supprimer_photos_confirmees(self, request, queryset):
         """Action pour supprimer des photos avec confirmation"""
         import os
 
@@ -896,12 +884,12 @@ class PhotoVersionAdmin(admin.ModelAdmin):
 
     readonly_fields = ["traite_le"]
 
-    def photo_titre(self, obj: PhotoVersion) -> str:
+    def photo_titre(self, obj):
         return obj.photo.get_titre_affichage() or f"Photo {obj.photo.id}"
 
     photo_titre.short_description = "Photo"  # type: ignore[attr-defined]
 
-    def apercu(self, obj: PhotoVersion) -> str:
+    def apercu(self, obj):
         if obj.fichier_web:
             return format_html(
                 '<img src="{}" style="max-width: 100px; max-height: 100px; object-fit: cover; border-radius: 4px;" />',
@@ -911,7 +899,7 @@ class PhotoVersionAdmin(admin.ModelAdmin):
 
     apercu.short_description = "Aperçu"  # type: ignore[attr-defined]
 
-    def get_queryset(self, request: HttpRequest) -> models.QuerySet[PhotoVersion]:
+    def get_queryset(self, request):
         return (
             super()
             .get_queryset(request)
@@ -1010,13 +998,13 @@ class AccesGalerieAdmin(admin.ModelAdmin):
         ),
     )
 
-    def titre_acces_ou_code(self, obj: AccesGalerie) -> str:
+    def titre_acces_ou_code(self, obj):
         """Affiche le titre personnalisé ou le code d'accès"""
         return obj.titre_acces or f"Accès {obj.code_acces}"
 
     titre_acces_ou_code.short_description = "Titre"  # type: ignore[attr-defined]
 
-    def nombre_visiteurs(self, obj: AccesGalerie) -> int:
+    def nombre_visiteurs(self, obj):
         """Nombre de visiteurs autorisés"""
         return obj.visiteurs.filter(est_actif=True).count()
 
@@ -1072,13 +1060,13 @@ class VisiteurGalerieAdmin(admin.ModelAdmin):
         ),
     )
 
-    def galerie_nom(self, obj: VisiteurGalerie) -> str:
+    def galerie_nom(self, obj):
         """Nom de la galerie"""
         return obj.acces_galerie.galerie.nom
 
     galerie_nom.short_description = "Galerie"  # type: ignore[attr-defined]
 
-    def code_acces(self, obj: VisiteurGalerie) -> str:
+    def code_acces(self, obj):
         """Code d'accès"""
         return obj.acces_galerie.code_acces
 

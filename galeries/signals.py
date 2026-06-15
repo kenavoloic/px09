@@ -4,7 +4,6 @@ Signaux pour le traitement automatique des images
 
 import os
 from io import BytesIO
-from typing import Any
 
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models.signals import post_save
@@ -15,9 +14,7 @@ from .models import PhotoVersion
 
 
 @receiver(post_save, sender=PhotoVersion)
-def optimize_photo_version(
-    sender: type, instance: PhotoVersion, created: bool, **kwargs: Any
-) -> None:
+def optimize_photo_version(sender, instance, created, **kwargs):
     """
     Optimise automatiquement une PhotoVersion après sa création
     """
@@ -120,9 +117,7 @@ def optimize_photo_version(
 
 
 @receiver(post_save, sender=PhotoVersion)
-def generate_thumbnail_preview(
-    sender: type, instance: PhotoVersion, created: bool, **kwargs: Any
-) -> None:
+def generate_thumbnail_preview(sender, instance, created, **kwargs):
     """
     Pré-génère les thumbnails pour améliorer les performances
     """

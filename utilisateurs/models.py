@@ -1,5 +1,3 @@
-from typing import Any
-
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -17,16 +15,16 @@ class Utilisateur(AbstractUser):
     telephone = models.CharField(max_length=20, blank=True)
     cree_le = models.DateTimeField(auto_now_add=True)
 
-    def est_photographe(self) -> bool:
+    def est_photographe(self):
         return self.role == self.Role.PHOTOGRAPHE
 
-    def est_client(self) -> bool:
+    def est_client(self):
         return self.role == self.Role.CLIENT
 
-    def est_visiteur(self) -> bool:
+    def est_visiteur(self):
         return self.role == self.Role.VISITEUR
 
-    def clean(self) -> None:
+    def clean(self):
         """Validation métier : un seul photographe autorisé"""
         super().clean()
 
@@ -42,7 +40,7 @@ class Utilisateur(AbstractUser):
                     f"Le photographe actuel est : {getattr(photographes_existants.first(), 'username', 'inconnu')}"
                 )
 
-    def save(self, *args: object, **kwargs: Any) -> None:
+    def save(self, *args, **kwargs):
         """Surcharge pour appeler la validation"""
         self.full_clean()
         super().save(*args, **kwargs)
@@ -59,7 +57,7 @@ class ProfilPhotographe(models.Model):
     biographie = models.TextField(blank=True)
     localisation = models.CharField(max_length=100, blank=True)
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"Profil photographe: {self.nom_entreprise}"
 
 
@@ -73,5 +71,5 @@ class ProfilClient(models.Model):
     adresse = models.TextField(blank=True)
     notes = models.TextField(blank=True)  # Notes internes du photographe
 
-    def __str__(self) -> str:
+    def __str__(self):
         return f"Profil client: {self.utilisateur.get_full_name() or self.utilisateur.username}"
