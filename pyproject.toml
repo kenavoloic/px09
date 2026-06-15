@@ -15,6 +15,7 @@ dependencies = [
     "django-imagekit>=5.0.0",
     "pillow-heif>=0.16.0",
     "pyexiv2>=2.13.0",
+    "django-lucus>=0.1.10",
 ]
 
 [dependency-groups]

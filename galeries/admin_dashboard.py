@@ -9,41 +9,9 @@ from django.db.models import Count, Q
 from django.shortcuts import render
 from django.utils import timezone
 
-from accueil.admin import AccueilConfigAdmin, SectionAccueilAdmin
-from accueil.models import AccueilConfig, SectionAccueil
-from commandes.admin import ClientAdmin, CommandeAdmin, PhotoCommandeAdmin
-from commandes.models import Client, Commande, PhotoCommande
-from utilisateurs.admin import (
-    ProfilClientAdmin,
-    ProfilPhotographeAdmin,
-    UtilisateurAdmin,
-)
-from utilisateurs.models import ProfilClient, ProfilPhotographe, Utilisateur
+from commandes.models import Client, Commande
 
-from .admin import (
-    AccesGalerieAdmin,
-    CollectionAdmin,
-    ConfigurationSiteAdmin,
-    GalerieAdmin,
-    PhotoAdmin,
-    PhotoVersionAdmin,
-    VisiteurGalerieAdmin,
-)
-from .apps_proxy import (
-    PhotoOrderingAdmin,
-    PhotoOrderingProxy,
-    PhotoUploadAdmin,
-    PhotoUploadProxy,
-)
-from .models import (
-    AccesGalerie,
-    Collection,
-    ConfigurationSite,
-    Galerie,
-    Photo,
-    PhotoVersion,
-    VisiteurGalerie,
-)
+from .models import AccesGalerie, Collection, Galerie, Photo, VisiteurGalerie
 
 
 class CustomAdminSite(AdminSite):
@@ -285,30 +253,7 @@ class CustomAdminSite(AdminSite):
         ]
 
 
-# Instance du site admin personnalisé
-custom_admin_site = CustomAdminSite(name="custom_admin")
-
-# Import des admin classes et modèles déplacés en haut du fichier
-
-# Enregistrement des modèles avec le nouveau site admin
-custom_admin_site.register(Galerie, GalerieAdmin)
-custom_admin_site.register(Collection, CollectionAdmin)
-custom_admin_site.register(Photo, PhotoAdmin)
-custom_admin_site.register(PhotoVersion, PhotoVersionAdmin)
-custom_admin_site.register(ConfigurationSite, ConfigurationSiteAdmin)
-custom_admin_site.register(AccesGalerie, AccesGalerieAdmin)
-custom_admin_site.register(VisiteurGalerie, VisiteurGalerieAdmin)
-custom_admin_site.register(Utilisateur, UtilisateurAdmin)
-custom_admin_site.register(ProfilPhotographe, ProfilPhotographeAdmin)
-custom_admin_site.register(ProfilClient, ProfilClientAdmin)
-custom_admin_site.register(AccueilConfig, AccueilConfigAdmin)
-custom_admin_site.register(SectionAccueil, SectionAccueilAdmin)
-custom_admin_site.register(Client, ClientAdmin)
-custom_admin_site.register(Commande, CommandeAdmin)
-custom_admin_site.register(PhotoCommande, PhotoCommandeAdmin)
-
-# Sections proxy (upload en masse, gestion de l'ordre) : à enregistrer
-# explicitement sur le site personnalisé, sinon elles n'apparaissent que sur
-# le site d'admin par défaut (qui n'est pas servi).
-custom_admin_site.register(PhotoUploadProxy, PhotoUploadAdmin)
-custom_admin_site.register(PhotoOrderingProxy, PhotoOrderingAdmin)
+# CustomAdminSite est instancié par Django comme site d'admin par défaut
+# (admin.site), via configurations.admin_apps.CustomAdminConfig.default_site.
+# Les modèles sont enregistrés par leurs décorateurs @admin.register lors de
+# l'autodiscovery — aucun enregistrement explicite n'est nécessaire ici.

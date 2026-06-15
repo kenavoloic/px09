@@ -2,6 +2,7 @@
 Test Django settings configuration.
 """
 
+from django.apps import apps
 from django.conf import settings
 from django.test import TestCase
 
@@ -23,7 +24,6 @@ class SettingsTest(TestCase):
     def test_installed_apps(self):
         """Test that required apps are installed."""
         required_apps = [
-            "django.contrib.admin",
             "django.contrib.auth",
             "django.contrib.contenttypes",
             "django.contrib.sessions",
@@ -32,6 +32,10 @@ class SettingsTest(TestCase):
         ]
         for app in required_apps:
             self.assertIn(app, settings.INSTALLED_APPS)
+
+        # L'admin est fourni via une AppConfig personnalisée (CustomAdminSite),
+        # donc on vérifie son installation plutôt que sa présence littérale.
+        self.assertTrue(apps.is_installed("django.contrib.admin"))
 
     def test_middleware_configuration(self):
         """Test that required middleware is configured."""

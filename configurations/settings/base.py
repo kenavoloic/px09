@@ -18,7 +18,8 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-change-me-in-producti
 
 # Application definition
 DJANGO_APPS = [
-    "django.contrib.admin",
+    "lucus",
+    "configurations.admin_apps.CustomAdminConfig",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
