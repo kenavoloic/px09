@@ -1,0 +1,356 @@
+/* ============================================================
+   GALLERY.CSS — page de détail d'une galerie (liste collections)
+   ============================================================ */
+
+.page-title { font-size: clamp(3rem, 8vw, 6rem); }
+
+.collections-section {
+  padding: clamp(3rem, 6vw, 5rem) clamp(1.25rem, 5vw, 3rem) clamp(5rem, 8vw, 7rem);
+}
+
+.collections-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.0625rem;
+  background: var(--border);
+}
+@media (max-width: 720px) {
+  .collections-grid { grid-template-columns: 1fr; }
+}
+
+.collection-card {
+  position: relative;
+  background: var(--bg);
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  overflow: hidden;
+  transition: background 0.3s;
+}
+.collection-card:hover { background: var(--bg2); }
+.collection-card:hover .collection-image-inner { transform: scale(1.03); }
+.collection-card:hover .collection-arrow { transform: translate(0.25rem, -0.25rem); color: var(--accent); }
+
+.collection-body {
+  padding: 1.5rem;
+  border-bottom: 0.0625rem solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.collection-title {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.4rem;
+}
+.collection-meta {
+  font-size: 0.72rem;
+  color: var(--fg3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.collection-date {
+  font-size: 0.72rem;
+  color: var(--fg2);
+  letter-spacing: 0.05em;
+  font-weight: 300;
+  margin-top: 0.6rem;
+}
+.collection-arrow {
+  font-size: 1.1rem;
+  color: var(--fg3);
+  transition: transform 0.25s, color 0.2s;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.collection-image {
+  width: 100%;
+  aspect-ratio: 16/10;
+  overflow: hidden;
+  position: relative;
+}
+.collection-image-inner {
+  width: 100%; height: 100%;
+  transition: transform 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+.collection-image img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.collection-image-placeholder {
+  width: 100%; height: 100%;
+  background: repeating-linear-gradient(
+    -45deg, var(--bg3) 0rem, var(--bg3) 0.0625rem,
+    var(--bg2) 0.0625rem, var(--bg2) 0.75rem
+  );
+}
+
+/* ============================================================
+   PHOTOS GRID — grille des photos avec proportions respectées
+   ============================================================ */
+
+.photos-section {
+  padding: clamp(3rem, 6vw, 5rem) clamp(1.25rem, 5vw, 3rem);
+}
+
+.photos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+@media (max-width: 640px) {
+  .photos-grid {
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .photos-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+}
+
+.photo-item {
+  position: relative;
+  background: var(--bg);
+  overflow: hidden;
+  border-radius: 0.25rem;
+  transition: transform 0.3s ease;
+}
+
+.photo-item:hover {
+  transform: translateY(-0.25rem);
+  box-shadow: 0 0.5rem 1.5625rem rgba(0,0,0,0.15);
+}
+
+.photo-link {
+  display: block;
+  position: relative;
+  width: 100%;
+  /* Utiliser un aspect-ratio adaptatif basé sur l'orientation */
+  aspect-ratio: 1;
+  overflow: hidden;
+  text-decoration: none;
+}
+
+.photo-link img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.6s cubic-bezier(0.4,0,0.2,1);
+}
+
+.photo-item:hover .photo-link img {
+  transform: scale(1.05);
+}
+
+.photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: repeating-linear-gradient(
+    -45deg, var(--bg3) 0rem, var(--bg3) 0.0625rem,
+    var(--bg2) 0.0625rem, var(--bg2) 0.75rem
+  );
+  color: var(--fg3);
+  font-size: 2rem;
+}
+
+.photo-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(
+    transparent,
+    rgba(0,0,0,0.6)
+  );
+  color: white;
+  padding: 2rem 1rem 1rem;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.photo-item:hover .photo-overlay {
+  transform: translateY(0);
+}
+
+.photo-title {
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* ============================================================
+   PHOTOS GRID — Version adaptative masonry layout
+   ============================================================ */
+
+.photos-grid.adaptive {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
+  gap: 1rem;
+  grid-auto-rows: 0.625rem; /* Petite unité pour un meilleur masonry */
+}
+
+.photos-grid.adaptive .photo-item {
+  /* Le span sera calculé dynamiquement par JS ou une estimation CSS */
+  grid-row-end: span var(--grid-rows, 20);
+}
+
+.photos-grid.adaptive .photo-link {
+  aspect-ratio: auto;
+  height: auto;
+}
+
+.photos-grid.adaptive .photo-link img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Estimation des spans basée sur les ratios d'aspect courants */
+.photos-grid.adaptive .photo-item:nth-child(3n+1) { --grid-rows: 25; }
+.photos-grid.adaptive .photo-item:nth-child(3n+2) { --grid-rows: 30; }
+.photos-grid.adaptive .photo-item:nth-child(3n+3) { --grid-rows: 20; }
+
+@media (max-width: 768px) {
+  .photos-grid.adaptive {
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .photos-grid.adaptive {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    grid-auto-rows: 0.5rem;
+  }
+  
+  .photos-grid.adaptive .photo-item:nth-child(2n+1) { --grid-rows: 22; }
+  .photos-grid.adaptive .photo-item:nth-child(2n+2) { --grid-rows: 28; }
+}
+
+/* ============================================================
+   BADGE DE STATUT GALERIES PRIVÉES
+   ============================================================ */
+
+.private-status-badge {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  padding: 0.75rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+}
+
+.private-badge-content {
+  max-width: 75rem;
+  margin: 0 auto;
+  padding: 0 var(--spacing-page);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.private-badge-icon {
+  font-size: 1rem;
+}
+
+.private-badge-text {
+  font-weight: 600;
+}
+
+.private-badge-separator {
+  opacity: 0.7;
+}
+
+.private-badge-gallery {
+  flex: 1;
+  opacity: 0.9;
+}
+
+.private-badge-gallery a {
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.9;
+  transition: opacity 0.2s ease;
+}
+
+.private-badge-gallery a:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.private-badge-download {
+  background: rgba(255, 255, 255, 0.2);
+  border: 0.0625rem solid rgba(255, 255, 255, 0.3);
+  color: white;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  line-height: 1;
+}
+
+.private-badge-download:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.05);
+  color: white;
+}
+
+.private-badge-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: 0.0625rem solid rgba(255, 255, 255, 0.3);
+  color: white;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1.125rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.private-badge-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .private-badge-content {
+    gap: 0.5rem;
+    font-size: 0.85rem;
+  }
+  
+  .private-badge-gallery {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

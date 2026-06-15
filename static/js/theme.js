@@ -1,62 +1,52 @@
-// Bascule de thème clair/sombre avec persistance dans localStorage.
-// Le thème est appliqué via l'attribut data-theme sur <html> (voir les
-// blocs [data-theme="dark"] / [data-theme="light"] dans base.css).
-(function () {
-  "use strict";
+/* theme.js — gestion du thème dark/light avec persistance */
+(function() {
+  const htmlEl = document.documentElement;
+  const themeBtn = document.getElementById('theme-toggle');
+  const iconSun = document.getElementById('icon-sun');
+  const iconMoon = document.getElementById('icon-moon');
 
-  var STORAGE_KEY = "theme";
-  var root = document.documentElement;
-
-  function applyTheme(theme) {
-    root.setAttribute("data-theme", theme);
-
-    // L'icône affichée représente le thème vers lequel on bascule :
-    // en sombre on propose le soleil (passer en clair), et inversement.
-    var sun = document.getElementById("icon-sun");
-    var moon = document.getElementById("icon-moon");
-    if (sun && moon) {
-      var sombre = theme === "dark";
-      sun.style.display = sombre ? "" : "none";
-      moon.style.display = sombre ? "none" : "";
-    }
+  function applyTheme(t) {
+    htmlEl.setAttribute('data-theme', t);
+    if (iconSun) iconSun.style.display = t === 'dark' ? 'block' : 'none';
+    if (iconMoon) iconMoon.style.display = t === 'light' ? 'block' : 'none';
   }
 
-  function themeInitial() {
-    var sauvegarde = null;
-    try {
-      sauvegarde = localStorage.getItem(STORAGE_KEY);
-    } catch (e) {
-      // localStorage indisponible (mode privé strict, etc.)
-    }
-    if (sauvegarde === "dark" || sauvegarde === "light") {
-      return sauvegarde;
-    }
-    // À défaut, conserver le thème déclaré sur <html> (sombre par défaut).
-    return root.getAttribute("data-theme") || "dark";
-  }
+  const saved = localStorage.getItem('hlm-theme');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(saved || (prefersDark ? 'dark' : 'light'));
 
-  function init() {
-    applyTheme(themeInitial());
-
-    var toggle = document.getElementById("theme-toggle");
-    if (!toggle) {
-      return;
-    }
-    toggle.addEventListener("click", function () {
-      var actuel = root.getAttribute("data-theme") === "light" ? "light" : "dark";
-      var nouveau = actuel === "dark" ? "light" : "dark";
-      applyTheme(nouveau);
-      try {
-        localStorage.setItem(STORAGE_KEY, nouveau);
-      } catch (e) {
-        // Ignorer si l'écriture échoue.
-      }
+  if (themeBtn) {
+    themeBtn.addEventListener('click', () => {
+      const current = htmlEl.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      localStorage.setItem('hlm-theme', next);
     });
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
+  // Nav scroll
+  const nav = document.querySelector('.site-nav');
+  if (nav) {
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 40);
+    });
+  }
+
+  // Reveal observer
+  const reveals = document.querySelectorAll('.reveal');
+  if (reveals.length) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    reveals.forEach(el => observer.observe(el));
+    // Trigger header reveals immediately
+    setTimeout(() => {
+      document.querySelectorAll('.hero .reveal, .page-header .reveal').forEach(el => el.classList.add('visible'));
+    }, 100);
   }
 })();

@@ -1,124 +1,109 @@
-// Modale d'accès aux galeries privées : ouverture/fermeture et envoi du
-// formulaire (email + code) en AJAX vers la vue d'accueil, qui répond en JSON.
-(function () {
-  "use strict";
+/* modal.js — modal d'accès aux galeries privées
+   Branche le formulaire à l'endpoint Django (POST avec CSRF). */
+(function() {
+  const backdrop = document.getElementById('modal-backdrop');
+  const form = document.getElementById('private-form');
+  const successEl = document.getElementById('modal-success');
+  const formContent = document.getElementById('modal-form-content');
+  const emailInput = document.getElementById('email-input');
+  const codeInput = document.getElementById('code-input');
+  const emailError = document.getElementById('email-error');
+  const codeError = document.getElementById('code-error');
+  
+  if (!backdrop) return;
 
-  var backdrop = document.getElementById("modal-backdrop");
+  window.openPrivateModal = function() {
+    backdrop.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => emailInput && emailInput.focus(), 300);
+  };
+  window.closePrivateModal = function() {
+    backdrop.classList.remove('open');
+    document.body.style.overflow = '';
+    setTimeout(() => {
+      if (successEl) successEl.style.display = 'none';
+      if (formContent) formContent.style.display = 'block';
+      if (form) form.reset();
+      if (emailError) emailError.classList.remove('visible');
+      if (codeError) codeError.classList.remove('visible');
+    }, 350);
+  };
 
-  function openModal() {
-    if (!backdrop) {
-      return;
-    }
-    backdrop.classList.add("open");
-    document.body.style.overflow = "hidden";
-    var email = document.getElementById("email-input");
-    if (email) {
-      email.focus();
-    }
-  }
+  // Triggers
+  document.querySelectorAll('[data-open-private]').forEach(el => {
+    el.addEventListener('click', (e) => { e.preventDefault(); window.openPrivateModal(); });
+  });
 
-  function closeModal() {
-    if (!backdrop) {
-      return;
-    }
-    backdrop.classList.remove("open");
-    document.body.style.overflow = "";
-  }
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop) window.closePrivateModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && backdrop.classList.contains('open')) window.closePrivateModal();
+  });
 
-  // Exposée globalement : le bouton de fermeture l'appelle via onclick.
-  window.closePrivateModal = closeModal;
+  // Submit (à brancher sur endpoint Django)
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = emailInput.value.trim();
+      const code = codeInput.value.trim();
+      let valid = true;
 
-  function afficherErreur(message) {
-    var champ = document.getElementById("code-error");
-    if (champ) {
-      champ.textContent = message;
-      champ.style.display = "block";
-    }
-  }
+      const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRe.test(email)) {
+        emailError.classList.add('visible'); valid = false;
+      } else { emailError.classList.remove('visible'); }
+      if (code.length < 4) {
+        codeError.classList.add('visible'); valid = false;
+      } else { codeError.classList.remove('visible'); }
+      if (!valid) return;
 
-  function setupSubmit() {
-    var form = document.getElementById("private-form");
-    if (!form) {
-      return;
-    }
+      // CSRF token Django
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+      const endpoint = form.dataset.endpoint || '/';
 
-    form.addEventListener("submit", function (event) {
-      event.preventDefault();
+      try {
+        // Préparer les données de formulaire
+        const formData = new FormData();
+        formData.append('email', email);
+        formData.append('code', code);
+        formData.append('csrfmiddlewaretoken', csrfToken);
 
-      var endpoint = form.getAttribute("data-endpoint") || window.location.pathname;
-      var bouton = form.querySelector("button[type=submit]");
-      if (bouton) {
-        bouton.disabled = true;
-      }
-
-      fetch(endpoint, {
-        method: "POST",
-        headers: { "X-Requested-With": "XMLHttpRequest" },
-        body: new FormData(form),
-      })
-        .then(function (reponse) {
-          return reponse.json();
-        })
-        .then(function (data) {
-          if (data.success) {
-            var contenu = document.getElementById("modal-form-content");
-            var succes = document.getElementById("modal-success");
-            if (contenu) {
-              contenu.style.display = "none";
-            }
-            if (succes) {
-              succes.style.display = "block";
-            }
-            if (data.redirect_url) {
-              window.location.href = data.redirect_url;
-            }
-          } else {
-            afficherErreur(data.error || "Une erreur est survenue. Réessayez.");
-            if (bouton) {
-              bouton.disabled = false;
-            }
-          }
-        })
-        .catch(function () {
-          afficherErreur("Erreur de connexion. Veuillez réessayer.");
-          if (bouton) {
-            bouton.disabled = false;
-          }
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrfToken 
+          },
+          body: formData,
         });
-    });
-  }
-
-  function init() {
-    // Déclencheurs d'ouverture : tout élément portant [data-open-private].
-    document.querySelectorAll("[data-open-private]").forEach(function (el) {
-      el.addEventListener("click", function (event) {
-        event.preventDefault();
-        openModal();
-      });
-    });
-
-    // Fermeture en cliquant sur le fond, hors de la boîte.
-    if (backdrop) {
-      backdrop.addEventListener("click", function (event) {
-        if (event.target === backdrop) {
-          closeModal();
+        
+        const data = await res.json();
+        
+        if (data.success && data.redirect_url) {
+          formContent.style.display = 'none';
+          successEl.style.display = 'block';
+          setTimeout(() => { window.location.href = data.redirect_url; }, 800);
+        } else {
+          if (codeError) {
+            codeError.textContent = data.error || 'Code ou email invalide.';
+            codeError.classList.add('visible');
+            codeError.style.display = 'block';
+            codeError.style.color = 'red';
+          } else {
+            alert(data.error);
+          }
         }
-      });
-    }
-
-    // Fermeture avec la touche Échap.
-    document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape") {
-        closeModal();
+      } catch (err) {
+        if (codeError) {
+          codeError.textContent = 'Erreur de connexion. Veuillez réessayer.';
+          codeError.classList.add('visible');
+          codeError.style.display = 'block';
+          codeError.style.color = 'red';
+        } else {
+          alert('Erreur de connexion. Veuillez réessayer.');
+        }
       }
     });
-
-    setupSubmit();
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
   }
 })();

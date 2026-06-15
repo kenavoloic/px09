@@ -1,0 +1,88 @@
+/* Custom styling for photo cover selection in admin */
+.field-photo_couverture_id ul {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    list-style: none;
+    padding: 0;
+    margin: 10px 0;
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+    background: #fafafa;
+}
+
+.field-photo_couverture_id li {
+    margin: 0;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.field-photo_couverture_id li:hover {
+    border-color: #79aec8;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.field-photo_couverture_id li:has(input:checked) {
+    border-color: #417690;
+    background: #f0f8ff;
+    box-shadow: 0 0 0 2px rgba(65, 118, 144, 0.1);
+}
+
+.field-photo_couverture_id label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+    font-weight: normal;
+}
+
+.field-photo_couverture_id input[type="radio"] {
+    margin-right: 10px;
+    transform: scale(1.2);
+}
+
+.field-photo_couverture_id .photo-thumbnail {
+    width: 50px;
+    height: 50px;
+    border-radius: 4px;
+    background: #f5f5f5;
+    margin-right: 10px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 20px;
+    overflow: hidden;
+}
+
+.field-photo_couverture_id .photo-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.field-photo_couverture_id .photo-info {
+    flex: 1;
+    font-size: 13px;
+}
+
+.field-photo_couverture_id .photo-title {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 2px;
+}
+
+.field-photo_couverture_id .photo-collection {
+    color: #666;
+    font-size: 11px;
+}
