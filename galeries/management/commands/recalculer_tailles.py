@@ -7,23 +7,23 @@ from galeries.models import PhotoVersion
 
 
 class Command(BaseCommand):
-    help = 'Recalcule les tailles de fichiers pour toutes les versions de photos existantes'
+    help = "Recalcule les tailles de fichiers pour toutes les versions de photos existantes"
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--dry-run',
-            action='store_true',
-            help='Affiche ce qui serait fait sans effectuer les modifications',
+            "--dry-run",
+            action="store_true",
+            help="Affiche ce qui serait fait sans effectuer les modifications",
         )
         parser.add_argument(
-            '--force',
-            action='store_true',
-            help='Force le recalcul même si les tailles sont déjà renseignées',
+            "--force",
+            action="store_true",
+            help="Force le recalcul même si les tailles sont déjà renseignées",
         )
 
     def handle(self, *args, **options):
-        dry_run = options['dry_run']
-        force = options['force']
+        dry_run = options["dry_run"]
+        force = options["force"]
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -37,15 +37,11 @@ class Command(BaseCommand):
         else:
             versions = PhotoVersion.objects.filter(
                 taille_fichier_web__isnull=True
-            ).union(
-                PhotoVersion.objects.filter(taille_fichier_hd__isnull=True)
-            )
+            ).union(PhotoVersion.objects.filter(taille_fichier_hd__isnull=True))
 
         total_versions = versions.count()
         if total_versions == 0:
-            self.stdout.write(
-                self.style.WARNING("Aucune version à traiter.")
-            )
+            self.stdout.write(self.style.WARNING("Aucune version à traiter."))
             return
 
         self.stdout.write(f"Versions à traiter : {total_versions}")
@@ -54,7 +50,9 @@ class Command(BaseCommand):
         error_count = 0
 
         for i, version in enumerate(versions, 1):
-            self.stdout.write(f"[{i}/{total_versions}] Traitement de {version}...", ending="")
+            self.stdout.write(
+                f"[{i}/{total_versions}] Traitement de {version}...", ending=""
+            )
 
             if dry_run:
                 # Mode dry-run : affichage seulement
@@ -81,7 +79,9 @@ class Command(BaseCommand):
 
                     # Taille fichier HD
                     if force or version.taille_fichier_hd is None:
-                        taille_hd = self._get_file_size(version.fichier_pleine_resolution)
+                        taille_hd = self._get_file_size(
+                            version.fichier_pleine_resolution
+                        )
                         if taille_hd is not None:
                             version.taille_fichier_hd = taille_hd
                             updated = True
@@ -90,7 +90,7 @@ class Command(BaseCommand):
                         # Utiliser update_fields pour éviter la boucle infinie avec save()
                         PhotoVersion.objects.filter(pk=version.pk).update(
                             taille_fichier_web=version.taille_fichier_web,
-                            taille_fichier_hd=version.taille_fichier_hd
+                            taille_fichier_hd=version.taille_fichier_hd,
                         )
                         updated_count += 1
                         self.stdout.write(" ✓")
@@ -99,9 +99,7 @@ class Command(BaseCommand):
 
             except Exception as e:
                 error_count += 1
-                self.stdout.write(
-                    self.style.ERROR(f" Erreur : {str(e)}")
-                )
+                self.stdout.write(self.style.ERROR(f" Erreur : {str(e)}"))
 
         # Résumé
         if not dry_run:
@@ -120,7 +118,7 @@ class Command(BaseCommand):
             return None
 
         try:
-            if hasattr(file_field, 'path'):
+            if hasattr(file_field, "path"):
                 return os.path.getsize(file_field.path)
         except (OSError, FileNotFoundError):
             pass
@@ -135,7 +133,7 @@ class Command(BaseCommand):
         if size_bytes == 0:
             return "0 B"
 
-        units = ['B', 'KB', 'MB', 'GB']
+        units = ["B", "KB", "MB", "GB"]
         size = float(size_bytes)
 
         for unit in units:
@@ -150,21 +148,29 @@ class Command(BaseCommand):
         from django.db.models import Count, Sum
 
         stats = PhotoVersion.objects.aggregate(
-            total_versions=Count('id'),
-            total_web=Sum('taille_fichier_web'),
-            total_hd=Sum('taille_fichier_hd'),
-            versions_avec_web=Count('id', filter=models.Q(taille_fichier_web__isnull=False)),
-            versions_avec_hd=Count('id', filter=models.Q(taille_fichier_hd__isnull=False))
+            total_versions=Count("id"),
+            total_web=Sum("taille_fichier_web"),
+            total_hd=Sum("taille_fichier_hd"),
+            versions_avec_web=Count(
+                "id", filter=models.Q(taille_fichier_web__isnull=False)
+            ),
+            versions_avec_hd=Count(
+                "id", filter=models.Q(taille_fichier_hd__isnull=False)
+            ),
         )
 
-        self.stdout.write("\n" + "="*50)
+        self.stdout.write("\n" + "=" * 50)
         self.stdout.write("STATISTIQUES GLOBALES")
-        self.stdout.write("="*50)
+        self.stdout.write("=" * 50)
         self.stdout.write(f"Total versions : {stats['total_versions']}")
         self.stdout.write(f"Versions avec fichier web : {stats['versions_avec_web']}")
         self.stdout.write(f"Versions avec fichier HD : {stats['versions_avec_hd']}")
-        self.stdout.write(f"Taille totale fichiers web : {self._format_size(stats['total_web'] or 0)}")
-        self.stdout.write(f"Taille totale fichiers HD : {self._format_size(stats['total_hd'] or 0)}")
+        self.stdout.write(
+            f"Taille totale fichiers web : {self._format_size(stats['total_web'] or 0)}"
+        )
+        self.stdout.write(
+            f"Taille totale fichiers HD : {self._format_size(stats['total_hd'] or 0)}"
+        )
 
-        total_size = (stats['total_web'] or 0) + (stats['total_hd'] or 0)
+        total_size = (stats["total_web"] or 0) + (stats["total_hd"] or 0)
         self.stdout.write(f"Taille totale : {self._format_size(total_size)}")

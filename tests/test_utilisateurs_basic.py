@@ -1,6 +1,7 @@
 """
 Tests basiques pour les modèles utilisateurs
 """
+
 from django.test import TestCase
 
 from utilisateurs.models import Utilisateur
@@ -15,7 +16,7 @@ class TestUtilisateurBasic(TestCase):
             username="testuser",
             email="test@example.com",
             password="motdepasse123",
-            role=Utilisateur.Role.VISITEUR
+            role=Utilisateur.Role.VISITEUR,
         )
 
         self.assertEqual(user.username, "testuser")
@@ -25,9 +26,9 @@ class TestUtilisateurBasic(TestCase):
 
     def test_roles_disponibles(self) -> None:
         """Test des rôles disponibles"""
-        self.assertEqual(Utilisateur.Role.PHOTOGRAPHE, 'photographe')
-        self.assertEqual(Utilisateur.Role.CLIENT, 'client')
-        self.assertEqual(Utilisateur.Role.VISITEUR, 'visiteur')
+        self.assertEqual(Utilisateur.Role.PHOTOGRAPHE, "photographe")
+        self.assertEqual(Utilisateur.Role.CLIENT, "client")
+        self.assertEqual(Utilisateur.Role.VISITEUR, "visiteur")
 
     def test_methodes_role(self) -> None:
         """Test des méthodes de vérification de rôle"""
@@ -53,17 +54,13 @@ class TestUtilisateurBasic(TestCase):
     def test_default_role(self) -> None:
         """Test du rôle par défaut"""
         user = Utilisateur.objects.create_user(
-            username="test",
-            email="test@example.com",
-            password="pass"
+            username="test", email="test@example.com", password="pass"
         )
         self.assertEqual(user.role, Utilisateur.Role.VISITEUR)
 
     def test_cree_le_auto_now_add(self) -> None:
         """Test que cree_le est défini automatiquement"""
         user = Utilisateur.objects.create_user(
-            username="test",
-            email="test@example.com",
-            password="pass"
+            username="test", email="test@example.com", password="pass"
         )
         self.assertIsNotNone(user.cree_le)

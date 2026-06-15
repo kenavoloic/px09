@@ -8,40 +8,42 @@ from django.http import Http404, HttpRequest, HttpResponse, StreamingHttpRespons
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.text import slugify
 
-from .models import AccesGalerie, Collection, Galerie, Photo, VisiteurGalerie
+from .models import Collection, Galerie, Photo, VisiteurGalerie
 
 
 def galerie_detail(request: HttpRequest, galerie_slug: str) -> HttpResponse:
     """Vue galerie - affiche collections OU photos directes selon l'organisation"""
     galerie = get_object_or_404(Galerie, slug=galerie_slug, est_publique=True)
 
-    context: dict[str, Any] = {'galerie': galerie}
+    context: dict[str, Any] = {"galerie": galerie}
 
     if galerie.a_des_collections():
         # Mode hiérarchique : afficher les collections
-        context['collections'] = galerie.get_collections_publiques()
+        context["collections"] = galerie.get_collections_publiques()
 
     # Toujours inclure les photos directes s'il y en a
     photos_directes = galerie.get_photos_directes_publiques()
     if photos_directes.exists():
-        context['photos'] = photos_directes
+        context["photos"] = photos_directes
 
-    return render(request, 'galeries/galerie_detail.html', context)
+    return render(request, "galeries/galerie_detail.html", context)
 
-def collection_detail(request: HttpRequest, galerie_slug: str, collection_slug: str) -> HttpResponse:
+
+def collection_detail(
+    request: HttpRequest, galerie_slug: str, collection_slug: str
+) -> HttpResponse:
     """Vue collection - affiche les photos d'une collection spécifique"""
     galerie = get_object_or_404(Galerie, slug=galerie_slug, est_publique=True)
     collection = get_object_or_404(
-        Collection,
-        galerie=galerie,
-        slug=collection_slug,
-        est_publique=True
+        Collection, galerie=galerie, slug=collection_slug, est_publique=True
     )
 
     photos = collection.get_photos_publiques()
 
     # Collections précédente et suivante dans la même galerie
-    collections_galerie = galerie.collections.filter(est_publique=True).order_by('ordre_affichage', 'cree_le')
+    collections_galerie = galerie.collections.filter(est_publique=True).order_by(
+        "ordre_affichage", "cree_le"
+    )
     collection_list = list(collections_galerie)
 
     prev_collection = None
@@ -57,14 +59,14 @@ def collection_detail(request: HttpRequest, galerie_slug: str, collection_slug: 
         pass
 
     context = {
-        'galerie': galerie,
-        'collection': collection,
-        'photos': photos,
-        'prev_collection': prev_collection,
-        'next_collection': next_collection,
+        "galerie": galerie,
+        "collection": collection,
+        "photos": photos,
+        "prev_collection": prev_collection,
+        "next_collection": next_collection,
     }
 
-    return render(request, 'galeries/collection_detail.html', context)
+    return render(request, "galeries/collection_detail.html", context)
 
 
 def photo_detail(request: HttpRequest, photo_id: int) -> HttpResponse:
@@ -82,14 +84,14 @@ def photo_detail(request: HttpRequest, photo_id: int) -> HttpResponse:
     version_defaut = photo.get_version_par_defaut()
 
     context = {
-        'photo': photo,
-        'galerie': photo.galerie,
-        'collection': photo.collection,
-        'versions': versions,
-        'version_defaut': version_defaut,
+        "photo": photo,
+        "galerie": photo.galerie,
+        "collection": photo.collection,
+        "versions": versions,
+        "version_defaut": version_defaut,
     }
 
-    return render(request, 'galeries/photo_detail.html', context)
+    return render(request, "galeries/photo_detail.html", context)
 
 
 def galerie_privee(request: HttpRequest, galerie_slug: str) -> HttpResponse:
@@ -99,23 +101,27 @@ def galerie_privee(request: HttpRequest, galerie_slug: str) -> HttpResponse:
     # Vérifier l'authentification
     if not _verifier_acces_prive(request, galerie):
         messages.error(request, "Accès non autorisé. Veuillez vous authentifier.")
-        return redirect('accueil:index')
+        return redirect("accueil:index")
 
-    context: dict[str, Any] = {'galerie': galerie, 'est_prive': True}
+    context: dict[str, Any] = {"galerie": galerie, "est_prive": True}
 
     if galerie.a_des_collections():
         # Mode hiérarchique : afficher les collections (toutes, même non publiques pour les accès privés)
-        context['collections'] = galerie.collections.order_by('ordre_affichage')
+        context["collections"] = galerie.collections.order_by("ordre_affichage")
 
     # Photos directes (toutes, même non publiques)
-    photos_directes = galerie.photos.filter(collection__isnull=True).order_by('ordre_affichage')
+    photos_directes = galerie.photos.filter(collection__isnull=True).order_by(
+        "ordre_affichage"
+    )
     if photos_directes.exists():
-        context['photos'] = photos_directes
+        context["photos"] = photos_directes
 
-    return render(request, 'galeries/galerie_detail.html', context)
+    return render(request, "galeries/galerie_detail.html", context)
 
 
-def collection_privee(request: HttpRequest, galerie_slug: str, collection_slug: str) -> HttpResponse:
+def collection_privee(
+    request: HttpRequest, galerie_slug: str, collection_slug: str
+) -> HttpResponse:
     """Vue collection privée - nécessite une authentification"""
     galerie = get_object_or_404(Galerie, slug=galerie_slug, est_publique=False)
     collection = get_object_or_404(Collection, galerie=galerie, slug=collection_slug)
@@ -123,13 +129,13 @@ def collection_privee(request: HttpRequest, galerie_slug: str, collection_slug: 
     # Vérifier l'authentification
     if not _verifier_acces_prive(request, galerie):
         messages.error(request, "Accès non autorisé. Veuillez vous authentifier.")
-        return redirect('accueil:index')
+        return redirect("accueil:index")
 
     # Photos de la collection (toutes, même non publiques)
-    photos = collection.photos.order_by('ordre_affichage')
+    photos = collection.photos.order_by("ordre_affichage")
 
     # Collections précédente et suivante
-    collections_galerie = galerie.collections.order_by('ordre_affichage', 'cree_le')
+    collections_galerie = galerie.collections.order_by("ordre_affichage", "cree_le")
     collection_list = list(collections_galerie)
 
     prev_collection = None
@@ -145,15 +151,15 @@ def collection_privee(request: HttpRequest, galerie_slug: str, collection_slug: 
         pass
 
     context = {
-        'galerie': galerie,
-        'collection': collection,
-        'photos': photos,
-        'prev_collection': prev_collection,
-        'next_collection': next_collection,
-        'est_prive': True,
+        "galerie": galerie,
+        "collection": collection,
+        "photos": photos,
+        "prev_collection": prev_collection,
+        "next_collection": next_collection,
+        "est_prive": True,
     }
 
-    return render(request, 'galeries/collection_detail.html', context)
+    return render(request, "galeries/collection_detail.html", context)
 
 
 def photo_privee(request: HttpRequest, photo_id: int) -> HttpResponse:
@@ -162,31 +168,31 @@ def photo_privee(request: HttpRequest, photo_id: int) -> HttpResponse:
 
     # Vérifier que la photo appartient à une galerie privée
     if photo.galerie.est_publique:
-        return redirect('galeries:photo_detail', photo_id=photo_id)
+        return redirect("galeries:photo_detail", photo_id=photo_id)
 
     # Vérifier l'authentification
     if not _verifier_acces_prive(request, photo.galerie):
         messages.error(request, "Accès non autorisé. Veuillez vous authentifier.")
-        return redirect('accueil:index')
+        return redirect("accueil:index")
 
     versions = photo.versions.all()  # Toutes les versions pour les accès privés
     version_defaut = photo.get_version_par_defaut()
 
     context = {
-        'photo': photo,
-        'galerie': photo.galerie,
-        'collection': photo.collection,
-        'versions': versions,
-        'version_defaut': version_defaut,
-        'est_prive': True,
+        "photo": photo,
+        "galerie": photo.galerie,
+        "collection": photo.collection,
+        "versions": versions,
+        "version_defaut": version_defaut,
+        "est_prive": True,
     }
 
-    return render(request, 'galeries/photo_detail.html', context)
+    return render(request, "galeries/photo_detail.html", context)
 
 
 def _verifier_acces_prive(request: HttpRequest, galerie: Galerie) -> bool:
     """Vérifie si l'utilisateur a accès à la galerie privée"""
-    token = request.session.get('visiteur_token')
+    token = request.session.get("visiteur_token")
 
     if not token:
         return False
@@ -194,20 +200,21 @@ def _verifier_acces_prive(request: HttpRequest, galerie: Galerie) -> bool:
     try:
         # Trouver le visiteur par son token
         visiteur = VisiteurGalerie.objects.get(token_acces=token, est_actif=True)
-        
+
         # Chercher tous les accès de ce visiteur (même email) pour la galerie demandée
         visiteurs_meme_email = VisiteurGalerie.objects.filter(
-            email=visiteur.email,
-            est_actif=True
-        ).select_related('acces_galerie')
-        
+            email=visiteur.email, est_actif=True
+        ).select_related("acces_galerie")
+
         for v in visiteurs_meme_email:
-            if (v.acces_galerie.galerie == galerie and
-                v.acces_galerie.est_actif and
-                v.acces_galerie.est_valide() and
-                v.peut_acceder()):
+            if (
+                v.acces_galerie.galerie == galerie
+                and v.acces_galerie.est_actif
+                and v.acces_galerie.est_valide()
+                and v.peut_acceder()
+            ):
                 # Mettre à jour la session avec le bon accès
-                request.session['acces_galerie_id'] = v.acces_galerie.id
+                request.session["acces_galerie_id"] = v.acces_galerie.id
                 return True
 
     except VisiteurGalerie.DoesNotExist:
@@ -219,43 +226,47 @@ def _verifier_acces_prive(request: HttpRequest, galerie: Galerie) -> bool:
 def deconnexion_privee(request: HttpRequest) -> HttpResponse:
     """Déconnexion des galeries privées"""
     # Nettoyer la session
-    if 'visiteur_token' in request.session:
-        del request.session['visiteur_token']
-    if 'acces_galerie_id' in request.session:
-        del request.session['acces_galerie_id']
+    if "visiteur_token" in request.session:
+        del request.session["visiteur_token"]
+    if "acces_galerie_id" in request.session:
+        del request.session["acces_galerie_id"]
 
     messages.success(request, "Vous avez été déconnecté des galeries privées.")
-    return redirect('accueil:index')
+    return redirect("accueil:index")
 
 
 def tableau_bord_prive(request: HttpRequest) -> HttpResponse:
     """Tableau de bord des galeries privées accessibles au visiteur"""
-    visiteur_token = request.session.get('visiteur_token')
+    visiteur_token = request.session.get("visiteur_token")
     if not visiteur_token:
-        messages.error(request, "Vous devez vous connecter pour accéder aux galeries privées.")
-        return redirect('accueil:index')
+        messages.error(
+            request, "Vous devez vous connecter pour accéder aux galeries privées."
+        )
+        return redirect("accueil:index")
 
     # Récupérer le visiteur
     visiteur = VisiteurGalerie.get_visiteur_par_token(visiteur_token)
     if not visiteur or not visiteur.peut_acceder():
         messages.error(request, "Votre accès n'est plus valide.")
-        return redirect('galeries:deconnexion_privee')
+        return redirect("galeries:deconnexion_privee")
 
     # Récupérer toutes les galeries accessibles à ce visiteur
     galeries_accessibles = VisiteurGalerie.get_galeries_accessibles(visiteur.email)
 
     # Informations sur le visiteur actuel
     context = {
-        'visiteur': visiteur,
-        'galeries_accessibles': galeries_accessibles,
-        'galerie_courante': visiteur.acces_galerie.galerie,
-        'est_prive': True,
+        "visiteur": visiteur,
+        "galeries_accessibles": galeries_accessibles,
+        "galerie_courante": visiteur.acces_galerie.galerie,
+        "est_prive": True,
     }
 
-    return render(request, 'galeries/tableau_bord_prive.html', context)
+    return render(request, "galeries/tableau_bord_prive.html", context)
 
 
-def telecharger_galerie_zip(request: HttpRequest, galerie_slug: str) -> StreamingHttpResponse:
+def telecharger_galerie_zip(
+    request: HttpRequest, galerie_slug: str
+) -> StreamingHttpResponse:
     """Télécharge toutes les images d'une galerie privée en ZIP"""
     galerie = get_object_or_404(Galerie, slug=galerie_slug, est_publique=False)
 
@@ -267,22 +278,29 @@ def telecharger_galerie_zip(request: HttpRequest, galerie_slug: str) -> Streamin
     photos = Photo.objects.filter(galerie=galerie)
 
     if not photos.exists():
-        messages.error(request, f"La galerie '{galerie.nom}' ne contient aucune photo à télécharger.")
-        return redirect('galeries:galerie_privee', galerie_slug=galerie.slug)
+        messages.error(
+            request,
+            f"La galerie '{galerie.nom}' ne contient aucune photo à télécharger.",
+        )
+        return redirect("galeries:galerie_privee", galerie_slug=galerie.slug)
 
     def generer_zip():
         """Générateur qui crée le ZIP en streaming"""
         # Créer un fichier temporaire pour le ZIP
         with tempfile.NamedTemporaryFile() as temp_file:
-            with zipfile.ZipFile(temp_file, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-                compteur_fichiers: dict[str, int] = {}  # Pour gérer les doublons de noms
+            with zipfile.ZipFile(temp_file, "w", zipfile.ZIP_DEFLATED) as zip_file:
+                compteur_fichiers: dict[
+                    str, int
+                ] = {}  # Pour gérer les doublons de noms
 
                 for photo in photos:
                     # Récupérer la meilleure version disponible
                     version = None
 
                     # Priorité : version HD couleur > version HD mono > version web couleur > version web mono
-                    versions = photo.versions.all().order_by('-traitement')  # couleur avant monochrome
+                    versions = photo.versions.all().order_by(
+                        "-traitement"
+                    )  # couleur avant monochrome
 
                     for v in versions:
                         if v.fichier_pleine_resolution:
@@ -310,8 +328,12 @@ def telecharger_galerie_zip(request: HttpRequest, galerie_slug: str) -> Streamin
                         nom_propre = f"photo_{photo.id}"
 
                     # Récupérer l'extension du fichier
-                    fichier_source = version.fichier_pleine_resolution if version.fichier_pleine_resolution else version.fichier_web
-                    extension = os.path.splitext(fichier_source.name or '')[1].lower()
+                    fichier_source = (
+                        version.fichier_pleine_resolution
+                        if version.fichier_pleine_resolution
+                        else version.fichier_web
+                    )
+                    extension = os.path.splitext(fichier_source.name or "")[1].lower()
 
                     # Gérer les doublons de noms
                     nom_fichier_zip = f"{nom_propre}{extension}"
@@ -341,10 +363,7 @@ def telecharger_galerie_zip(request: HttpRequest, galerie_slug: str) -> Streamin
     nom_galerie_propre = slugify(galerie.nom)
     nom_fichier = f"{nom_galerie_propre}_photos.zip"
 
-    response = StreamingHttpResponse(
-        generer_zip(),
-        content_type='application/zip'
-    )
-    response['Content-Disposition'] = f'attachment; filename="{nom_fichier}"'
+    response = StreamingHttpResponse(generer_zip(), content_type="application/zip")
+    response["Content-Disposition"] = f'attachment; filename="{nom_fichier}"'
 
     return response

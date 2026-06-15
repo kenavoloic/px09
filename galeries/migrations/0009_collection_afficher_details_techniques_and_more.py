@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("galeries", "0008_collection_cache_mis_a_jour_le_and_more"),
     ]

@@ -9,15 +9,11 @@ class Utilisateur(AbstractUser):
     """Utilisateur étendu avec rôles métier"""
 
     class Role(models.TextChoices):
-        PHOTOGRAPHE = 'photographe', 'Photographe'
-        CLIENT = 'client', 'Client'
-        VISITEUR = 'visiteur', 'Visiteur'
+        PHOTOGRAPHE = "photographe", "Photographe"
+        CLIENT = "client", "Client"
+        VISITEUR = "visiteur", "Visiteur"
 
-    role = models.CharField(
-        max_length=20,
-        choices=Role.choices,
-        default=Role.VISITEUR
-    )
+    role = models.CharField(max_length=20, choices=Role.choices, default=Role.VISITEUR)
     telephone = models.CharField(max_length=20, blank=True)
     cree_le = models.DateTimeField(auto_now_add=True)
 
@@ -54,10 +50,9 @@ class Utilisateur(AbstractUser):
 
 class ProfilPhotographe(models.Model):
     """Profil spécifique au photographe unique"""
+
     utilisateur = models.OneToOneField(
-        Utilisateur,
-        on_delete=models.CASCADE,
-        related_name='profil_photographe'
+        Utilisateur, on_delete=models.CASCADE, related_name="profil_photographe"
     )
     nom_entreprise = models.CharField(max_length=200)
     site_web = models.URLField(blank=True)
@@ -70,10 +65,9 @@ class ProfilPhotographe(models.Model):
 
 class ProfilClient(models.Model):
     """Profil spécifique aux clients"""
+
     utilisateur = models.OneToOneField(
-        Utilisateur,
-        on_delete=models.CASCADE,
-        related_name='profil_client'
+        Utilisateur, on_delete=models.CASCADE, related_name="profil_client"
     )
     entreprise = models.CharField(max_length=200, blank=True)
     adresse = models.TextField(blank=True)

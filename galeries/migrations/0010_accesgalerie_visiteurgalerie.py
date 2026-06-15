@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("galeries", "0009_collection_afficher_details_techniques_and_more"),
     ]

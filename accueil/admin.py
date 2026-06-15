@@ -12,7 +12,7 @@ class AccueilConfigForm(ModelForm):
 
     class Meta:
         model = AccueilConfig
-        fields = '__all__'
+        fields = "__all__"
 
     def clean(self) -> dict[str, Any]:
         cleaned_data = super().clean()
@@ -26,51 +26,66 @@ class AccueilConfigAdmin(admin.ModelAdmin):
     def has_add_permission(self, request: HttpRequest) -> bool:
         return not AccueilConfig.objects.exists()
 
-    def has_delete_permission(self, request: HttpRequest, obj: Any | None = None) -> bool:
+    def has_delete_permission(
+        self, request: HttpRequest, obj: Any | None = None
+    ) -> bool:
         return False
 
     fieldsets = (
-        ('Informations principales', {
-            'fields': ('titre_site', 'sous_titre', 'description', 'hero_image')
-        }),
-        ('Sections de la page', {
-            'fields': ('titre_galeries', 'titre_acces_prive', 'description_acces_prive')
-        }),
-        ('Modal d\'accès privé', {
-            'fields': ('modal_titre', 'modal_sous_titre', 'modal_placeholder_code'),
-            'classes': ('collapse',)
-        }),
-        ('Informations', {
-            'fields': ('cree_le', 'modifie_le'),
-            'classes': ('collapse',)
-        }),
+        (
+            "Informations principales",
+            {"fields": ("titre_site", "sous_titre", "description", "hero_image")},
+        ),
+        (
+            "Sections de la page",
+            {
+                "fields": (
+                    "titre_galeries",
+                    "titre_acces_prive",
+                    "description_acces_prive",
+                )
+            },
+        ),
+        (
+            "Modal d'accès privé",
+            {
+                "fields": ("modal_titre", "modal_sous_titre", "modal_placeholder_code"),
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Informations",
+            {"fields": ("cree_le", "modifie_le"), "classes": ("collapse",)},
+        ),
     )
 
-    readonly_fields = ('cree_le', 'modifie_le')
+    readonly_fields = ("cree_le", "modifie_le")
 
-    def get_object(self, request: HttpRequest, object_id: str, from_field: str | None = None) -> AccueilConfig:
+    def get_object(
+        self, request: HttpRequest, object_id: str, from_field: str | None = None
+    ) -> AccueilConfig:
         return AccueilConfig.get_config()
 
-    def changelist_view(self, request: HttpRequest, extra_context: dict[str, Any] | None = None) -> Any:
+    def changelist_view(
+        self, request: HttpRequest, extra_context: dict[str, Any] | None = None
+    ) -> Any:
         config = AccueilConfig.get_config()
         return self.changeform_view(request, str(config.pk))
 
 
 @admin.register(SectionAccueil)
 class SectionAccueilAdmin(admin.ModelAdmin):
-    list_display = ['titre', 'position', 'ordre', 'est_active', 'modifie_le']
-    list_filter = ['position', 'est_active', 'cree_le']
-    search_fields = ['titre', 'contenu']
-    list_editable = ['ordre', 'est_active']
+    list_display = ["titre", "position", "ordre", "est_active", "modifie_le"]
+    list_filter = ["position", "est_active", "cree_le"]
+    search_fields = ["titre", "contenu"]
+    list_editable = ["ordre", "est_active"]
 
     fieldsets = (
-        (None, {
-            'fields': ('titre', 'contenu', 'position', 'ordre', 'est_active')
-        }),
-        ('Informations', {
-            'fields': ('cree_le', 'modifie_le'),
-            'classes': ('collapse',)
-        }),
+        (None, {"fields": ("titre", "contenu", "position", "ordre", "est_active")}),
+        (
+            "Informations",
+            {"fields": ("cree_le", "modifie_le"), "classes": ("collapse",)},
+        ),
     )
 
-    readonly_fields = ('cree_le', 'modifie_le')
+    readonly_fields = ("cree_le", "modifie_le")

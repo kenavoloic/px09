@@ -1,6 +1,7 @@
 """
 Signaux pour le traitement automatique des images
 """
+
 import os
 from io import BytesIO
 from typing import Any
@@ -14,7 +15,9 @@ from .models import PhotoVersion
 
 
 @receiver(post_save, sender=PhotoVersion)
-def optimize_photo_version(sender: type, instance: PhotoVersion, created: bool, **kwargs: Any) -> None:
+def optimize_photo_version(
+    sender: type, instance: PhotoVersion, created: bool, **kwargs: Any
+) -> None:
     """
     Optimise automatiquement une PhotoVersion après sa création
     """
@@ -48,14 +51,14 @@ def optimize_photo_version(sender: type, instance: PhotoVersion, created: bool, 
             optimized = True
 
         # Optimiser la compression JPEG
-        if img.format == 'JPEG' or optimized:
+        if img.format == "JPEG" or optimized:
             # Convertir en RGB si nécessaire (pour éviter les erreurs JPEG)
-            if img.mode in ('RGBA', 'P'):
+            if img.mode in ("RGBA", "P"):
                 # Créer un fond blanc pour la transparence
-                rgb_img = Image.new('RGB', img.size, (255, 255, 255))
-                if img.mode == 'P':
-                    img = img.convert('RGBA')
-                rgb_img.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+                rgb_img = Image.new("RGB", img.size, (255, 255, 255))
+                if img.mode == "P":
+                    img = img.convert("RGBA")
+                rgb_img.paste(img, mask=img.split()[-1] if img.mode == "RGBA" else None)
                 img = rgb_img
 
             # Sauvegarder avec optimisation
@@ -71,10 +74,10 @@ def optimize_photo_version(sender: type, instance: PhotoVersion, created: bool, 
 
             img.save(
                 output,
-                format='JPEG',
+                format="JPEG",
                 quality=quality,
                 optimize=True,
-                progressive=True  # JPEG progressif pour un meilleur chargement
+                progressive=True,  # JPEG progressif pour un meilleur chargement
             )
 
             # Créer un nouveau fichier Django
@@ -83,16 +86,14 @@ def optimize_photo_version(sender: type, instance: PhotoVersion, created: bool, 
                 output,
                 None,
                 instance.fichier_web.name,
-                'image/jpeg',
+                "image/jpeg",
                 output.tell(),
-                None
+                None,
             )
 
             # Sauvegarder le fichier optimisé
             instance.fichier_web.save(
-                instance.fichier_web.name,
-                optimized_file,
-                save=False
+                instance.fichier_web.name, optimized_file, save=False
             )
 
             # Calculer les gains
@@ -101,12 +102,16 @@ def optimize_photo_version(sender: type, instance: PhotoVersion, created: bool, 
                 reduction_percent = ((original_size - new_size) / original_size) * 100
 
                 print(f"✅ Image optimisée: {instance.photo.titre}")
-                print(f"   Taille: {original_width}x{original_height} → {instance.largeur}x{instance.hauteur}")
-                print(f"   Poids: {original_size/1024/1024:.1f}MB → {new_size/1024/1024:.1f}MB (-{reduction_percent:.1f}%)")
+                print(
+                    f"   Taille: {original_width}x{original_height} → {instance.largeur}x{instance.hauteur}"
+                )
+                print(
+                    f"   Poids: {original_size / 1024 / 1024:.1f}MB → {new_size / 1024 / 1024:.1f}MB (-{reduction_percent:.1f}%)"
+                )
 
         # Sauvegarder les nouvelles dimensions si modifiées
         if optimized:
-            instance.save(update_fields=['largeur', 'hauteur'])
+            instance.save(update_fields=["largeur", "hauteur"])
 
     except Exception as e:
         print(f"⚠️  Erreur lors de l'optimisation de {instance.photo.titre}: {e}")
@@ -115,7 +120,9 @@ def optimize_photo_version(sender: type, instance: PhotoVersion, created: bool, 
 
 
 @receiver(post_save, sender=PhotoVersion)
-def generate_thumbnail_preview(sender: type, instance: PhotoVersion, created: bool, **kwargs: Any) -> None:
+def generate_thumbnail_preview(
+    sender: type, instance: PhotoVersion, created: bool, **kwargs: Any
+) -> None:
     """
     Pré-génère les thumbnails pour améliorer les performances
     """
@@ -131,5 +138,7 @@ def generate_thumbnail_preview(sender: type, instance: PhotoVersion, created: bo
         print(f"🖼️  Thumbnails générés pour: {instance.photo.titre}")
 
     except Exception as e:
-        print(f"⚠️  Erreur lors de la génération des thumbnails pour {instance.photo.titre}: {e}")
+        print(
+            f"⚠️  Erreur lors de la génération des thumbnails pour {instance.photo.titre}: {e}"
+        )
         pass

@@ -9,6 +9,4 @@ def site_config(request):
     """
     Ajoute la configuration du site dans le contexte de tous les templates
     """
-    return {
-        'config': ConfigurationSite.get_instance()
-    }
+    return {"config": ConfigurationSite.get_instance()}

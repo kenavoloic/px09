@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("galeries", "0007_photoversion_taille_fichier_hd_and_more"),
     ]

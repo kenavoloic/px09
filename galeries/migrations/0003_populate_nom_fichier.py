@@ -5,7 +5,7 @@ from django.db import migrations
 
 def populate_nom_fichier(apps, schema_editor):
     """Populer le champ nom_fichier avec le titre existant ou valeur par défaut"""
-    Photo = apps.get_model('galeries', 'Photo')
+    Photo = apps.get_model("galeries", "Photo")
 
     for photo in Photo.objects.all():
         if photo.titre:
@@ -23,7 +23,6 @@ def reverse_populate_nom_fichier(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("galeries", "0002_add_nom_fichier_to_photo"),
     ]

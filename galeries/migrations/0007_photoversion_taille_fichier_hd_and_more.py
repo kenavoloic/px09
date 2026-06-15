@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("galeries", "0006_alter_collection_options_collection_ordre_manuel_and_more"),
     ]

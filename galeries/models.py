@@ -56,45 +56,37 @@ class ConfigurationSite(models.Model):
         max_length=100,
         default="Hors les Murs",
         verbose_name="Nom du site",
-        help_text="Nom affiché dans le logo et les titres"
+        help_text="Nom affiché dans le logo et les titres",
     )
 
     titre_complet = models.CharField(
         max_length=200,
         default="Hors les Murs — Studio Photographique",
         verbose_name="Titre complet",
-        help_text="Titre affiché dans l'onglet du navigateur"
+        help_text="Titre affiché dans l'onglet du navigateur",
     )
 
     description_site = models.TextField(
         default="Studio photographique : paysages, sport, architecture, documentaire.",
         verbose_name="Description du site",
-        help_text="Description meta pour les moteurs de recherche"
+        help_text="Description meta pour les moteurs de recherche",
     )
 
     # Navigation
     nav_galeries = models.CharField(
-        max_length=50,
-        default="Galeries",
-        verbose_name="Menu Galeries"
+        max_length=50, default="Galeries", verbose_name="Menu Galeries"
     )
 
     nav_acces_prive = models.CharField(
-        max_length=50,
-        default="Accès privé",
-        verbose_name="Menu Accès privé"
+        max_length=50, default="Accès privé", verbose_name="Menu Accès privé"
     )
 
     nav_contact = models.CharField(
-        max_length=50,
-        default="Contact",
-        verbose_name="Menu Contact"
+        max_length=50, default="Contact", verbose_name="Menu Contact"
     )
 
     nav_accueil = models.CharField(
-        max_length=50,
-        default="Accueil",
-        verbose_name="Menu Accueil"
+        max_length=50, default="Accueil", verbose_name="Menu Accueil"
     )
 
     # Page d'accueil
@@ -102,105 +94,85 @@ class ConfigurationSite(models.Model):
         max_length=100,
         default="Studio photographique",
         verbose_name="Sous-titre hero",
-        help_text="Texte au-dessus du titre principal"
+        help_text="Texte au-dessus du titre principal",
     )
 
     hero_description = models.TextField(
         default="Capturer l'instant, révéler l'émotion. Spécialisé dans la photographie de paysages, sport et architecture.",
         verbose_name="Description hero",
-        help_text="Paragraphe descriptif dans la section hero"
+        help_text="Paragraphe descriptif dans la section hero",
     )
 
     btn_voir_galeries = models.CharField(
-        max_length=50,
-        default="Voir les galeries",
-        verbose_name="Bouton galeries"
+        max_length=50, default="Voir les galeries", verbose_name="Bouton galeries"
     )
 
     btn_acces_prive = models.CharField(
-        max_length=50,
-        default="Accès privé",
-        verbose_name="Bouton accès privé"
+        max_length=50, default="Accès privé", verbose_name="Bouton accès privé"
     )
 
     titre_galeries = models.CharField(
-        max_length=100,
-        default="Galeries",
-        verbose_name="Titre section galeries"
+        max_length=100, default="Galeries", verbose_name="Titre section galeries"
     )
 
     titre_acces_prive = models.CharField(
-        max_length=100,
-        default="Accès privé",
-        verbose_name="Titre section accès privé"
+        max_length=100, default="Accès privé", verbose_name="Titre section accès privé"
     )
 
     description_acces_prive = models.TextField(
         default="Vous avez reçu un code d'accès pour une galerie privée ? Saisissez-le ci-dessous.",
-        verbose_name="Description accès privé"
+        verbose_name="Description accès privé",
     )
 
     # Modal accès privé
     modal_titre = models.CharField(
         max_length=100,
         default="Accéder à votre galerie",
-        verbose_name="Titre modal accès"
+        verbose_name="Titre modal accès",
     )
 
     modal_sous_titre = models.CharField(
         max_length=200,
         default="Saisissez votre email et le code reçu pour accéder à la galerie.",
-        verbose_name="Sous-titre modal"
+        verbose_name="Sous-titre modal",
     )
 
     modal_placeholder_code = models.CharField(
-        max_length=50,
-        default="ABC12345",
-        verbose_name="Placeholder code"
+        max_length=50, default="ABC12345", verbose_name="Placeholder code"
     )
 
     modal_btn_entrer_code = models.CharField(
-        max_length=50,
-        default="Entrer mon code",
-        verbose_name="Bouton modal"
+        max_length=50, default="Entrer mon code", verbose_name="Bouton modal"
     )
 
     modal_btn_acceder = models.CharField(
         max_length=50,
         default="Accéder à la galerie",
-        verbose_name="Bouton accès galerie"
+        verbose_name="Bouton accès galerie",
     )
 
     # Messages
     msg_mode_prive = models.CharField(
-        max_length=50,
-        default="Mode privé",
-        verbose_name="Badge mode privé"
+        max_length=50, default="Mode privé", verbose_name="Badge mode privé"
     )
 
     msg_mes_galeries = models.CharField(
-        max_length=50,
-        default="Mes galeries",
-        verbose_name="Lien mes galeries"
+        max_length=50, default="Mes galeries", verbose_name="Lien mes galeries"
     )
 
     msg_quitter_prive = models.CharField(
         max_length=50,
         default="Quitter le mode privé",
-        verbose_name="Tooltip quitter privé"
+        verbose_name="Tooltip quitter privé",
     )
 
     msg_sans_titre = models.CharField(
-        max_length=50,
-        default="Sans titre",
-        verbose_name="Texte photos sans titre"
+        max_length=50, default="Sans titre", verbose_name="Texte photos sans titre"
     )
 
     # Footer
     footer_copyright = models.CharField(
-        max_length=100,
-        default="Tous droits réservés",
-        verbose_name="Texte copyright"
+        max_length=100, default="Tous droits réservés", verbose_name="Texte copyright"
     )
 
     class Meta:

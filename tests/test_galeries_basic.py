@@ -1,6 +1,7 @@
 """
 Tests basiques pour les modèles galeries
 """
+
 from django.test import TestCase
 
 from galeries.models import Collection, Galerie, Photo
@@ -16,7 +17,7 @@ class TestGalerieBasic(TestCase):
             slug="test-galerie",
             description="Description de test",
             ordre_affichage=1,
-            est_publique=True
+            est_publique=True,
         )
 
         self.assertEqual(galerie.nom, "Test Galerie")
@@ -25,18 +26,12 @@ class TestGalerieBasic(TestCase):
 
     def test_str_galerie(self) -> None:
         """Test de la représentation string"""
-        galerie = Galerie.objects.create(
-            nom="Ma Galerie",
-            slug="ma-galerie"
-        )
+        galerie = Galerie.objects.create(nom="Ma Galerie", slug="ma-galerie")
         self.assertEqual(str(galerie), "Ma Galerie")
 
     def test_get_absolute_url(self) -> None:
         """Test de l'URL absolue"""
-        galerie = Galerie.objects.create(
-            nom="Test",
-            slug="test-galerie"
-        )
+        galerie = Galerie.objects.create(nom="Test", slug="test-galerie")
         self.assertEqual(galerie.get_absolute_url(), "/galerie/test-galerie/")
 
 
@@ -45,16 +40,13 @@ class TestCollectionBasic(TestCase):
 
     def test_creation_collection(self) -> None:
         """Test de création d'une collection"""
-        galerie = Galerie.objects.create(
-            nom="Galerie",
-            slug="galerie"
-        )
+        galerie = Galerie.objects.create(nom="Galerie", slug="galerie")
         collection = Collection.objects.create(
             galerie=galerie,
             nom="Test Collection",
             slug="test-collection",
             ordre_affichage=1,
-            est_publique=True
+            est_publique=True,
         )
 
         self.assertEqual(collection.nom, "Test Collection")
@@ -64,9 +56,7 @@ class TestCollectionBasic(TestCase):
         """Test de la représentation string"""
         galerie = Galerie.objects.create(nom="Galerie", slug="galerie")
         collection = Collection.objects.create(
-            galerie=galerie,
-            nom="Ma Collection",
-            slug="ma-collection"
+            galerie=galerie, nom="Ma Collection", slug="ma-collection"
         )
         self.assertEqual(str(collection), "Galerie - Ma Collection")
 
@@ -83,7 +73,7 @@ class TestPhotoBasic(TestCase):
             ordre_affichage=1,
             est_publique=True,
             largeur_originale=1920,
-            hauteur_originale=1080
+            hauteur_originale=1080,
         )
 
         self.assertEqual(photo.titre, "Test Photo")
@@ -96,7 +86,7 @@ class TestPhotoBasic(TestCase):
             galerie=galerie,
             titre="Ma Photo",
             largeur_originale=1920,
-            hauteur_originale=1080
+            hauteur_originale=1080,
         )
         self.assertEqual(str(photo), "Ma Photo")
 
@@ -104,9 +94,7 @@ class TestPhotoBasic(TestCase):
         """Test de la représentation string sans titre"""
         galerie = Galerie.objects.create(nom="Galerie", slug="galerie")
         photo = Photo.objects.create(
-            galerie=galerie,
-            largeur_originale=1920,
-            hauteur_originale=1080
+            galerie=galerie, largeur_originale=1920, hauteur_originale=1080
         )
         # Par défaut, la configuration retourne "Sans titre" pour les photos sans titre personnalisé
         self.assertEqual(str(photo), "Sans titre")

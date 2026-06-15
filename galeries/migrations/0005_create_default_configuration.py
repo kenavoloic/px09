@@ -5,10 +5,9 @@ from django.db import migrations
 
 def create_default_configuration(apps, schema_editor):
     """Créer l'instance de configuration par défaut"""
-    ConfigurationSite = apps.get_model('galeries', 'ConfigurationSite')
+    ConfigurationSite = apps.get_model("galeries", "ConfigurationSite")
     ConfigurationSite.objects.get_or_create(
-        pk=1,
-        defaults={'affichage_titre_vide': 'sans_titre'}
+        pk=1, defaults={"affichage_titre_vide": "sans_titre"}
     )
 
 
@@ -18,11 +17,12 @@ def reverse_create_default_configuration(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("galeries", "0004_add_configuration_site"),
     ]
 
     operations = [
-        migrations.RunPython(create_default_configuration, reverse_create_default_configuration),
+        migrations.RunPython(
+            create_default_configuration, reverse_create_default_configuration
+        ),
     ]

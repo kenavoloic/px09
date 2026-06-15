@@ -20,19 +20,16 @@ class Client(models.Model):
     telephone = models.CharField(max_length=20, blank=True)
     entreprise = models.CharField(max_length=200, blank=True)
     adresse = models.TextField(blank=True)
-    notes = models.TextField(
-        blank=True,
-        help_text="Notes internes du photographe"
-    )
+    notes = models.TextField(blank=True, help_text="Notes internes du photographe")
 
     # Métadonnées
     cree_le = models.DateTimeField(auto_now_add=True)
     modifie_le = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['nom', 'prenom']
-        verbose_name = 'Client'
-        verbose_name_plural = 'Clients'
+        ordering = ["nom", "prenom"]
+        verbose_name = "Client"
+        verbose_name_plural = "Clients"
 
     def __str__(self) -> str:
         if self.entreprise:
@@ -47,57 +44,45 @@ class Commande(models.Model):
     """Commande contenant des photos pour un client"""
 
     STATUS_CHOICES = [
-        ('en_preparation', 'En préparation'),
-        ('livree', 'Livrée'),
-        ('expiree', 'Expirée'),
+        ("en_preparation", "En préparation"),
+        ("livree", "Livrée"),
+        ("expiree", "Expirée"),
     ]
 
     # Relations
     client = models.ForeignKey(
-        Client,
-        on_delete=models.CASCADE,
-        related_name='commandes'
+        Client, on_delete=models.CASCADE, related_name="commandes"
     )
 
     # Identification
     reference = models.CharField(
         max_length=50,
         unique=True,
-        help_text="Référence unique de la commande (ex: CMD-2024-001)"
+        help_text="Référence unique de la commande (ex: CMD-2024-001)",
     )
     titre = models.CharField(
-        max_length=200,
-        help_text="Titre de la commande (ex: Mariage Sarah & Thomas)"
+        max_length=200, help_text="Titre de la commande (ex: Mariage Sarah & Thomas)"
     )
     description = models.TextField(blank=True)
     message_client = models.TextField(
-        blank=True,
-        help_text="Message personnalisé pour le client"
+        blank=True, help_text="Message personnalisé pour le client"
     )
 
     # Gestion d'accès
     code_acces = models.CharField(
-        max_length=32,
-        unique=True,
-        help_text="Code d'accès généré automatiquement"
+        max_length=32, unique=True, help_text="Code d'accès généré automatiquement"
     )
     statut = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default='en_preparation'
+        max_length=20, choices=STATUS_CHOICES, default="en_preparation"
     )
-    expire_le = models.DateTimeField(
-        help_text="Date d'expiration de l'accès client"
-    )
+    expire_le = models.DateTimeField(help_text="Date d'expiration de l'accès client")
 
     # Paramètres de téléchargement
     autoriser_telechargement_web = models.BooleanField(
-        default=True,
-        help_text="Permettre le téléchargement des versions web"
+        default=True, help_text="Permettre le téléchargement des versions web"
     )
     autoriser_telechargement_hd = models.BooleanField(
-        default=False,
-        help_text="Permettre le téléchargement haute résolution"
+        default=False, help_text="Permettre le téléchargement haute résolution"
     )
 
     # Statistiques
@@ -111,9 +96,9 @@ class Commande(models.Model):
     modifie_le = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-cree_le']
-        verbose_name = 'Commande'
-        verbose_name_plural = 'Commandes'
+        ordering = ["-cree_le"]
+        verbose_name = "Commande"
+        verbose_name_plural = "Commandes"
 
     def __str__(self) -> str:
         return f"{self.reference} - {self.titre}"
@@ -153,10 +138,7 @@ class Commande(models.Model):
 
     def est_accessible(self) -> bool:
         """Vérifie si la commande est accessible (non expirée et livrée)"""
-        return (
-            self.statut == 'livree' and
-            self.expire_le > timezone.now()
-        )
+        return self.statut == "livree" and self.expire_le > timezone.now()
 
     def est_expiree(self) -> bool:
         """Vérifie si la commande est expirée"""
@@ -164,13 +146,13 @@ class Commande(models.Model):
 
     def get_absolute_url(self) -> str:
         """URL d'accès client avec le code"""
-        return reverse('commandes:acces_commande', kwargs={
-            'code_acces': self.code_acces
-        })
+        return reverse(
+            "commandes:acces_commande", kwargs={"code_acces": self.code_acces}
+        )
 
     def get_admin_url(self) -> str:
         """URL d'administration de la commande"""
-        return reverse('admin:commandes_commande_change', args=[self.pk])
+        return reverse("admin:commandes_commande_change", args=[self.pk])
 
     def enregistrer_visite(self) -> None:
         """Enregistre une visite client"""
@@ -181,14 +163,14 @@ class Commande(models.Model):
         if not self.premiere_visite_le:
             self.premiere_visite_le = maintenant
 
-        self.save(update_fields=[
-            'nombre_vues', 'premiere_visite_le', 'derniere_visite_le'
-        ])
+        self.save(
+            update_fields=["nombre_vues", "premiere_visite_le", "derniere_visite_le"]
+        )
 
     def enregistrer_telechargement(self) -> None:
         """Enregistre un téléchargement"""
         self.nombre_telechargements += 1
-        self.save(update_fields=['nombre_telechargements'])
+        self.save(update_fields=["nombre_telechargements"])
 
     def get_photos_count(self) -> int:
         """Retourne le nombre de photos dans la commande"""
@@ -200,30 +182,27 @@ class PhotoCommande(models.Model):
 
     # Relations
     commande = models.ForeignKey(
-        Commande,
-        on_delete=models.CASCADE,
-        related_name='photos'
+        Commande, on_delete=models.CASCADE, related_name="photos"
     )
     photo_originale = models.ForeignKey(
-        'galeries.Photo',
+        "galeries.Photo",
         on_delete=models.CASCADE,
-        help_text="Photo du portfolio à inclure dans la commande"
+        help_text="Photo du portfolio à inclure dans la commande",
     )
     version_selectionnee = models.ForeignKey(
-        'galeries.PhotoVersion',
+        "galeries.PhotoVersion",
         on_delete=models.CASCADE,
-        help_text="Version spécifique à livrer (couleur, monochrome, etc.)"
+        help_text="Version spécifique à livrer (couleur, monochrome, etc.)",
     )
 
     # Personnalisation pour le client
     titre_personnalise = models.CharField(
         max_length=200,
         blank=True,
-        help_text="Titre spécifique pour cette commande (optionnel)"
+        help_text="Titre spécifique pour cette commande (optionnel)",
     )
     commentaire_interne = models.TextField(
-        blank=True,
-        help_text="Commentaire interne du photographe"
+        blank=True, help_text="Commentaire interne du photographe"
     )
 
     # Gestion d'affichage
@@ -233,15 +212,17 @@ class PhotoCommande(models.Model):
     ajoutee_le = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = [('commande', 'photo_originale', 'version_selectionnee')]
-        ordering = ['ordre_affichage', 'ajoutee_le']
-        verbose_name = 'Photo de commande'
-        verbose_name_plural = 'Photos de commande'
+        unique_together = [("commande", "photo_originale", "version_selectionnee")]
+        ordering = ["ordre_affichage", "ajoutee_le"]
+        verbose_name = "Photo de commande"
+        verbose_name_plural = "Photos de commande"
 
     def __str__(self) -> str:
         if self.titre_personnalise:
             return f"{self.commande.reference} - {self.titre_personnalise}"
-        return f"{self.commande.reference} - {self.photo_originale.get_titre_affichage()}"
+        return (
+            f"{self.commande.reference} - {self.photo_originale.get_titre_affichage()}"
+        )
 
     def get_titre_affichage(self) -> str:
         """Retourne le titre à afficher au client"""
@@ -251,15 +232,23 @@ class PhotoCommande(models.Model):
 
     def get_url_web(self) -> str:
         """URL de la version web"""
-        return self.version_selectionnee.fichier_web.url if self.version_selectionnee.fichier_web else ""
+        return (
+            self.version_selectionnee.fichier_web.url
+            if self.version_selectionnee.fichier_web
+            else ""
+        )
 
     def get_url_hd(self) -> str:
         """URL de la version haute résolution"""
-        return self.version_selectionnee.fichier_pleine_resolution.url if self.version_selectionnee.fichier_pleine_resolution else ""
+        return (
+            self.version_selectionnee.fichier_pleine_resolution.url
+            if self.version_selectionnee.fichier_pleine_resolution
+            else ""
+        )
 
     def peut_telecharger_hd(self) -> bool:
         """Vérifie si le téléchargement HD est autorisé et disponible"""
         return (
-            self.commande.autoriser_telechargement_hd and
-            self.version_selectionnee.fichier_pleine_resolution
+            self.commande.autoriser_telechargement_hd
+            and self.version_selectionnee.fichier_pleine_resolution
         )

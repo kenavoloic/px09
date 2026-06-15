@@ -4,17 +4,17 @@ from galeries.models import Collection, Galerie, PhotoVersion
 
 
 class Command(BaseCommand):
-    help = 'Recalcule le cache des tailles pour toutes les galeries et collections'
+    help = "Recalcule le cache des tailles pour toutes les galeries et collections"
 
     def add_arguments(self, parser):
         parser.add_argument(
-            '--dry-run',
-            action='store_true',
-            help='Affiche ce qui serait fait sans effectuer les modifications',
+            "--dry-run",
+            action="store_true",
+            help="Affiche ce qui serait fait sans effectuer les modifications",
         )
 
     def handle(self, *args, **options):
-        dry_run = options['dry_run']
+        dry_run = options["dry_run"]
 
         self.stdout.write(
             self.style.SUCCESS(
@@ -66,5 +66,3 @@ class Command(BaseCommand):
             )
         else:
             self.stdout.write("\n[DRY RUN] Aucune modification effectuée.")
-
-

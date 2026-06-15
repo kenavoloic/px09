@@ -64,7 +64,7 @@ class SectionAccueilModelTest(TestCase):
             titre="Ma Section",
             contenu="<p>Contenu de test</p>",
             position="hero",
-            ordre=1
+            ordre=1,
         )
 
         self.assertEqual(section.titre, "Ma Section")
@@ -74,9 +74,7 @@ class SectionAccueilModelTest(TestCase):
     def test_str_representation(self):
         """Test de la representation string"""
         section = SectionAccueil.objects.create(
-            titre="Test Section",
-            contenu="Contenu",
-            position="galeries"
+            titre="Test Section", contenu="Contenu", position="galeries"
         )
 
         self.assertEqual(str(section), "Test Section (Avant les galeries)")
@@ -105,17 +103,17 @@ class AccueilViewsTest(TestCase):
             slug="test-galerie",
             description="Une galerie de test",
             est_publique=True,
-            ordre_affichage=1
+            ordre_affichage=1,
         )
 
     def test_index_view_GET(self):
         """Test de la vue index"""
-        url = reverse('accueil:index')
+        url = reverse("accueil:index")
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "HORS LES MURS")
-        self.assertIn('galeries', response.context)
+        self.assertIn("galeries", response.context)
 
     def test_index_view_avec_galeries(self):
         """Test que les galeries publiques sont affichees"""
@@ -124,13 +122,13 @@ class AccueilViewsTest(TestCase):
             nom="Galerie Privée",
             slug="privee",
             description="Privée",
-            est_publique=False
+            est_publique=False,
         )
 
-        url = reverse('accueil:index')
+        url = reverse("accueil:index")
         response = self.client.get(url)
 
-        galeries = response.context['galeries']
+        galeries = response.context["galeries"]
         self.assertEqual(galeries.count(), 1)
         self.assertEqual(galeries.first().nom, "Test Galerie")
 
@@ -140,32 +138,32 @@ class AccueilViewsTest(TestCase):
             titre="Section Test",
             contenu="<p>Contenu test</p>",
             position="hero",
-            est_active=True
+            est_active=True,
         )
 
-        url = reverse('accueil:index')
+        url = reverse("accueil:index")
         response = self.client.get(url)
 
-        sections = response.context['sections']
+        sections = response.context["sections"]
         self.assertIn(section, sections)
 
     def test_contact_view_GET(self):
         """Test de la vue contact en GET"""
-        url = reverse('accueil:contact')
+        url = reverse("accueil:contact")
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn('form', response.context)
-        self.assertIsInstance(response.context['form'], ContactForm)
+        self.assertIn("form", response.context)
+        self.assertIsInstance(response.context["form"], ContactForm)
 
     def test_contact_view_POST_valide(self):
         """Test du formulaire de contact avec donnees valides"""
-        url = reverse('accueil:contact')
+        url = reverse("accueil:contact")
         data = {
-            'nom': 'Dupont',
-            'email': 'test@example.com',
-            'sujet': 'info',
-            'message': 'Message de test'
+            "nom": "Dupont",
+            "email": "test@example.com",
+            "sujet": "info",
+            "message": "Message de test",
         }
 
         response = self.client.post(url, data)
@@ -175,19 +173,19 @@ class AccueilViewsTest(TestCase):
 
     def test_contact_view_POST_invalide(self):
         """Test du formulaire de contact avec donnees invalides"""
-        url = reverse('accueil:contact')
+        url = reverse("accueil:contact")
         data = {
-            'nom': '',  # Nom requis
-            'email': 'email-invalide',
-            'sujet': '',
-            'message': ''
+            "nom": "",  # Nom requis
+            "email": "email-invalide",
+            "sujet": "",
+            "message": "",
         }
 
         response = self.client.post(url, data)
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn('form', response.context)
-        self.assertTrue(response.context['form'].errors)
+        self.assertIn("form", response.context)
+        self.assertTrue(response.context["form"].errors)
 
 
 class ContactFormTest(TestCase):
@@ -196,10 +194,10 @@ class ContactFormTest(TestCase):
     def test_formulaire_valide(self):
         """Test d'un formulaire valide"""
         form_data = {
-            'nom': 'Dupont',
-            'email': 'test@example.com',
-            'sujet': 'info',
-            'message': 'Bonjour, j\'aimerais avoir des informations.'
+            "nom": "Dupont",
+            "email": "test@example.com",
+            "sujet": "info",
+            "message": "Bonjour, j'aimerais avoir des informations.",
         }
 
         form = ContactForm(data=form_data)
@@ -208,36 +206,36 @@ class ContactFormTest(TestCase):
     def test_formulaire_invalide_email(self):
         """Test avec email invalide"""
         form_data = {
-            'nom': 'Dupont',
-            'email': 'email-invalide',
-            'sujet': 'info',
-            'message': 'Message'
+            "nom": "Dupont",
+            "email": "email-invalide",
+            "sujet": "info",
+            "message": "Message",
         }
 
         form = ContactForm(data=form_data)
         self.assertFalse(form.is_valid())
-        self.assertIn('email', form.errors)
+        self.assertIn("email", form.errors)
 
     def test_formulaire_champs_requis(self):
         """Test des champs requis"""
         form = ContactForm(data={})
 
         self.assertFalse(form.is_valid())
-        self.assertIn('nom', form.errors)
-        self.assertIn('email', form.errors)
-        self.assertIn('sujet', form.errors)
-        self.assertIn('message', form.errors)
+        self.assertIn("nom", form.errors)
+        self.assertIn("email", form.errors)
+        self.assertIn("sujet", form.errors)
+        self.assertIn("message", form.errors)
 
     def test_formulaire_longueur_maximale(self):
         """Test des longueurs maximales"""
         form_data = {
-            'nom': 'x' * 101,  # Max 100
-            'email': 'test@example.com',
-            'sujet': 'info',
-            'message': 'x' * 1001  # Max 1000
+            "nom": "x" * 101,  # Max 100
+            "email": "test@example.com",
+            "sujet": "info",
+            "message": "x" * 1001,  # Max 1000
         }
 
         form = ContactForm(data=form_data)
         self.assertFalse(form.is_valid())
-        self.assertIn('nom', form.errors)
-        self.assertIn('message', form.errors)
+        self.assertIn("nom", form.errors)
+        self.assertIn("message", form.errors)

@@ -1,6 +1,7 @@
 """
 Middleware pour la gestion de la langue
 """
+
 from django.utils import translation
 from django.utils.deprecation import MiddlewareMixin
 
@@ -11,7 +12,7 @@ class LanguageFromConfigMiddleware(MiddlewareMixin):
     """
     Middleware qui définit la langue active basée sur la configuration du site
     """
-    
+
     def process_request(self, request):
         """
         Active la langue configurée dans ConfigurationSite
