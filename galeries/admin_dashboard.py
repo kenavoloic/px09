@@ -29,6 +29,12 @@ from .admin import (
     PhotoVersionAdmin,
     VisiteurGalerieAdmin,
 )
+from .apps_proxy import (
+    PhotoOrderingAdmin,
+    PhotoOrderingProxy,
+    PhotoUploadAdmin,
+    PhotoUploadProxy,
+)
 from .models import (
     AccesGalerie,
     Collection,
@@ -249,7 +255,7 @@ class CustomAdminSite(AdminSite):
             {
                 "titre": "📷 Upload de photos",
                 "description": "Ajouter de nouvelles photos",
-                "url": "admin:galeries_photo_add",
+                "url": "galeries_admin:upload_photos",
                 "couleur": "blue",
             },
             {
@@ -300,3 +306,9 @@ custom_admin_site.register(SectionAccueil, SectionAccueilAdmin)
 custom_admin_site.register(Client, ClientAdmin)
 custom_admin_site.register(Commande, CommandeAdmin)
 custom_admin_site.register(PhotoCommande, PhotoCommandeAdmin)
+
+# Sections proxy (upload en masse, gestion de l'ordre) : à enregistrer
+# explicitement sur le site personnalisé, sinon elles n'apparaissent que sur
+# le site d'admin par défaut (qui n'est pas servi).
+custom_admin_site.register(PhotoUploadProxy, PhotoUploadAdmin)
+custom_admin_site.register(PhotoOrderingProxy, PhotoOrderingAdmin)
